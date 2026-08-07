@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpar Dados - NikkeyBox</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .warning-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .warning-box ul {
+            color: #856404;
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .warning-box li {
+            margin: 5px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-box h3 {
+            color: #0c5460;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-box p {
+            color: #0c5460;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(252, 182, 159, 0.4);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+        
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(168, 237, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #81FBB8 0%, #28C76F 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 199, 111, 0.4);
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+            display: block;
+        }
+        
+        .data-display {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .data-display pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Gerenciar Dados</h1>
+        <p class="subtitle">Limpe ou visualize os dados do localStorage</p>
+        
+        <div class="warning-box">
+            <h3>⚠️ Atenção!</h3>
+            <p>Ao limpar os dados, você irá remover:</p>
+            <ul>
+                <li>Todos os usuários cadastrados</li>
+                <li>Todos os pedidos</li>
+                <li>Todos os cupons</li>
+                <li>Carrinho de compras</li>
+                <li>Sessão de login atual</li>
+            </ul>
+            <p style="margin-top: 10px;"><strong>Esta ação não pode ser desfeita!</strong></p>
+        </div>
+        
+        <div class="info-box">
+            <h3>ℹ️ Dados no localStorage:</h3>
+            <p id="userCount">Carregando...</p>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-info" onclick="viewData()">
+                👀 Ver Dados
+            </button>
+            <button class="btn-warning" onclick="clearUsers()">
+                👥 Limpar Usuários
+            </button>
+            <button class="btn-danger" onclick="clearAll()">
+                🗑️ Limpar Tudo
+            </button>
+            <button class="btn-success" onclick="location.href='/'">
+                🏠 Voltar ao Site
+            </button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        <div id="dataDisplay"></div>
+    </div>
+
+    <script>
+        function updateCount() {
+            const users = JSON.parse(localStorage.getItem('nikkey-box-users') || '{}');
+            const userCount = Object.keys(users).length;
+            let totalOrders = 0;
+            
+            Object.values(users).forEach(user => {
+                if (user.orders) {
+                    totalOrders += user.orders.length;
+                }
+            });
+            
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const currentUser = localStorage.getItem('user');
+            
+            document.getElementById('userCount').innerHTML = `
+                <strong>👥 Usuários:</strong> ${userCount}<br>
+                <strong>📦 Pedidos:</strong> ${totalOrders}<br>
+                <strong>🛒 Itens no carrinho:</strong> ${cart.length}<br>
+                <strong>🔑 Usuário logado:</strong> ${currentUser ? 'Sim' : 'Não'}
+            `;
+        }
+        
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        function clearUsers() {
+            if (confirm('Tem certeza que deseja limpar TODOS OS USUÁRIOS e PEDIDOS?\n\nEsta ação não pode ser desfeita!')) {
+                localStorage.removeItem('nikkey-box-users');
+                localStorage.removeItem('user');
+                showStatus('✅ Todos os usuários e pedidos foram removidos!', 'success');
+                updateCount();
+                document.getElementById('dataDisplay').innerHTML = '';
+            }
+        }
+        
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar TODOS OS DADOS?\n\nIsso inclui: usuários, pedidos, carrinho, cupons, etc.\n\nEsta ação não pode ser desfeita!')) {
+                localStorage.clear();
+                showStatus('✅ Todos os dados foram limpos! O localStorage está vazio.', 'success');
+                updateCount();
+                document.getElementById('dataDisplay').innerHTML = '';
+            }
+        }
+        
+        function viewData() {
+            const users = localStorage.getItem('nikkey-box-users');
+            const currentUser = localStorage.getItem('user');
+            const cart = localStorage.getItem('cart');
+            
+            let html = '<div class="data-display">';
+            html += '<h3 style="margin-bottom: 15px;">📋 Dados Completos:</h3>';
+            
+            if (users) {
+                const usersObj = JSON.parse(users);
+                html += `<h4>👥 Usuários (${Object.keys(usersObj).length}):</h4>`;
+                Object.entries(usersObj).forEach(([email, user]) => {
+                    html += `<pre>Email: ${email}\n`;
+                    html += `Nome: ${user.name || 'N/A'}\n`;
+                    html += `Pedidos: ${user.orders ? user.orders.length : 0}\n`;
+                    html += `---</pre>`;
+                });
+            }
+            
+            if (currentUser) {
+                const userObj = JSON.parse(currentUser);
+                html += `<h4>🔑 Usuário Logado:</h4>`;
+                html += `<pre>${JSON.stringify(userObj, null, 2)}</pre>`;
+            }
+            
+            if (cart) {
+                const cartObj = JSON.parse(cart);
+                html += `<h4>🛒 Carrinho (${cartObj.length} itens):</h4>`;
+                html += `<pre>${JSON.stringify(cartObj, null, 2)}</pre>`;
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('dataDisplay').innerHTML = html;
+            showStatus('✅ Dados exibidos abaixo', 'info');
+        }
+        
+        // Update count on load
+        updateCount();
+    </script>
+</body>
+</html>

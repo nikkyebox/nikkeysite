@@ -1,0 +1,116 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- OMP context window: isolar o frontend TS (economia de tokens) ---
+# Pastas de build / dependências que o OMP nunca deve varrer.
+node_modules/
+dist/
+dev-dist/
+dist-ssr/
+.next/
+build/
+*.local
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# ERP files
+erp/__pycache__/
+erp/*.pyc
+erp/localstorage-*.json
+erp/whatsapp-service/.wwebjs_auth/
+erp/whatsapp-service/node_modules/
+erp/whatsapp-service/.wwebjs_cache/
+
+.vercel
+
+# Firebase / Google service-account credentials (NUNCA commitar)
+serviceAccountKey.json
+key.json
+*-service-account*.json
+*serviceAccount*.json
+image-urls.json
+
+# Scripts auxiliares de setup (dev)
+get-rules.cjs
+publish-rules.cjs
+setup-admin-auth.cjs
+list-firebase.cjs
+check-buckets.cjs
+check-firestore.cjs
+fetch-real-images.cjs
+fetch-pass2.cjs
+gen-placeholders.cjs
+replace-urls.js
+update-local-images.ts
+fix-images.ts
+fix_images_correct.py
+update.py
+fix_urls.py
+replace_all.sh
+auto-setup-images.ts
+upload-images.ts
+add-sitecontent-rule.cjs
+provision-storage.cjs
+add-eventos-rule.cjs
+build-debug.js
+test-kimiclaw.js
+cadastro_produtos_windows.py
+deploy-rules.sh
+netlify.toml
+
+# Backups manuais (o git já guarda histórico)
+original_*.txt
+original_*.ts
+original_*.tsx
+full_original_*.txt
+full_original_*.ts
+
+# Docs de rascunho
+CONFIGURACAO_EMAIL.md
+CORRECOES_NOTIFICACOES.md
+EMAILJS_SETUP.md
+FIREBASE_SETUP.md
+GUIA_RAPIDO.md
+INSTRUCOES_IMAGENS.md
+QUICK_START.md
+RESUMO_ALTERACOES.md
+SETUP_IMAGES.md
+SINCRONIZACAO_DISPOSITIVOS.md
+SOLUCAO_DEFINITIVA.md
+STATUS_FINAL.txt
+VERCEL_STATUS.md
+WHATSAPP_AUTOMATICO.md
+
+# HTML de debug
+clear-storage.html
+email-template-*.html
+.claude/
+CLAUDE.md.tar.gz

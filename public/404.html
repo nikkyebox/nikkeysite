@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecionando...</title>
+    
+    <!-- SPA 404 Redirect -->
+    <script>
+      // Store the current URL and redirect to root
+      sessionStorage.redirect = location.href;
+      window.location.replace('/');
+    </script>
+  </head>
+  <body>
+    <p>Redirecionando...</p>
+  </body>
+</html>

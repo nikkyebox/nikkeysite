@@ -1,0 +1,24 @@
+{
+  "brand": "NikkeyBox",
+  "legalName": "NikkeyBox",
+  "contactName": "Paula Shiokawa",
+  "email": "contato@nikkeybox-store.com",
+  "website": "https://nikkeybox-store.com",
+  "whatsapp": {
+    "international": "+81 70-1367-1679",
+    "domestic": "070-1367-1679",
+    "digits": "817013671679"
+  },
+  "fulfillmentOrigin": {
+    "postalCode": "720-1143",
+    "addressLine1": "257-18 Shimoyamamori, Ekiya-cho",
+    "city": "Fukuyama-shi",
+    "prefecture": "Hiroshima-ken",
+    "country": "Japan",
+    "countryPt": "Japão",
+    "formatted": "257-18 Shimoyamamori, Ekiya-cho, Fukuyama-shi, Hiroshima-ken 720-1143, Japan",
+    "formattedJa": "〒720-1143 広島県福山市駅家町下山守257-18",
+    "short": "Fukuyama-shi, Hiroshima-ken, Japan",
+    "shortPt": "Fukuyama-shi, Hiroshima-ken, Japão"
+  }
+}

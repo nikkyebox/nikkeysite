@@ -1,0 +1,16 @@
+{
+  "name": "nikkey-box-whatsapp-server",
+  "version": "1.0.0",
+  "description": "Servidor local de WhatsApp (whatsapp-web.js) para notificar clientes sobre o status do pedido.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.3",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  }
+}

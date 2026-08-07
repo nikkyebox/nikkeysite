@@ -1,0 +1,547 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbar for horizontal-scroll tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@layer base {
+  :root {
+    /* NikkeyBox Theme - Light Purple */
+    --background: 0 0% 100%;
+    --foreground: 270 15% 10%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 270 15% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 15% 10%;
+
+    /* Primary - NikkeyBox Light Purple */
+    --primary: 270 70% 63%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light lavender tint */
+    --secondary: 270 40% 96%;
+    --secondary-foreground: 270 55% 38%;
+
+    --muted: 270 20% 95%;
+    --muted-foreground: 270 10% 45%;
+
+    /* Accent - Deep violet */
+    --accent: 280 65% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 270 20% 88%;
+    --input: 270 20% 88%;
+    --ring: 270 70% 63%;
+
+    --radius: 0.5rem;
+
+    /* Mapped custom colors */
+    --caramel: 270 70% 63%;
+    --caramel-light: 270 70% 93%;
+    --caramel-dark: 270 70% 40%;
+    --cream: 0 0% 98%;
+    --chocolate: 280 65% 52%;
+    --coffee: 270 15% 20%;
+    --gold: 45 100% 50%;
+
+    /* Gradients */
+    --gradient-caramel: linear-gradient(135deg, hsl(270 70% 63%) 0%, hsl(280 65% 52%) 100%);
+    --gradient-cream: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(270 30% 97%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(270 70% 95%) 0%, hsl(270 45% 97%) 45%, hsl(0 0% 100%) 100%);
+
+    /* Shadows */
+    --shadow-soft: 0 2px 10px -2px hsl(270 50% 20% / 0.06);
+    --shadow-card: 0 4px 20px -6px hsl(270 50% 20% / 0.12);
+    --shadow-elevated: 0 15px 35px -10px hsl(270 50% 20% / 0.18);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 270 70% 63%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 30% 95%;
+    --sidebar-accent-foreground: 270 55% 30%;
+    --sidebar-border: 270 20% 88%;
+    --sidebar-ring: 270 70% 63%;
+  }
+
+  .dark {
+    --background: 270 15% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 270 12% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 270 15% 10%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 270 70% 68%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 15% 18%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 270 10% 20%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 280 60% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 270 10% 22%;
+    --input: 270 10% 22%;
+    --ring: 270 70% 68%;
+
+    --sidebar-background: 270 15% 8%;
+    --sidebar-foreground: 270 20% 85%;
+    --sidebar-primary: 270 70% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 12% 15%;
+    --sidebar-accent-foreground: 270 20% 85%;
+    --sidebar-border: 270 10% 20%;
+    --sidebar-ring: 270 70% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Largura travada ao viewport SEM bloquear o pinch-zoom.
+     overflow-x:hidden fica SÓ no body (no html, ele desabilita o zoom no mobile). */
+  html {
+    width: 100%;
+    -webkit-text-size-adjust: 100%; /* evita o iOS reescalar o texto */
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip; /* contém o overflow sem virar contexto de scroll */
+  }
+
+  /* Nenhum elemento pode estourar a largura da tela */
+  img, video, canvas, svg, iframe, table {
+    max-width: 100%;
+  }
+
+  /* O .container nunca pode exceder a viewport (reforço além do config) */
+  .container {
+    max-width: 100%;
+  }
+
+  /* Palavras/URLs muito longas quebram em vez de empurrar o layout */
+  p, span, h1, h2, h3, h4, h5, h6, a, li, td {
+    overflow-wrap: break-word;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  /* Marquee da barra de confiança no mobile (rola sem cortar as pontas) */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 18s linear infinite;
+    will-change: transform;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-soft hover:shadow-card font-semibold rounded;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300 font-semibold rounded;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-300 font-semibold rounded;
+  }
+
+  .card-product {
+    @apply bg-card rounded-lg border border-border shadow-soft hover:shadow-card transition-all duration-300 overflow-hidden hover:-translate-y-1;
+  }
+
+  .gradient-caramel {
+    background: var(--gradient-caramel);
+  }
+
+  .gradient-cream {
+    background: var(--gradient-cream);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-caramel);
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* "Pop" curto — usado no coração ao favoritar */
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+}
+
+/* Hero futurista da home: profundidade em CSS puro, sem custo de biblioteca 3D. */
+.hero-future {
+  background:
+    radial-gradient(circle at 82% 18%, hsl(280 90% 92% / 0.72), transparent 30%),
+    radial-gradient(circle at 16% 86%, hsl(270 95% 94% / 0.9), transparent 38%),
+    linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(270 75% 98%) 48%, hsl(280 55% 97%) 100%);
+  box-shadow:
+    0 30px 80px -38px hsl(270 70% 25% / 0.38),
+    inset 0 1px 0 hsl(0 0% 100% / 0.9);
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(hsl(270 70% 65% / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(270 70% 65% / 0.07) 1px, transparent 1px);
+  background-size: 42px 42px;
+  -webkit-mask-image: linear-gradient(to bottom right, black, transparent 74%);
+  mask-image: linear-gradient(to bottom right, black, transparent 74%);
+}
+
+.hero-glass {
+  border: 1px solid hsl(0 0% 100% / 0.88);
+  background: hsl(0 0% 100% / 0.68);
+  box-shadow:
+    0 14px 34px -22px hsl(270 70% 25% / 0.5),
+    inset 0 1px 0 hsl(0 0% 100% / 0.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.hero-title-gradient {
+  color: transparent;
+  background: linear-gradient(110deg, hsl(270 85% 48%), hsl(280 90% 48%) 55%, hsl(350 88% 58%));
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.hero-media-card {
+  transform: perspective(1200px) rotateY(-8deg) rotateX(3deg);
+  transform-style: preserve-3d;
+  transition: transform 500ms cubic-bezier(.2,.8,.2,1), box-shadow 500ms ease;
+}
+
+.hero-future:hover .hero-media-card {
+  transform: perspective(1200px) rotateY(-3deg) rotateX(1deg) translateY(-6px);
+  box-shadow: 0 36px 80px -30px hsl(270 70% 25% / 0.4);
+}
+
+.hero-product-card {
+  transform: perspective(1200px) rotateY(7deg) rotateX(2deg);
+  transform-style: preserve-3d;
+  transition: transform 500ms cubic-bezier(.2,.8,.2,1), box-shadow 500ms ease;
+}
+
+.hero-future:hover .hero-product-card {
+  transform: perspective(1200px) rotateY(2deg) rotateX(0deg) translateY(-5px);
+}
+
+.hero-product-media {
+  filter: drop-shadow(0 24px 20px hsl(270 45% 25% / 0.16));
+  animation: heroProductFloat 6s ease-in-out infinite;
+  transform: translateZ(34px);
+}
+
+.hero-orbit {
+  animation: heroOrbit 18s linear infinite;
+  box-shadow: 0 0 55px hsl(270 85% 65% / 0.14);
+}
+
+.hero-orbit::before,
+.hero-orbit::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.7);
+}
+
+.hero-orbit::before { left: 12%; top: 12%; }
+.hero-orbit::after { bottom: 8%; right: 18%; width: 6px; height: 6px; }
+.hero-orbit-reverse { animation-direction: reverse; animation-duration: 13s; }
+.hero-glow { animation: heroGlow 7s ease-in-out infinite; }
+.hero-glow-delayed { animation-delay: -3.5s; }
+.hero-float-chip { animation: heroChipFloat 5s ease-in-out infinite; }
+.hero-float-chip-delayed { animation-delay: -2.4s; }
+
+@keyframes heroOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes heroGlow {
+  0%, 100% { opacity: .55; transform: scale(.95); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes heroChipFloat {
+  0%, 100% { transform: translate3d(0, 0, 20px); }
+  50% { transform: translate3d(0, -8px, 20px); }
+}
+
+@keyframes heroProductFloat {
+  0%, 100% { transform: translate3d(0, 0, 34px) rotate(-1deg); }
+  50% { transform: translate3d(0, -8px, 34px) rotate(1deg); }
+}
+
+.category-depth-card,
+.product-depth-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.category-depth-card:hover {
+  transform: perspective(700px) translateY(-4px) rotateX(2deg);
+}
+
+.product-depth-card:hover {
+  transform: perspective(900px) translateY(-6px) rotateX(1.5deg);
+}
+/* "Box" do lockup NikkeyBox: zoom in/out contínuo (respeita reduced-motion). */
+@keyframes nikkeyBoxPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+.animate-nikkeybox-pulse {
+  animation: nikkeyBoxPulse 2.2s ease-in-out infinite;
+  transform-origin: center;
+  display: inline-block;
+}
+
+/* Acessibilidade: quem pede menos movimento não recebe animações decorativas
+   (loop/entrada). Transições curtas de UI seguem funcionando via motion-reduce. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-marquee,
+  .animate-bounce,
+  .animate-pulse,
+  .animate-ping,
+  .hero-orbit,
+  .hero-glow,
+  .hero-float-chip,
+  .hero-product-media,
+  .animate-nikkeybox-pulse {
+    animation: none !important;
+  }
+}
+/* ============================================================
+   Cinematic Hero Shelf — GSAP + Lenis scroll-driven showcase
+   ============================================================ */
+@layer components {
+  /* Tipografia japonesa decorativa (fontes do sistema — sem webfont extra). */
+  .font-jp {
+    font-family: "Shippori Mincho", "Noto Serif JP", "Yu Mincho",
+      "Hiragino Mincho ProN", "STKaiti", "Kozuka Mincho Pr6 N", "Georgia",
+      serif;
+    font-feature-settings: "palt";
+  }
+
+  /* Linha-superfície da prateleira: persiste no centro-inferior enquanto
+     os produtos deslizam horizontalmente — metáfora "passando pela prateleira". */
+  .cinematic-shelf-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 22%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(270 30% 70% / 0.35) 18%,
+      hsl(270 30% 70% / 0.45) 50%,
+      hsl(270 30% 70% / 0.35) 82%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+  .cinematic-shelf-glow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24%;
+    background: linear-gradient(
+      to top,
+      hsl(270 35% 88% / 0.6) 0%,
+      hsl(270 35% 92% / 0.28) 38%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Kanji gigante de fundo — cor definida inline por painel (accent + alpha). */
+  .cinematic-kanji {
+    position: absolute;
+    font-weight: 400;
+    line-height: 0.85;
+    color: hsl(270 40% 50% / 0.06);
+    user-select: none;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+  }
+
+  /* Imagem do produto "assentada" com sombra suave (drop-shadow). */
+  .cinematic-product-img {
+    filter: drop-shadow(0 30px 40px hsl(270 40% 20% / 0.18))
+      drop-shadow(0 8px 12px hsl(270 40% 20% / 0.12));
+    will-change: transform;
+  }
+
+  /* Sutil "bob" na seta de dica de scroll. */
+  @keyframes cinematic-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translateY(5px);
+      opacity: 1;
+    }
+  }
+  .cinematic-bob {
+    animation: cinematic-bob 1.8s ease-in-out infinite;
+  }
+
+  /* Avião da marca — decola cruzando o lockup no momento-logo do intro. */
+  @keyframes cinematic-plane {
+    0% {
+      transform: translate(-110px, 44px) rotate(-10deg);
+      opacity: 0;
+    }
+    22% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(120px, -64px) rotate(-10deg);
+      opacity: 0;
+    }
+  }
+  .cinematic-plane {
+    animation: cinematic-plane 2.6s ease-in-out infinite;
+  }
+
+
+  @media (prefers-reduced-motion: reduce) {
+    .cinematic-bob {
+      animation: none;
+    }
+    .cinematic-plane {
+      animation: none;
+      opacity: 0.9;
+    }
+  }
+}
+
+/* Lenis smooth scroll — estilos-base recomendados (fora de layers para
+   sempre vencer regras conflitantes de scroll-behavior/overflow). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

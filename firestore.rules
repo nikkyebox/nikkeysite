@@ -1,0 +1,401 @@
+// Este arquivo É o ruleset que está no ar (medido em 04/08/2026 contra o
+// projeto `nikkey-33f93`: o release `cloud.firestore` apontava para o
+// ruleset `295e2b61-614e-4a07-81de-f9481d39c0a6`, byte a byte igual a este
+// arquivo). O aviso anterior — "publicado só em parte, Grupos 2/3/4 pendentes"
+// — descrevia a migração incremental de julho, que terminou em 01/08/2026.
+//
+// Para publicar, prefira o script a `firebase deploy`:
+//
+//   node scripts/rules-history.mjs diff       o que a publicação mudaria
+//   node scripts/rules-history.mjs publish    publica e imprime como desfazer
+//   node scripts/rules-history.mjs rollback <id>
+//
+// `firebase deploy --only firestore:rules` também funciona, mas publica sem
+// dizer o que mudou e sem deixar à mão o id anterior. Um `predeploy` no
+// `firebase.json` obriga a rodar o `diff` antes — veja
+// `scripts/guard-rules-deploy.mjs`.
+//
+// Se algo já foi publicado por engano: nada se perde. O Firebase guarda todo
+// ruleset já publicado com o fonte completo, e reverter é reapontar o release.
+// `node scripts/rules-history.mjs list` mostra o histórico (33 versões em
+// 04/08/2026, a mais antiga de fevereiro).
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function tokenEmail() {
+      return request.auth.token.get('email', '');
+    }
+
+    function hasAdminClaim() {
+      return signedIn() && (
+        request.auth.token.get('admin', false) == true
+        || request.auth.token.get('role', '') == 'admin'
+        || request.auth.token.get('adminRole', '') == 'admin'
+        || request.auth.token.get('adminRole', 0) in [1, 2, 3]
+      );
+    }
+
+    function hasActiveAdminRecord() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.get('active', false) == true;
+    }
+
+    function isBootstrapAdmin() {
+      return signedIn()
+        && request.auth.token.get('email_verified', false) == true
+        && tokenEmail() == 'dracko2007@gmail.com';
+    }
+
+    function isAdmin() {
+      return hasAdminClaim() || hasActiveAdminRecord() || isBootstrapAdmin();
+    }
+
+    function validText(value, minSize, maxSize) {
+      return value is string && value.size() >= minSize && value.size() <= maxSize;
+    }
+
+    function validOptionalText(data, key, maxSize) {
+      return !data.keys().hasAny([key])
+        || (data[key] is string && data[key].size() <= maxSize);
+    }
+
+    function validAddress(address) {
+      return address is map
+        && address.keys().hasAll(['postalCode', 'prefecture', 'city', 'address'])
+        && address.keys().hasOnly(['postalCode', 'prefecture', 'city', 'address', 'building'])
+        && validText(address.postalCode, 0, 30)
+        && validText(address.prefecture, 0, 100)
+        && validText(address.city, 0, 100)
+        && validText(address.address, 0, 300)
+        && validOptionalText(address, 'building', 120);
+    }
+
+    function validWelcomeCoupons(data) {
+      return !data.keys().hasAny(['coupons'])
+        || (data.coupons is list && (
+          data.coupons.size() == 0
+          || (data.coupons.size() == 1
+            && data.coupons[0] is map
+            && data.coupons[0].keys().hasOnly([
+              'id', 'code', 'description', 'discount', 'discountType', 'expiresAt',
+              'isUsed', 'freeShipping', 'affiliateCode', 'affiliateProductId', 'minOrderValue'
+            ])
+            && data.coupons[0].code == 'BEMVINDO10'
+            && data.coupons[0].discount == 10
+            && data.coupons[0].discountType == 'percentage'
+            && data.coupons[0].isUsed == false)
+        ));
+    }
+
+    function validUserCreate(userId, data) {
+      return owns(userId)
+        && data.keys().hasAll(['id', 'name', 'email', 'phone', 'address', 'createdAt'])
+        && data.keys().hasOnly([
+          'id', 'name', 'email', 'phone', 'birthdate', 'personType', 'cpf', 'cnpj',
+          'razaoSocial', 'document', 'gender', 'whatsappMarketing', 'pushEnabled',
+          'address', 'createdAt', 'coupons', 'points', 'birthdayBonusYear',
+          'lastSyncAt', 'referredBy', 'referredTotalBrl', 'referralRewardPaid'
+        ])
+        && data.id == userId
+        && data.email == tokenEmail()
+        && validText(data.name, 1, 120)
+        && validText(data.email, 3, 254)
+        && validText(data.phone, 0, 40)
+        && validAddress(data.address)
+        && data.get('points', 0) == 0
+        && data.get('birthdayBonusYear', 0) == 0
+        && data.get('referredTotalBrl', 0) == 0
+        && data.get('referralRewardPaid', false) == false
+        && validWelcomeCoupons(data);
+    }
+
+    function validUserUpdate(userId) {
+      return owns(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'phone', 'birthdate', 'personType', 'cpf', 'cnpj', 'razaoSocial',
+          'document', 'gender', 'whatsappMarketing', 'pushEnabled', 'address',
+          'lastSyncAt', 'referredBy'
+        ])
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.email == resource.data.email
+        && validText(request.resource.data.name, 1, 120)
+        && validText(request.resource.data.phone, 0, 40)
+        && validAddress(request.resource.data.address)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referredBy'])
+          || (!resource.data.keys().hasAny(['referredBy'])
+            && validText(request.resource.data.referredBy, 1, 128)))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['birthdate'])
+          || (!resource.data.keys().hasAny(['birthdate'])
+            && validText(request.resource.data.birthdate, 1, 40)));
+    }
+
+    function ownsByEmail(data, field) {
+      return signedIn() && data[field] == tokenEmail();
+    }
+
+    function validCartSnapshot(data) {
+      return data.keys().hasAll([
+          'items', 'totalYen', 'itemCount', 'abandonedAt', 'updatedAt',
+          'reminderSent', 'reminderStage'
+        ])
+        && data.keys().hasOnly([
+          'items', 'totalYen', 'itemCount', 'abandonedAt', 'updatedAt',
+          'reminderSent', 'reminderStage'
+        ])
+        && data.items is list
+        && data.items.size() > 0
+        && data.items.size() <= 100
+        && data.totalYen is number
+        && data.totalYen >= 0
+        && data.itemCount is int
+        && data.itemCount > 0
+        && data.reminderSent == false
+        && data.reminderStage == 0;
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || owns(userId);
+      allow create: if isAdmin() || validUserCreate(userId, request.resource.data);
+      allow update: if isAdmin() || validUserUpdate(userId);
+      allow delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.get('userId', '') == request.auth.uid)
+        || ownsByEmail(resource.data, 'customerEmail');
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /promo_state/{docId} {
+      // Estado da promoção da home: lista de holds com prazos por pedido.
+      // Público não pode ler: expõe ids de pedido. Público não pode escrever:
+      // apenas a API (via Admin SDK, que ignora as regras) grava e lê.
+      // Nem mesmo admin UI toca aqui — promoção está em siteContent.
+      allow read, create, update, delete: if false;
+    }
+
+    match /raffles/{docId} {
+
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /raffle_admin/{docId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /coupons/{couponId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /coupon_usage/{usageId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /eventos/{eventId} {
+      allow create: if signedIn()
+        && request.resource.data.get('usuarioId', '') == request.auth.uid
+        && request.resource.data.keys().hasAll(['usuarioId'])
+        && request.resource.data.keys().size() <= 12;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.get('usuarioId', '') == request.auth.uid);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /affiliates/{code} {
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+    }
+
+    match /affiliate_pending/{id} {
+      allow read: if isAdmin()
+        || ownsByEmail(resource.data, 'buyerEmail')
+        || ownsByEmail(resource.data, 'ownerEmail');
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /affiliate_requests/{id} {
+      allow read: if isAdmin() || ownsByEmail(resource.data, 'email');
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /fraud_attempts/{id} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /cpf_index/{cpf} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /marketing_expenses/{id} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /employees/{id} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /employee_payments/{id} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /analytics_daily/{dateKey} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /analytics_pages/{pageId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /analytics_products/{productId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /custom_requests/{requestId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /b2b_requests/{requestId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /video_reviews/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll([
+          'id', 'userId', 'userName', 'userEmail', 'productId', 'productName',
+          'videoUrl', 'status', 'submittedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'id', 'userId', 'userName', 'userEmail', 'productId', 'productName',
+          'videoUrl', 'status', 'submittedAt', 'minutes', 'pointsAwarded'
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userEmail == tokenEmail()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.get('minutes', 0) == 0
+        && request.resource.data.get('pointsAwarded', 0) == 0
+        && validText(request.resource.data.productId, 1, 160)
+        && validText(request.resource.data.videoUrl, 1, 1000);
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.get('userId', '') == request.auth.uid)
+        || ownsByEmail(resource.data, 'userEmail');
+      allow update, delete: if isAdmin();
+    }
+
+    match /negotiations/{negotiationId} {
+      allow create: if signedIn()
+        && request.resource.data.get('userId', '') == request.auth.uid
+        && request.resource.data.get('userEmail', '') == tokenEmail()
+        && request.resource.data.get('status', '') == 'pending'
+        && request.resource.data.get('autoApproved', true) == false
+        && request.resource.data.get('approvedDiscountYen', 0) == null
+        && request.resource.data.get('approvedBy', '') == ''
+        && request.resource.data.get('approvedAt', 0) == null
+        && request.resource.data.get('resolvedAt', 0) == null
+        && request.resource.data.requestedDiscountYen is number
+        && request.resource.data.originalAmountYen is number
+        && request.resource.data.requestedDiscountYen > 0
+        && request.resource.data.requestedDiscountYen < request.resource.data.originalAmountYen
+        && request.resource.data.cartItems is list
+        && request.resource.data.cartItems.size() > 0
+        && request.resource.data.cartItems.size() <= 100;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.get('userId', '') == request.auth.uid)
+        || ownsByEmail(resource.data, 'userEmail');
+      allow update: if isAdmin()
+        || (signedIn()
+          && resource.data.get('userId', '') == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientSeen'])
+          && request.resource.data.clientSeen == true);
+      allow delete: if isAdmin();
+    }
+
+    match /newsletter/{leadId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    // Consentimento de e-mail. Só o servidor escreve aqui: o link de
+    // cancelamento é assinado por HMAC e processado em `api/unsubscribe`, que
+    // roda com o Admin SDK e ignora estas regras. Cliente nenhum precisa (nem
+    // pode) mexer — daria para descadastrar terceiros escrevendo direto.
+    match /email_optout/{optOutId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /abandoned_carts/{userId} {
+      allow read: if isAdmin() || owns(userId);
+      allow create: if owns(userId)
+        && validCartSnapshot(request.resource.data)
+        && request.resource.data.keys().hasOnly([
+          'items', 'totalYen', 'itemCount', 'abandonedAt', 'updatedAt',
+          'reminderSent', 'reminderStage'
+        ]);
+      allow update: if isAdmin()
+        || (owns(userId)
+          && validCartSnapshot(request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'items', 'totalYen', 'itemCount', 'abandonedAt', 'updatedAt',
+            'reminderSent', 'reminderStage', 'reminderSentAt', 'reminderClaimId',
+            'reminderClaimedAt', 'reminderOptedOut', 'reminderCapped30'
+          ]));
+      allow delete: if isAdmin() || owns(userId);
+    }
+
+    match /push_subscriptions/{subscriptionId} {
+      allow read: if isAdmin();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasAll([
+          'endpoint', 'keys', 'customerEmail', 'customerName', 'userAgent', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'endpoint', 'keys', 'customerEmail', 'customerName', 'userAgent', 'updatedAt'
+        ])
+        && request.resource.data.customerEmail == tokenEmail()
+        && validText(request.resource.data.endpoint, 10, 2048)
+        && request.resource.data.keys is map
+        && request.resource.data.keys.keys().hasOnly(['p256dh', 'auth'])
+        && validText(request.resource.data.keys.p256dh, 1, 1024)
+        && validText(request.resource.data.keys.auth, 1, 1024);
+      allow delete: if isAdmin() || ownsByEmail(resource.data, 'customerEmail');
+    }
+
+    match /promo_campaigns/{campaignId} {
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+    }
+
+    match /promo_usage/{usageId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+  }
+}

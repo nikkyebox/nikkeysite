@@ -1,0 +1,10 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json",
+    "predeploy": ["node scripts/guard-rules-deploy.mjs"]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

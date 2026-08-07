@@ -1,0 +1,230 @@
+[
+  {
+    "id": "fino-premium-touch-hair-mask-mascara-cap-9yty",
+    "gtin": "4550516493583",
+    "source": "owner scan from physical package",
+    "note": "Fino Premium Touch hair mask 230g"
+  },
+  {
+    "id": "8x4-men-foot-body-sabonete-corporal-e-pa-84nj",
+    "gtin": "4901301392688",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Sabonete Corporal 8x4 MEN Foot + Body (Frasco + Refil)"
+  },
+  {
+    "id": "8x4-men-middle-body-wash-sabonete-liquid-wt79",
+    "gtin": "4901301392695",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Sabonete Corporal 8x4 MEN Middle Age Care (Frasco + Refil)"
+  },
+  {
+    "id": "anessa-all-in-one-beauty-pact-cushion-co-rgdv",
+    "gtin": "4909978120611",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "ANESSA All-in-One Beauty Pact"
+  },
+  {
+    "id": "anessa-brightening-uv-sunscreen-gel-tone-g57t",
+    "gtin": "4909978120758",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Anessa Tone Up Brightening UV Sunscreen Gel"
+  },
+  {
+    "id": "biore-uv",
+    "gtin": "4901301363183",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Bioré UV Aqua Rich Watery Essence"
+  },
+  {
+    "id": "eyebon-w-vitamin-500ml-lavagem-e-higiene-o336",
+    "gtin": "4987072059296",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Eyebon W Vitamin Eye Wash 500ml"
+  },
+  {
+    "id": "fino-premium-touch-hair-mask-refil-700g-8jwd",
+    "gtin": "4550516493590",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Fino Premium Touch Hair Mask Refil"
+  },
+  {
+    "id": "hada-labo",
+    "gtin": "4987241167456",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Hada Labo Gokujyun Premium Lotion"
+  },
+  {
+    "id": "kewpie-maionese-japonesa-450g-8qww",
+    "gtin": "4901577041112",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Kewpie Maionese 450g"
+  },
+  {
+    "id": "melano-cc",
+    "gtin": "4987241169658",
+    "source": "gemini deep research (gemini-code-1785487634838.xml)",
+    "note": "Melano CC Vitamin C Brightening Essence"
+  },
+  {
+    "id": "biore-facial-wash-scrub-esfoliante-facia-4mvf",
+    "gtin": "4901301258694",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré Facial Wash Scrub"
+  },
+  {
+    "id": "biore-kids-stamp-39a1",
+    "gtin": "4901301399724",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Biore Kids Stamp"
+  },
+  {
+    "id": "biore-perfect-oil-makeup-remover-60ow",
+    "gtin": "4901301761385",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré Perfect Oil Makeup Remover"
+  },
+  {
+    "id": "biore-skin-care-facial-wash-acne-care-sa-hani",
+    "gtin": "4901301264336",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré Facial Wash Acne Care"
+  },
+  {
+    "id": "biore-the-face-deep-moist-facial-wash-es-jqwu",
+    "gtin": "4901301408013",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré The Face Deep Moist Facial Wash"
+  },
+  {
+    "id": "biore-the-face-moist-facial-wash-espuma--nbwu",
+    "gtin": "4901301407986",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré The Face Moist Facial Wash"
+  },
+  {
+    "id": "biore-the-face-oil-control-facial-wash-e-qfg9",
+    "gtin": "4901301408037",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré The Face Oil Control Facial Wash"
+  },
+  {
+    "id": "biore-the-face-smooth-clear-facial-wash-3qb7",
+    "gtin": "4901301408006",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré The Face Smooth Clear Facial Wash"
+  },
+  {
+    "id": "biore-uv-aqua-rich-aqua-protect-lotion-2yb7",
+    "gtin": "4901301401182",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré UV Aqua Rich Aqua Protect Lotion"
+  },
+  {
+    "id": "biore-uv-aqua-rich-aqua-protect-lotion-s-vc1s",
+    "gtin": "4901301416735",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré UV Aqua Rich Airy Hold Cream"
+  },
+  {
+    "id": "biore-uv-athlizm-skin-protect-essence-sp-ybci",
+    "gtin": "4901301363268",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré UV Athlizm Protect Essence"
+  },
+  {
+    "id": "biore-uv-perfect-milk-spf50-pa-r1rz",
+    "gtin": "4901301391070",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré UV Aqua Rich Light Up Essence"
+  },
+  {
+    "id": "biore-uv-perfect-milk-xlxw",
+    "gtin": "4901301286475",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré UV Perfect Milk"
+  },
+  {
+    "id": "fino-premium-touch-hair-oil-oleo-capilar-cyhb",
+    "gtin": "4901872471997",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Fino Premium Touch Hair Oil"
+  },
+  {
+    "id": "fino-premium-touch-hair-oil-serum-airy-s-b8yc",
+    "gtin": "4550516490803",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Fino Premium Touch Hair Oil Serum Airy Smooth"
+  },
+  {
+    "id": "hada-labo-gokujyun-aging-care-lotion-a520",
+    "gtin": "4987241171279",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Hada Labo Gokujyun Aging Care Lotion"
+  },
+  {
+    "id": "hada-labo-gokujyun-lotion-586h",
+    "gtin": "4987241127016",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Hada Labo Gokujyun Lotion"
+  },
+  {
+    "id": "hada-labo-shirojyun-premium-lotion-8iz5",
+    "gtin": "4987241168477",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Hada Labo Shirojyun Premium Emulsão"
+  },
+  {
+    "id": "senka-perfect-whip-medicated-acne-care-gogv",
+    "gtin": "4901872465286",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Senka Perfect Whip Medicated Acne Care"
+  },
+  {
+    "id": "skin-aqua-tone-up-uv-essence-mint-green-l7mx",
+    "gtin": "4987241175796",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Skin Aqua Tone Up UV Essence Mint Green"
+  },
+  {
+    "id": "skin-aqua-tone-up-uv-essence-happiness-a-nc7u",
+    "gtin": "4987241175789",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Skin Aqua Tone Up UV Essence Happiness Aura"
+  },
+  {
+    "id": "skin-aqua-tone-up-uv-essence-latte-beige-pc5d",
+    "gtin": "4987241175802",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Skin Aqua Tone Up UV Essence Latte Beige"
+  },
+  {
+    "id": "kewpie-mayonnaise-700g-kx6y",
+    "gtin": "4901577042072",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Kewpie Mayonnaise 700g"
+  },
+  {
+    "id": "biore-pore-pack-black-adesivo-removedor--0fuy",
+    "gtin": "4901301210494",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré Pore Pack Black"
+  },
+  {
+    "id": "biore-pore-pack-tiras-removedoras-de-cra-w1vj",
+    "gtin": "4901301036889",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Bioré Pore Pack Tradicional"
+  },
+  {
+    "id": "senka-perfect-whip-white-clay-khy4",
+    "gtin": "4901872444915",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Senka Perfect Whip White Clay"
+  },
+  {
+    "id": "skin-aqua-tone-up-uv-essence-jbjz",
+    "gtin": "4987241175772",
+    "source": "user-provided JAN table (2026-07-31)",
+    "note": "Skin Aqua Tone Up UV Essence (Lavanda)"
+  }
+]

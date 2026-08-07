@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Sync - Teste e Migração</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .status { padding: 15px; border-radius: 10px; margin: 20px 0; }
+        .status.success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 2px solid #bee5eb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Sync</h1>
+        <p style="color: #666; margin-bottom: 30px;">Teste e migre seus dados para a nuvem</p>
+        
+        <div id="status"></div>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="testConnection()">🔌 Testar Conexão</button>
+            <button onclick="migrateData()">🔄 Migrar Dados</button>
+            <button onclick="viewFirestoreData()">👀 Ver Dados na Nuvem</button>
+            <button onclick="clearLogs()">🗑️ Limpar Logs</button>
+        </div>
+        
+        <div id="log" class="log"></div>
+        
+        <a href="/" class="back-link">← Voltar ao Site</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "PENDING_NIKKEY33F93_API_KEY",
+            authDomain: "nikkey-33f93.firebaseapp.com",
+            projectId: "nikkey-33f93",
+            storageBucket: "nikkey-33f93.firebasestorage.app",
+            messagingSenderId: "PENDING_NIKKEY33F93_MSG_SENDER_ID",
+            appId: "PENDING_NIKKEY33F93_APP_ID",
+            measurementId: "PENDING_NIKKEY33F93_MEASUREMENT_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.app = app;
+        window.auth = auth;
+        window.db = db;
+
+        function addLog(message, color = '#0f0') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = color;
+            const time = new Date().toLocaleTimeString('pt-BR');
+            entry.textContent = `[${time}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        window.clearLogs = function() {
+            document.getElementById('log').innerHTML = '';
+            addLog('Logs limpos');
+        };
+
+        window.testConnection = async function() {
+            try {
+                addLog('🔍 Testando conexão com Firebase...');
+                showStatus('🔄 Testando conexão...', 'info');
+                
+                // Test Firestore
+                const testCollection = collection(db, 'test');
+                addLog('✅ Firestore conectado!', '#0f0');
+                
+                // Test Auth
+                addLog('✅ Authentication conectado!', '#0f0');
+                
+                // Check localStorage data
+                const usersData = localStorage.getItem('nikkey-box-users');
+                if (usersData) {
+                    const users = JSON.parse(usersData);
+                    const userCount = Object.keys(users).length;
+                    addLog(`📊 Encontrados ${userCount} usuários no localStorage`, '#0ff');
+                } else {
+                    addLog('⚠️ Nenhum dado no localStorage', '#fa0');
+                }
+                
+                showStatus('✅ Conexão com Firebase OK! Pronto para migrar dados.', 'success');
+                addLog('✅ Teste completo!', '#0f0');
+            } catch (error) {
+                addLog('❌ Erro: ' + error.message, '#f00');
+                showStatus('❌ Erro na conexão: ' + error.message, 'error');
+            }
+        };
+
+        window.migrateData = async function() {
+            try {
+                addLog('🔄 Iniciando migração de dados...');
+                showStatus('🔄 Migrando dados...', 'info');
+                
+                const usersData = localStorage.getItem('nikkey-box-users');
+                if (!usersData) {
+                    addLog('⚠️ Nenhum dado para migrar', '#fa0');
+                    showStatus('⚠️ Nenhum dado encontrado no localStorage', 'warning');
+                    return;
+                }
+                
+                const users = JSON.parse(usersData);
+                const userCount = Object.keys(users).length;
+                addLog(`📊 Migrando ${userCount} usuários...`, '#0ff');
+                
+                // Import Firestore functions
+                const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
+                let migratedUsers = 0;
+                let migratedOrders = 0;
+                
+                for (const [email, userData] of Object.entries(users)) {
+                    const userId = userData.id || `user-${Date.now()}-${Math.random()}`;
+                    
+                    // Migrate user
+                    const userRef = doc(db, 'users', userId);
+                    await setDoc(userRef, {
+                        ...userData,
+                        email,
+                        migratedAt: new Date().toISOString()
+                    });
+                    migratedUsers++;
+                    addLog(`✅ Usuário migrado: ${email}`, '#0f0');
+                    
+                    // Migrate orders
+                    if (userData.orders && Array.isArray(userData.orders)) {
+                        for (const order of userData.orders) {
+                            const orderRef = doc(db, 'orders', order.orderNumber || `order-${Date.now()}`);
+                            await setDoc(orderRef, {
+                                ...order,
+                                userId,
+                                customerEmail: email,
+                                migratedAt: new Date().toISOString()
+                            });
+                            migratedOrders++;
+                            addLog(`  └─ Pedido migrado: ${order.orderNumber}`, '#0ff');
+                        }
+                    }
+                }
+                
+                addLog(`✅ Migração completa! ${migratedUsers} usuários, ${migratedOrders} pedidos`, '#0f0');
+                showStatus(`✅ Migração completa! ${migratedUsers} usuários e ${migratedOrders} pedidos migrados para a nuvem.`, 'success');
+            } catch (error) {
+                addLog('❌ Erro na migração: ' + error.message, '#f00');
+                showStatus('❌ Erro na migração: ' + error.message, 'error');
+                console.error(error);
+            }
+        };
+
+        window.viewFirestoreData = async function() {
+            try {
+                addLog('👀 Buscando dados do Firestore...');
+                showStatus('🔄 Carregando dados...', 'info');
+                
+                // Get users
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                addLog(`📊 Usuários na nuvem: ${usersSnapshot.size}`, '#0ff');
+                usersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    addLog(`  - ${data.email || data.name || doc.id}`, '#0f0');
+                });
+                
+                // Get orders
+                const ordersSnapshot = await getDocs(collection(db, 'orders'));
+                addLog(`📦 Pedidos na nuvem: ${ordersSnapshot.size}`, '#0ff');
+                ordersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    addLog(`  - ${doc.id}: ${data.customerEmail || 'N/A'} - ${data.status || 'pending'}`, '#0f0');
+                });
+                
+                showStatus(`✅ ${usersSnapshot.size} usuários e ${ordersSnapshot.size} pedidos na nuvem!`, 'success');
+            } catch (error) {
+                addLog('❌ Erro: ' + error.message, '#f00');
+                showStatus('❌ Erro ao buscar dados: ' + error.message, 'error');
+            }
+        };
+
+        // Test connection on load
+        setTimeout(() => testConnection(), 500);
+    </script>
+</body>
+</html>

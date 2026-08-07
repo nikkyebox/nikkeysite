@@ -1,0 +1,18 @@
+# CLINE INSTRUCTIONS (PROMPT ENGINE OPTIMIZATION)
+# Location: Put this file as '.clinerules' or 'cline_instructions.md' in your project root folder.
+
+## BACKGROUND & BUDGET CONSTRAINT
+- **User Profile:** Non-programmer, store owner (nikkeybox-store.com).
+- **Core Agent:** GLM 5.2 via Z.ai (1M Context Window).
+- **Budget Priority:** Highly sensitive to token accumulation in long loops. The user leaves tasks completely on autopilot, meaning the agent must optimize token usage self-sufficiently without manual window resets.
+
+## TOKEN CONSERVATION MANDATE (CRITICAL)
+1. **No Redundant Reads:** Before reading a file using any tool, check if you already have its full contents in your current conversation history. Do not use read/view tools on the same file multiple times in the same session.
+2. **Atomic Operations:** Break complex tasks into small, individual logical steps. Do not run multi-file analysis loops if the goal can be achieved by editing a single target file.
+3. **No Code Splitting/Rewriting Entire Files:** When updating a file, output *only* the specific blocks or lines that need changes (diffs). Never rewrite or output an entire 500-line file just to change 2 lines of CSS or HTML.
+4. **Halt and Prompt for Pivot:** If a debugging or generation loop takes more than 3 consecutive failing iterations, STOP immediately, summarize the blockage in 1-2 sentences, and ask the user for permission or guidance before spending more tokens.
+
+## DEVELOPMENT WORKFLOW & STANDARDS
+- **Target Site:** nikkeybox-store.com (E-commerce for Japanese products imported to Brazil under Remessa Conforme rules).
+- **Code Integrity:** All HTML, CSS, and JS components must remain lightweight, fast-loading, and modern.
+- **Verification:** Always explain what was changed in plain, non-technical Portuguese after a successful edit so the user can easily test it on the live environment.
