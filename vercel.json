@@ -23,7 +23,10 @@
     { "source": "/clear-storage.html", "destination": "/", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/sitemap.xml", "destination": "/api/catalog?action=sitemap" },
+    { "source": "/api/geo", "destination": "/api/catalog?action=geo" },
+    { "source": "/api/wise-rate", "destination": "/api/catalog?action=wise-rate" },
+    { "source": "/api/product-enrich", "destination": "/api/catalog?action=product-enrich" },
     { "source": "/feed.xml", "destination": "/api/feed?region=br&format=xml" },
     { "source": "/feed-br.xml", "destination": "/api/feed?region=br&format=xml" },
     { "source": "/feed-eu.xml", "destination": "/api/feed?region=eu&format=xml" },
@@ -34,14 +37,17 @@
     { "source": "/api/admin-session", "destination": "/api/admin?action=session" },
     { "source": "/api/admin-users", "destination": "/api/admin?action=users" },
     { "source": "/api/create-order", "destination": "/api/orders?action=create" },
+    { "source": "/api/ps-fee-waiver", "destination": "/api/orders?action=ps-fee-waiver" },
     { "source": "/api/confirm-manual-payment", "destination": "/api/orders?action=confirm-manual-payment" },
     { "source": "/api/send-email", "destination": "/api/notify?action=email" },
     { "source": "/api/send-push", "destination": "/api/notify?action=push" },
     { "source": "/api/promo-campaign", "destination": "/api/notify?action=promo-campaign" },
     { "source": "/api/public-submission", "destination": "/api/public-forms?action=submission" },
     { "source": "/api/analytics", "destination": "/api/public-forms?action=analytics" },
+    { "source": "/api/unsubscribe", "destination": "/api/public-forms?action=unsubscribe" },
+    { "source": "/api/email-preference", "destination": "/api/notify?action=email-preference" },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/)(?!.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ],
