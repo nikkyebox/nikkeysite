@@ -25,3 +25,8 @@ export { LOYALTY_POINTS_ENABLED } from '../../shared/featureFlags.js';
 // Popups de cadastro: banner "BEMVINDO10" (WelcomeCouponBanner) e o CTA de
 // cadastro no popup de saída (ExitIntentPopup).
 export const SIGNUP_POPUPS_ENABLED = false;
+
+// Botões do cabeçalho do painel admin: "Disparar Notificação Promocional" e
+// o toggle "Vlog ATIVO/OCULTO" (Admin.tsx). Vlog já estava fora do menu
+// lateral (ver DISABLED_TAB_IDS em Admin.tsx); isto tira só os botões de topo.
+export const ADMIN_HEADER_ACTIONS_ENABLED = false;

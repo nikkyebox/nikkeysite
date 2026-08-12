@@ -49,6 +49,7 @@ import { negotiationService } from '@/services/negotiationService';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 import { ADMIN_EMAIL } from '@/config/admin';
 import { auth } from '@/config/firebase';
+import { ADMIN_HEADER_ACTIONS_ENABLED } from '@/config/featureFlags';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -808,23 +809,25 @@ _This is an automated test message_
             <p className="text-muted-foreground text-lg">
               Gestão de Pedidos - Paula Shiokawa
             </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-3">
-              <Button
-                variant="outline"
-                className="gap-2 border-orange-400 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-                onClick={() => setPromoModalOpen(true)}
-              >
-                <Megaphone className="w-4 h-4" />
-                Disparar Notificação Promocional
-              </Button>
-              <Button
-                variant="outline"
-                className={`gap-2 ${settings.vlogEnabled ? 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950' : 'border-border text-muted-foreground hover:bg-secondary'}`}
-                onClick={() => saveSettings({ ...settings, vlogEnabled: !settings.vlogEnabled })}
-              >
-                {settings.vlogEnabled ? '👁 Vlog ATIVO' : '🙈 Vlog OCULTO'}
-              </Button>
-            </div>
+            {ADMIN_HEADER_ACTIONS_ENABLED && (
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
+                <Button
+                  variant="outline"
+                  className="gap-2 border-orange-400 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  onClick={() => setPromoModalOpen(true)}
+                >
+                  <Megaphone className="w-4 h-4" />
+                  Disparar Notificação Promocional
+                </Button>
+                <Button
+                  variant="outline"
+                  className={`gap-2 ${settings.vlogEnabled ? 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950' : 'border-border text-muted-foreground hover:bg-secondary'}`}
+                  onClick={() => saveSettings({ ...settings, vlogEnabled: !settings.vlogEnabled })}
+                >
+                  {settings.vlogEnabled ? '👁 Vlog ATIVO' : '🙈 Vlog OCULTO'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
