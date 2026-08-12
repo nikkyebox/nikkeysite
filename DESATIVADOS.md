@@ -11,6 +11,41 @@ exatamente **onde mexer** para religar.
 
 ---
 
+## 0. Problema pré-existente — NÃO é uma desativação desta sessão
+
+Achado ao testar a página do cliente (`/perfil`): ela quebra em local com
+`FirebaseError: Expected first argument to collection() to be a
+CollectionReference...`. **Confirmado que já acontecia antes de qualquer
+mudança desta sessão** (testado revertendo tudo — o erro persiste igual).
+
+Causa: em [`src/config/firebase.ts`](src/config/firebase.ts) (linhas ~17-24),
+as credenciais do Firebase estão **hardcoded no código-fonte** com valores
+placeholder que nunca foram preenchidos:
+
+```js
+apiKey: "PENDING_NIKKEY33F93_API_KEY",
+messagingSenderId: "PENDING_NIKKEY33F93_MSG_SENDER_ID",
+appId: "PENDING_NIKKEY33F93_APP_ID",
+measurementId: "PENDING_NIKKEY33F93_MEASUREMENT_ID",
+```
+
+Com isso, `firebaseConfigReady` fica `false` e `db`/`auth` nunca inicializam
+em ambiente local — mas algumas telas (ex.: `/perfil`, que busca pedidos e
+avaliações no Firestore) tentam usar `db` mesmo assim e travam com erro não
+tratado, em vez de cair no modo "local-only" graciosamente.
+
+O banner vermelho que aparece ("verifique as variáveis VITE_FIREBASE_* no
+Vercel") é **enganoso**: o código nem lê variáveis de ambiente aqui — os
+valores estão fixos neste arquivo, não vêm de `.env`/`.env.local`/Vercel.
+
+**Para corrigir**: preencher os 4 campos `PENDING_NIKKEY33F93_*` em
+`src/config/firebase.ts` com os valores reais do Firebase Console (Project
+Settings → Your apps → Web app → SDK setup and configuration, projeto
+`nikkey-33f93`). Combinado com o usuário: por enquanto fica só documentado
+aqui, sem mexer — pediu para não tratar agora.
+
+---
+
 ## 1. Flags gerais do site — `src/config/featureFlags.ts`
 
 Arquivo único com a maioria dos interruptores do site (cliente). Abra
