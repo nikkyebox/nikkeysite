@@ -30,7 +30,7 @@ import { pushService } from '@/services/pushService';
 import { getEmailSubscription, setEmailSubscription } from '@/services/mailService';
 import { TIERS, tierProgress } from '@/services/pointsService';
 import { recentProductSpendYen } from '@/utils/loyaltySpend';
-import { LOYALTY_POINTS_ENABLED } from '@/config/featureFlags';
+import { LOYALTY_POINTS_ENABLED, COUPONS_ENABLED } from '@/config/featureFlags';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -973,7 +973,8 @@ const Profile: React.FC = () => {
             {/* Notificações & Promoções (campanhas enviadas pelo admin) */}
             <PromoNotificationsCard />
 
-            {/* Coupons */}
+            {/* Coupons — desativado (ver featureFlags.ts) */}
+            {COUPONS_ENABLED && (
             <div className="bg-card rounded-2xl border border-border p-6 lg:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1044,6 +1045,7 @@ const Profile: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* Purchase History */}
             <div className="bg-card rounded-2xl border border-border p-6 lg:p-8">
