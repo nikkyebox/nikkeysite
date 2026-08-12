@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLenis } from '@/lib/smoothScroll';
+import HeroRingSlogan from './HeroRingSlogan';
 
 /**
  * Hero simples: um único vídeo de fundo, tocado uma vez (sem loop, sem
@@ -61,13 +62,12 @@ const Hero: React.FC = () => {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        <p className="hero-reveal font-jp mb-4 text-xs uppercase tracking-[0.4em] text-primary/90">
-          {t('cinematicHero.intro.eyebrow')}
-        </p>
-        <h1 className="hero-reveal mb-5 max-w-3xl font-display text-4xl font-light leading-[1.05] tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)] sm:text-5xl md:text-7xl">
-          {t('cinematicHero.intro.title.1')}{' '}
-          <span className="italic text-primary">{t('cinematicHero.intro.title.highlight')}</span>
-        </h1>
+        {/* Slogan em anel — contorna o logo em vez de ficar em cima dele.
+            Palavras aparecem uma a uma, alternando o lado de entrada. */}
+        <HeroRingSlogan
+          size={300}
+          className="mb-2 h-[220px] w-[220px] sm:h-[300px] sm:w-[300px]"
+        />
         <p className="hero-reveal mb-8 max-w-md text-sm leading-relaxed text-white/80 md:max-w-lg md:text-lg">
           {t('cinematicHero.intro.description')}
         </p>
