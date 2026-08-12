@@ -30,6 +30,7 @@ import { pushService } from '@/services/pushService';
 import { getEmailSubscription, setEmailSubscription } from '@/services/mailService';
 import { TIERS, tierProgress } from '@/services/pointsService';
 import { recentProductSpendYen } from '@/utils/loyaltySpend';
+import { LOYALTY_POINTS_ENABLED } from '@/config/featureFlags';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -439,7 +440,8 @@ const Profile: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto space-y-6">
 
-            {/* Pontos de Fidelidade */}
+            {/* Pontos de Fidelidade — desativado (ver featureFlags.ts), saldo continua salvo */}
+            {LOYALTY_POINTS_ENABLED && (
             <div className="bg-gradient-to-r from-amber-400 to-pink-500 rounded-2xl p-6 lg:p-8 text-white shadow-elevated">
               <div className="flex items-center justify-between">
                 <div>
@@ -516,6 +518,7 @@ const Profile: React.FC = () => {
                 <p className="text-[11px] italic text-white/70 mt-3">{t('profile.points.tiers.window')}</p>
               </div>
             </div>
+            )}
 
             <ReferralCard />
 

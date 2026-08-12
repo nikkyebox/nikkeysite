@@ -26,6 +26,8 @@ import { convertYen as fxConvert, yenFromConverted, getRates } from '@/services/
 import { POINTS } from '@/services/pointsService';
 import { safeStorage } from '@/utils/storage';
 import { checkoutPointsCoverage, psFeeWaiver, PS_FEE_WAIVER_EVENT } from '@/utils/psFeeWaiver';
+import { psFeeSettingsService, DEFAULT_PS_FEE_UNIT_YEN } from '@/services/psFeeSettingsService';
+import { COUPONS_ENABLED } from '@/config/featureFlags';
 import { productEnglishName } from '@/utils/productName';
 import { isValidEmail, isValidCPF, isValidPhone, isNonEmpty, maskPhone, runValidations, FieldErrors } from '@/utils/validation';
 import { calcImportTax } from '@/utils/taxRules';
@@ -134,10 +136,18 @@ const Checkout: React.FC = () => {
   // Erros de validação do formulário
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  // PS fee — ¥1000 por unidade comprada (exceto produtos isentos: noPsFee)
+  // PS fee — ¥/unidade comprada (exceto produtos isentos: noPsFee). Valor
+  // configurável pelo admin (ver src/services/psFeeSettingsService.ts) —
+  // 1000 aqui é só o fallback antes da leitura do Firestore terminar.
+  const [psFeeUnitYen, setPsFeeUnitYen] = useState(DEFAULT_PS_FEE_UNIT_YEN);
+  useEffect(() => {
+    psFeeSettingsService.get().then((s) => setPsFeeUnitYen(s.psFeeUnitYen));
+  }, []);
   const totalQty = items.reduce((s, i) => i.freeGift ? s : s + i.quantity, 0);
   const psFeeQty = items.reduce((s, i) => (i.freeGift || i.product.noPsFee) ? s : s + i.quantity, 0);
-  const psFeeYen = psFeeQty * 1000;
+  const psFeeYen = psFeeQty * psFeeUnitYen;
+  // Desconto automático segue a mesma proporção de antes (300 de 1000 = 30%).
+  const psFeeAutoApprovableUnitYen = Math.round(psFeeUnitYen * 0.3);
 
   // Isenção da taxa PS pela oferta de saída (exit-intent). Lida uma vez ao montar:
   // se ativa, a taxa de Personal Shopper é zerada nesta visita (ponto 2 do checkout).
@@ -595,9 +605,9 @@ const Checkout: React.FC = () => {
   const shippingDiscountDisplay = convertYen(shippingDiscountYen);
   const actualShippingCost = Math.max(0, rawShippingCost - shippingDiscountDisplay);
 
-  // PS fee final — para auto-aprovação, cap em 300×qty impede manipulação de carrinho.
+  // PS fee final — para auto-aprovação, cap impede manipulação de carrinho.
   // Para aprovação manual pelo admin, respeita o valor aprovado (apenas cap no valor real da taxa).
-  const maxAutoApprovable = 300 * psFeeQty;
+  const maxAutoApprovable = psFeeAutoApprovableUnitYen * psFeeQty;
   const isManualApproval = activeNeg?.status === 'approved';
   const negPsFeeDiscountYen = isManualApproval
     ? Math.min(psFeeDiscountYen, psFeeYen)
@@ -653,7 +663,7 @@ const Checkout: React.FC = () => {
             <div className="bg-secondary/40 rounded-xl p-4 mb-4 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  {negModalType === 'ps_fee' ? `Taxa PS (${psFeeQty} itens × ¥1.000)` : 'Frete selecionado'}
+                  {negModalType === 'ps_fee' ? `Taxa PS (${psFeeQty} itens × ¥${psFeeUnitYen.toLocaleString()})` : 'Frete selecionado'}
                 </span>
                 <span className="font-semibold">
                   ¥{(negModalType === 'ps_fee' ? psFeeYen : (selectedShipping?.costYen || 0)).toLocaleString()}
@@ -661,7 +671,7 @@ const Checkout: React.FC = () => {
               </div>
               {negModalType === 'ps_fee' && (
                 <p className="text-xs text-primary font-medium">
-                  Desconto até ¥{(300 * psFeeQty).toLocaleString()} é aprovado automaticamente.
+                  Desconto até ¥{(psFeeAutoApprovableUnitYen * psFeeQty).toLocaleString()} é aprovado automaticamente.
                 </p>
               )}
               {negModalType === 'shipping' && (
@@ -1126,13 +1136,15 @@ const Checkout: React.FC = () => {
                     );
                   })}
 
-                  {/* Coupon Selector Widget */}
-                  <CouponSelector
-                    totalPrice={regularSubtotalForCoupon}
-                    onCouponApply={handleCouponApply}
-                    onCouponRemove={handleCouponRemove}
-                    appliedCoupon={appliedCoupon}
-                  />
+                  {/* Coupon Selector Widget — desativado (ver featureFlags.ts) */}
+                  {COUPONS_ENABLED && (
+                    <CouponSelector
+                      totalPrice={regularSubtotalForCoupon}
+                      onCouponApply={handleCouponApply}
+                      onCouponRemove={handleCouponRemove}
+                      appliedCoupon={appliedCoupon}
+                    />
+                  )}
 
                   {/* Points Redemption */}
                   {isAuthenticated && !isGuest && (
@@ -1252,7 +1264,7 @@ const Checkout: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">{totalQty}x ¥1.000 • serviço de compra</span>
+                          <span className="text-[10px] text-muted-foreground">{totalQty}x ¥{psFeeUnitYen.toLocaleString()} • serviço de compra</span>
                           {psFeeWaived && (
                             <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5">
                               <CheckCircle2 className="w-3 h-3" /> Isenta — oferta

@@ -10,6 +10,11 @@ import { checkoutPointsCoverage, psFeeWaiver } from '@/utils/psFeeWaiver';
 import { safeStorage } from '@/utils/storage';
 import { effectiveYen } from '@/utils/pricing';
 import type { CartItem } from '@/types';
+import { SIGNUP_POPUPS_ENABLED } from '@/config/featureFlags';
+
+// A oferta de isenção da taxa PS ("reservar Personal Shopper") é o variant
+// `ps_offer` abaixo — desativada junto com o popup de cadastro, mesmo pedido.
+const PS_OFFER_POPUP_ENABLED = false;
 
 const MARKETING_KEY = 'exit_popup_shown';      // oferta/guia/retenção simples — 1× por sessão
 const WARN_KEY = 'exit_waiver_warn_shown';     // aviso de perda da isenção — 1× por sessão
@@ -126,11 +131,12 @@ const ExitIntentPopup: React.FC = () => {
       const pointsCoverAllProducts = checkoutPointsCoverage.coversAll()
         || (productSubtotalYen > 0 && redeemPoints > 0 && redeemPoints >= productSubtotalYen);
       // Só oferecemos a isenção da taxa PS se a mercadoria não for coberta por pontos
-      if (path.startsWith('/checkout') && psFeeQtyOf(list) > 0 && !psFeeWaiver.isActive() && !pointsCoverAllProducts) return 'ps_offer';
+      if (PS_OFFER_POPUP_ENABLED && path.startsWith('/checkout') && psFeeQtyOf(list) > 0 && !psFeeWaiver.isActive() && !pointsCoverAllProducts) return 'ps_offer';
       return 'retention';
     }
     // FORA do checkout: NÃO oferecemos a isenção — o cliente ainda pode estar
     // escolhendo produtos. Só o guia por e-mail (lead) para visitante não logado.
+    if (!SIGNUP_POPUPS_ENABLED) return null;
     if (authRef.current) return null;
     const last = Number(safeStorage.getItem(GUIDE_COOLDOWN_KEY) || 0);
     if (Date.now() - last <= GUIDE_COOLDOWN_DAYS * 86400000) return null;

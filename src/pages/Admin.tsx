@@ -738,8 +738,17 @@ _This is an automated test message_
     return null;
   }
 
+  // Abas desativadas a pedido — ficam fora do menu lateral, mas o código/rota
+  // de cada uma continua no projeto (ver renderização de `activeTab` abaixo)
+  // caso precise reativar depois.
+  const DISABLED_TAB_IDS = new Set<AdminTab>([
+    'affiliates', 'visitors', 'coupons', 'review-moderation', 'videos',
+    'home', 'vlog', 'sorteio', 'marketing', 'coupon-usage',
+    'calculator', 'migration', 'thermal-printer', 'whatsapp',
+  ]);
+
   // Abas agrupadas (menu lateral) — orientado a dados
-  const tabGroups: { title: string; items: AdminTabItem[] }[] = [
+  const tabGroupsRaw: { title: string; items: AdminTabItem[] }[] = [
     { title: 'Visão geral', items: [{ id: 'dashboard', label: 'Dashboard', icon: BarChart3 }] },
     { title: 'Vendas', items: [
       { id: 'orders', label: 'Pedidos', icon: Package, badge: ordersHasMore ? undefined : pendingOrdersCount },
@@ -782,6 +791,9 @@ _This is an automated test message_
       ? [{ title: 'Configurações', items: [{ id: 'admins' as AdminTab, label: 'Administradores', icon: ShieldCheck }] }]
       : []),
   ];
+  const tabGroups = tabGroupsRaw
+    .map((g) => ({ ...g, items: g.items.filter((i) => !DISABLED_TAB_IDS.has(i.id)) }))
+    .filter((g) => g.items.length > 0);
   const allTabs: AdminTabItem[] = tabGroups.flatMap((g) => g.items);
   const activeLabel = allTabs.find((t) => t.id === activeTab)?.label || '';
 

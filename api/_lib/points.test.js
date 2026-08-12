@@ -4,9 +4,18 @@
 // A regra escolhida é a generosa — desconto não corta ponto. O cliente ganha
 // sobre o valor cheio da mercadoria. Estes testes prendem as duas pontas na
 // mesma função e fixam o que NÃO gera ponto.
+//
+// Pontos de fidelidade estão DESATIVADOS por pedido (ver
+// shared/featureFlags.js: LOYALTY_POINTS_ENABLED = false) — buildQuote() zera
+// `earnedPoints` nesse estado, então os testes abaixo que passam por
+// buildQuote esperam 0. A fórmula em si (earnedPointsForOrder) continua
+// testada diretamente, sem passar pela flag, para não perder a cobertura do
+// cálculo quando os pontos voltarem — é só religar a flag.
 import { describe, expect, it } from 'vitest';
 import { buildQuote } from './commerce.js';
 import { earnedPointsForOrder } from '../../shared/points.js';
+
+const PONTOS_DESATIVADOS = 0;
 
 const rates = { BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'fallback' };
 const produto = {
@@ -31,36 +40,28 @@ function pedido(extra = {}) {
 
 const CUPOM_10 = { code: 'X', discountType: 'percentage', discount: 10, source: 'global' };
 
-describe('pontos do pedido', () => {
+describe('pontos do pedido (fórmula — vale quando LOYALTY_POINTS_ENABLED voltar a true)', () => {
   it('1 ponto a cada ¥100 de mercadoria', () => {
-    expect(pedido().earnedPoints).toBe(100);
+    expect(earnedPointsForOrder(10000, 0)).toBe(100);
   });
 
-  // Frete e taxa do personal shopper (¥1.000 por item) entram no total pago,
-  // mas não na base de pontos: ponto é sobre mercadoria.
+  // Frete e taxa do personal shopper (¥/item) entram no total pago, mas não
+  // na base de pontos: ponto é sobre mercadoria.
   it('frete e taxa do personal shopper não geram ponto', () => {
     const q = pedido();
 
     expect(q.psFeeYen).toBe(2000);
     expect(q.shippingYen).toBeGreaterThan(0);
-    // ¥10.000 + ¥2.000 + frete pagos, e ainda assim 100 pontos.
-    expect(q.earnedPoints).toBe(100);
+    // ¥10.000 de mercadoria → 100 pontos pela fórmula, mesmo com ¥2.000 de
+    // taxa PS + frete pagos por fora.
+    expect(earnedPointsForOrder(q.productSubtotalYen, 0)).toBe(100);
   });
 
   it('cupom não corta ponto', () => {
     const q = pedido({ coupon: CUPOM_10 });
 
     expect(q.couponDiscountYen).toBe(1000);
-    expect(q.earnedPoints).toBe(100);
-  });
-
-  it('desconto de pagamento (PIX/cartão) não corta ponto', () => {
-    expect(pedido({ paymentMethod: 'pix' }).earnedPoints).toBe(100);
-    expect(pedido({ paymentMethod: 'card' }).earnedPoints).toBe(100);
-  });
-
-  it('cupom e PIX juntos continuam pagando os 100', () => {
-    expect(pedido({ paymentMethod: 'pix', coupon: CUPOM_10 }).earnedPoints).toBe(100);
+    expect(earnedPointsForOrder(q.productSubtotalYen, 0)).toBe(100);
   });
 
   // Sem isto o resgate se pagaria sozinho: ¥1.000 em pontos viraria ¥1.000 de
@@ -69,20 +70,20 @@ describe('pontos do pedido', () => {
     const q = pedido({ redeemPoints: 3000 });
 
     expect(q.redeemPoints).toBe(3000);
-    expect(q.earnedPoints).toBe(70); // (10.000 − 3.000) / 100
-  });
-
-  // A tela do checkout chama exatamente esta função com os mesmos argumentos.
-  it('a tela e o servidor chegam ao mesmo número', () => {
-    for (const extra of [{}, { paymentMethod: 'pix' }, { coupon: CUPOM_10 }, { redeemPoints: 2500 }]) {
-      const q = pedido(extra);
-      expect(earnedPointsForOrder(q.productSubtotalYen, q.redeemPoints)).toBe(q.earnedPoints);
-    }
+    expect(earnedPointsForOrder(q.productSubtotalYen, q.redeemPoints)).toBe(70); // (10.000 − 3.000) / 100
   });
 
   it('não devolve ponto negativo quando o resgate cobre tudo', () => {
     expect(earnedPointsForOrder(10000, 99999)).toBe(0);
     expect(earnedPointsForOrder(0, 0)).toBe(0);
+  });
+});
+
+describe('pontos do pedido (integração — LOYALTY_POINTS_ENABLED = false hoje)', () => {
+  it('buildQuote não credita ponto nenhum enquanto a flag estiver desligada', () => {
+    for (const extra of [{}, { paymentMethod: 'pix' }, { coupon: CUPOM_10 }, { redeemPoints: 2500 }]) {
+      expect(pedido(extra).earnedPoints).toBe(PONTOS_DESATIVADOS);
+    }
   });
 });
 

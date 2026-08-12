@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, Trash2, Tag, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import CartItemComponent from '@/components/cart/CartItem';
+import { COUPONS_ENABLED } from '@/config/featureFlags';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useProducts } from '@/context/ProductsContext';
@@ -416,8 +417,8 @@ const Cart: React.FC = () => {
                 <div className="bg-card rounded-2xl border border-border p-6 sticky top-24 space-y-6 shadow-sm min-w-0">
                   <h3 className="font-sans text-lg font-bold text-foreground">{t('cart.summary')}</h3>
 
-                  {/* Coupon Application Input + lista de cupons disponíveis */}
-                  {!activeCoupon && (
+                  {/* Coupon Application Input + lista de cupons disponíveis — desativado (ver featureFlags.ts) */}
+                  {COUPONS_ENABLED && !activeCoupon && (
                     <form onSubmit={handleApplyCoupon} className="space-y-2 relative">
                       <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
                         <Tag className="w-3.5 h-3.5" /> {t('cart.coupon')}
@@ -497,7 +498,7 @@ const Cart: React.FC = () => {
                       <span className="font-semibold text-gray-800">{formatPrice(baseTotalPrice, currency)}</span>
                     </div>
 
-                    {activeCoupon && (
+                    {COUPONS_ENABLED && activeCoupon && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-sm text-green-600 font-bold bg-green-50/50 p-2 rounded-lg border border-dashed border-green-200">
                           <span className="flex items-center gap-1">

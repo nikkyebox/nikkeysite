@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { useLanguage } from '@/context/LanguageContext';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
+import { GOOGLE_LOGIN_ENABLED } from '@/config/featureFlags';
 import { isValidEmail, isNonEmpty, runValidations, FieldErrors, COUNTRY_DIAL_CODES, isValidCNPJ, maskCNPJ } from '@/utils/validation';
 
 const Register: React.FC = () => {
@@ -433,10 +434,12 @@ const Register: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="relative py-1">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
-                </div>
+                {GOOGLE_LOGIN_ENABLED && (
+                  <div className="relative py-1">
+                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+                  </div>
+                )}
                 <SocialLoginButtons disabled={isLoading} mode="register" />
 
                 <div className="text-center pt-4">

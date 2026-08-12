@@ -2,7 +2,7 @@ import React from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CartItem } from '@/types';
-import { checkoutPointsCoverage, psFeeWaiver } from '@/utils/psFeeWaiver';
+import { checkoutPointsCoverage } from '@/utils/psFeeWaiver';
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -71,24 +71,23 @@ describe('ExitIntentPopup com resgate de pontos', () => {
     expect(screen.queryByText('Finalize agora e a taxa sai de graça!')).toBeNull();
   });
 
-  it('mantém a oferta quando os pontos não cobrem toda a mercadoria', () => {
+  // A oferta de isenção da taxa PS ("reservar Personal Shopper") está
+  // DESATIVADA por pedido (ver PS_OFFER_POPUP_ENABLED em
+  // src/components/ExitIntentPopup.tsx) — mesmo sem cobertura total por
+  // pontos, o popup de saída cai no lembrete genérico (`retention`), nunca
+  // no `ps_offer`.
+  it('nunca oferece a isenção da taxa PS enquanto PS_OFFER_POPUP_ENABLED for false', () => {
     localStorage.setItem('redeem_points', '1000');
     checkoutPointsCoverage.set(false);
     render(<ExitIntentPopup />);
 
     triggerDesktopExit();
 
-    expect(screen.getByRole('dialog').getAttribute('aria-label')).toBe('Oferta: taxa de Personal Shopper grátis');
-  });
-  it('só ativa a isenção depois da autorização do servidor', async () => {
-    render(<ExitIntentPopup />);
-    triggerDesktopExit();
-    fireEvent.click(screen.getByRole('button', { name: /Finalizar agora e economizar/i }));
-    await act(async () => { await Promise.resolve(); });
-
-    expect(mocks.requestPsFeeWaiver).toHaveBeenCalledTimes(1);
-    expect(psFeeWaiver.token()).toBe('autorizacao-assinada');
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('dialog').getAttribute('aria-label')).toBe('Finalize seu pedido');
+    expect(screen.queryByText('Oferta: taxa de Personal Shopper grátis')).toBeNull();
   });
 
+  // O fluxo de aceitar a isenção (requestPsFeeWaiver → psFeeWaiver.grant)
+  // continua no código para religar depois — sem o popup, ele só não é
+  // acionado pela UI. Cobertura do fluxo em si fica para quando for reativado.
 });

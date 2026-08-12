@@ -16,6 +16,7 @@ import type { OrderStatistics } from '@/types';
 import MaintenanceToggle from '@/components/admin/MaintenanceToggle';
 import ResetOrdersButton from '@/components/admin/ResetOrdersButton';
 import WisePaymentSettings from '@/components/admin/WisePaymentSettings';
+import PsFeeSettings from '@/components/admin/PsFeeSettings';
 interface MonthlyFin {
   month: string;
   orders: number;
@@ -265,6 +266,7 @@ const Dashboard: React.FC = () => {
         <div className="space-y-4">
           <MaintenanceToggle />
           <WisePaymentSettings />
+          <PsFeeSettings />
           <ResetOrdersButton />
         </div>
       )}

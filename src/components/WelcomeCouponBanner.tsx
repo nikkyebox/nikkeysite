@@ -4,6 +4,7 @@ import { Gift, Sparkles, X } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { safeStorage } from '@/utils/storage';
+import { SIGNUP_POPUPS_ENABLED } from '@/config/featureFlags';
 
 const DISMISS_KEY = 'welcome_banner_dismissed_at';
 const DISMISS_DAYS = 3;
@@ -26,7 +27,7 @@ const WelcomeCouponBanner: React.FC<{ context?: 'home' | 'cart' }> = ({ context 
     }
   }, []);
 
-  if (isAuthenticated || dismissed) return null;
+  if (!SIGNUP_POPUPS_ENABLED || isAuthenticated || dismissed) return null;
 
   const dismiss = () => {
     safeStorage.setItem(DISMISS_KEY, String(Date.now()));

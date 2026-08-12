@@ -38,6 +38,7 @@ import { prepareCheckout, type AuthoritativeCheckoutOrder, type CheckoutPaymentM
 import { getCountryConfig } from '@/data/worldCountries';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { COUPONS_ENABLED, ORDER_CONFIRMATION_EMAIL_ENABLED, LOYALTY_POINTS_ENABLED } from '@/config/featureFlags';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -162,8 +163,11 @@ const OrderReview: React.FC = () => {
   const pointsDiscount = convertYen(redeemPoints * POINTS.yenPerPoint); // desconto na moeda exibida
   // Mesma função que `api/_lib/commerce.js` usa para creditar — o número que
   // aparece aqui é exatamente o que vai cair na conta do cliente, incluindo
-  // o multiplicador de pontos pelo nível do cliente.
-  const earnedPoints = earnedPointsForOrder(productSubtotalYen, redeemPoints * POINTS.yenPerPoint, pointsMultiplier);
+  // o multiplicador de pontos pelo nível do cliente. Ganho de pontos
+  // desativado (ver shared/featureFlags.js) — mesma flag lida pelo servidor.
+  const earnedPoints = LOYALTY_POINTS_ENABLED
+    ? earnedPointsForOrder(productSubtotalYen, redeemPoints * POINTS.yenPerPoint, pointsMultiplier)
+    : 0;
 
   const isPix = paymentMethod === 'pix';
   const subtotalWithCoupon = Math.max(0, baseTotalPrice - couponDiscount - pointsDiscount);
@@ -343,7 +347,7 @@ const OrderReview: React.FC = () => {
       const deduped = existingOrders.filter((order) => order.orderNumber !== pendingOrder.orderNumber);
       safeStorage.setItem('sakura_orders', JSON.stringify([pendingOrder, ...deduped]));
     }
-    if (pendingOrder.paymentMethod !== 'card') {
+    if (ORDER_CONFIRMATION_EMAIL_ENABLED && pendingOrder.paymentMethod !== 'card') {
       void emailServiceSimple.sendOrderConfirmation({ orderNumber: pendingOrder.orderNumber });
     }
     void thermalPrintService.printOrder(pendingOrder);
@@ -458,8 +462,8 @@ const OrderReview: React.FC = () => {
                     <span>{formatPrice(baseTotalPrice, currency)}</span>
                   </div>
 
-                  {/* Coupon input */}
-                  {!appliedCoupon && (
+                  {/* Coupon input — desativado (ver featureFlags.ts) */}
+                  {COUPONS_ENABLED && !appliedCoupon && (
                     <div className="bg-muted/40 border border-dashed border-border rounded-lg p-3 print:hidden">
                       <div className="flex items-center gap-2 mb-2">
                         <Tag className="w-4 h-4 text-muted-foreground" />
@@ -482,7 +486,7 @@ const OrderReview: React.FC = () => {
                     </div>
                   )}
 
-                  {couponDiscount > 0 && (
+                  {COUPONS_ENABLED && couponDiscount > 0 && (
                     <div className="flex justify-between text-green-600 font-bold bg-green-50/50 p-2 rounded border border-dashed border-green-200">
                       <span className="flex items-center gap-2">
                         Desconto do Cupom {appliedCoupon ? `(${appliedCoupon.code})` : ''}
@@ -915,7 +919,7 @@ const OrderReview: React.FC = () => {
                         <span>{formatPrice(baseTotalPrice, currency)}</span>
                       </div>
 
-                      {couponDiscount > 0 && (
+                      {COUPONS_ENABLED && couponDiscount > 0 && (
                         <div className="flex justify-between text-green-600 font-semibold">
                           <span>Cupom ({appliedCoupon?.code})</span>
                           <span>−{formatPrice(couponDiscount, currency)}</span>

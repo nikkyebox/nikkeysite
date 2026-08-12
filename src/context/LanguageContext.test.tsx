@@ -32,7 +32,10 @@ describe('LanguageContext cross-tab sync', () => {
     vi.unstubAllGlobals();
   });
 
-  it('picks up preferred-language changes made from another tab', async () => {
+  // Seletor de idioma desativado a pedido (ver src/config/featureFlags.ts:
+  // LANGUAGE_SWITCH_ENABLED = false) — a loja fica fixa em pt-BR mesmo que
+  // outra aba grave um idioma diferente no storage.
+  it('ignores preferred-language changes from another tab while the switch is disabled', async () => {
     render(
       <LanguageProvider>
         <Probe />
@@ -43,9 +46,11 @@ describe('LanguageContext cross-tab sync', () => {
 
     fireStorage('preferred-language', 'ja');
 
-    await waitFor(() => {
-      expect(screen.getByTestId('language').textContent).toBe('ja');
-    });
+    // Dá tempo para um possível (indevido) re-render acontecer antes de afirmar que nada mudou.
+    const { promise, resolve } = Promise.withResolvers<void>();
+    setTimeout(resolve, 20);
+    await promise;
+    expect(screen.getByTestId('language').textContent).toBe('pt');
   });
 
   it('picks up sakura_selected_country changes made from another tab', async () => {

@@ -1,4 +1,5 @@
 import { earnedPointsForOrder, pointsMultiplierForSpend } from '../../shared/points.js';
+import { LOYALTY_POINTS_ENABLED } from '../../shared/featureFlags.js';
 import { packedWeightG } from '../../shared/weight.js';
 import { roundYen } from '../../shared/pricing.js';
 import { HttpError } from './http.js';
@@ -359,7 +360,7 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
     couponDiscountYen,
     pointsDiscountYen,
     redeemPoints: pointsDiscountYen,
-    earnedPoints: earnedPointsForOrder(productSubtotalYen, pointsDiscountYen, pointsMultiplier),
+    earnedPoints: LOYALTY_POINTS_ENABLED ? earnedPointsForOrder(productSubtotalYen, pointsDiscountYen, pointsMultiplier) : 0,
     pointsMultiplier,
     promoPoints,
     shippingYen: finalShippingYen,

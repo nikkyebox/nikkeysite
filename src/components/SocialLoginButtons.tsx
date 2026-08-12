@@ -1,5 +1,6 @@
 import React from 'react';
 import SocialLoginButton from './SocialLoginButton';
+import { GOOGLE_LOGIN_ENABLED } from '@/config/featureFlags';
 
 /**
  * Métodos de login alternativos das telas de Login e Cadastro. O divisor "ou"
@@ -22,7 +23,7 @@ const SocialLoginButtons: React.FC<{ disabled?: boolean; mode?: 'login' | 'regis
   mode = 'login',
 }) => (
   <div className="space-y-3">
-    <SocialLoginButton provider="google" mode={mode} disabled={disabled} />
+    {GOOGLE_LOGIN_ENABLED && <SocialLoginButton provider="google" mode={mode} disabled={disabled} />}
   </div>
 );
 
