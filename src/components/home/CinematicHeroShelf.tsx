@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,6 +9,10 @@ import { getLenis } from '@/lib/smoothScroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { convertYen } from '@/services/fxService';
+
+// Camada 3D é opcional/decorativa e pesa no bundle — carregada só quando o
+// hero completo (não-simplificado) realmente monta.
+const HeroParticleField = lazy(() => import('./HeroParticleField'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -141,6 +145,9 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
   const progressRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
+  // Progresso 0..1 lido pela camada 3D via useFrame — mutável, não dispara
+  // re-render do React (o mesmo onUpdate do ScrollTrigger já escreve aqui).
+  const scrollProgressRef = useRef(0);
 
   // O conteúdo editorial sai no momento configurado para cada versão do vídeo.
   const introVideoRef = useRef<HTMLVideoElement>(null);
@@ -214,6 +221,7 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
           pin: true,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
+            scrollProgressRef.current = self.progress;
             if (progressRef.current) {
               progressRef.current.style.transform = `scaleX(${self.progress})`;
             }
@@ -492,24 +500,24 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
               {p.brand}
             </span>
           </div>
-          <h2 className="cinematic-reveal mb-1 font-display text-2xl font-light leading-tight text-purple-950 md:mb-3 md:text-5xl">
+          <h2 className="cinematic-reveal mb-1 font-display text-2xl font-light leading-tight text-foreground md:mb-3 md:text-5xl">
             {t(p.nameKey)}
           </h2>
           {language !== 'ja' && (
-            <p className="cinematic-reveal font-jp mb-2 text-sm text-purple-700/70 md:mb-5 md:text-lg">
+            <p className="cinematic-reveal font-jp mb-2 text-sm text-primary/70 md:mb-5 md:text-lg">
               {p.nameJa}
             </p>
           )}
-          <p className="cinematic-reveal mb-3 text-xs leading-relaxed text-purple-950/60 line-clamp-2 md:mb-7 md:text-base md:line-clamp-none">
+          <p className="cinematic-reveal mb-3 text-xs leading-relaxed text-foreground/60 line-clamp-2 md:mb-7 md:text-base md:line-clamp-none">
             {t(p.descriptionKey)}
           </p>
           <div className="cinematic-reveal flex items-center gap-4 md:gap-6">
-            <span className="font-display text-xl text-purple-950 md:text-2xl">
+            <span className="font-display text-xl text-foreground md:text-2xl">
               {formatPrice(convertYen(p.priceYen, currency), currency)}
             </span>
             <Link
               to={p.link}
-              className="group inline-flex items-center gap-2 text-xs font-medium text-purple-700 transition-colors hover:text-purple-900 md:text-sm"
+              className="group inline-flex items-center gap-2 text-xs font-medium text-primary transition-colors hover:text-primary/80 md:text-sm"
             >
               {t('featured.details')}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -532,25 +540,25 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
         蜜
       </div>
       <div className="relative z-10 flex max-w-xl flex-col items-center text-center">
-        <ShoppingBag className="cinematic-reveal mb-3 h-7 w-7 text-purple-600 md:mb-6 md:h-10 md:w-10" />
-        <h2 className="cinematic-reveal mb-3 font-display text-3xl font-light leading-tight text-purple-950 md:mb-5 md:text-6xl">
+        <ShoppingBag className="cinematic-reveal mb-3 h-7 w-7 text-primary md:mb-6 md:h-10 md:w-10" />
+        <h2 className="cinematic-reveal mb-3 font-display text-3xl font-light leading-tight text-foreground md:mb-5 md:text-6xl">
           {t('cinematicHero.outro.title.1')}
           <br />
           {t('cinematicHero.outro.title.2')}
         </h2>
-        <p className="cinematic-reveal mb-4 max-w-xs text-sm text-purple-950/60 md:mb-9 md:max-w-sm md:text-base">
+        <p className="cinematic-reveal mb-4 max-w-xs text-sm text-foreground/60 md:mb-9 md:max-w-sm md:text-base">
           {t('cinematicHero.outro.description')}
         </p>
         <div className="cinematic-reveal flex flex-col gap-3 sm:flex-row">
           <Link
             to="/produtos/cosmeticos"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-purple-600 px-6 py-2.5 text-xs font-medium text-white transition-colors hover:bg-purple-700 md:px-8 md:py-3 md:text-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:px-8 md:py-3 md:text-sm"
           >
             {t('cinematicHero.outro.cta.products')} <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             to="/faca-seu-pedido"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-300 px-6 py-2.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-50 md:px-8 md:py-3 md:text-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/40 px-6 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 md:px-8 md:py-3 md:text-sm"
           >
             {t('cinematicHero.outro.cta.order')}
           </Link>
@@ -563,7 +571,7 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
     <section
       ref={sectionRef}
       className={cn(
-        'relative w-full overflow-hidden bg-gradient-to-b from-purple-50 via-white to-purple-50/40',
+        'relative w-full overflow-hidden bg-gradient-to-b from-background via-background to-card',
         // No smartphone, ocupa 53% da tela. Desktop preserva a experiência
         // cinematográfica em viewport completo.
         simplified
@@ -572,6 +580,18 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
       )}
       aria-label={t('cinematicHero.ariaLabel')}
     >
+      {/* Camada 3D decorativa — partículas procedurais sincronizadas ao mesmo
+          progresso do ScrollTrigger (sem listener de scroll próprio). */}
+      {!simplified && (
+        <Suspense fallback={null}>
+          <HeroParticleField
+            progressRef={scrollProgressRef}
+            accent="#a78bfa"
+            className="pointer-events-none absolute inset-0 z-0 opacity-70"
+          />
+        </Suspense>
+      )}
+
       {/* Superfície da prateleira — persiste enquanto os produtos deslizam */}
       {!simplified && (
         <>
@@ -620,7 +640,7 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
       {/* Barra de progresso + dica inferior */}
       {!simplified && (
         <>
-          <div className="absolute bottom-0 left-0 right-0 z-30 h-[2px] bg-purple-900/10">
+          <div className="absolute bottom-0 left-0 right-0 z-30 h-[2px] bg-white/10">
             <div
               ref={progressRef}
               className="h-full origin-left bg-gradient-to-r from-purple-500 to-violet-400"
