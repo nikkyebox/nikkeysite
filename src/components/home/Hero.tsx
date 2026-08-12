@@ -5,7 +5,7 @@ import { useGSAP } from '@gsap/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLenis } from '@/lib/smoothScroll';
-import HeroRingSlogan from './HeroRingSlogan';
+import HeroFramedSlogan from './HeroFramedSlogan';
 
 /**
  * Hero simples: um único vídeo de fundo, tocado uma vez (sem loop, sem
@@ -62,12 +62,10 @@ const Hero: React.FC = () => {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        {/* Slogan em anel — contorna o logo em vez de ficar em cima dele.
-            Palavras aparecem uma a uma, alternando o lado de entrada. */}
-        <HeroRingSlogan
-          size={300}
-          className="mb-2 h-[220px] w-[220px] sm:h-[300px] sm:w-[300px]"
-        />
+        {/* Slogan emoldurando o círculo do logo — texto reto e grande nos
+            cantos, sem cobrir a logo. Palavras aparecem uma a uma, alternando
+            o lado de entrada (esquerda/direita). */}
+        <HeroFramedSlogan className="mb-2 h-[220px] w-[92vw] max-w-md sm:h-[300px] sm:max-w-xl md:h-[340px] md:max-w-2xl" />
         <p className="hero-reveal mb-8 max-w-md text-sm leading-relaxed text-white/80 md:max-w-lg md:text-lg">
           {t('cinematicHero.intro.description')}
         </p>
