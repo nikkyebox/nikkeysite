@@ -114,3 +114,4 @@ clear-storage.html
 email-template-*.html
 .claude/
 CLAUDE.md.tar.gz
+.env*
