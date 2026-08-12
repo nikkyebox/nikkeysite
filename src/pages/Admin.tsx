@@ -745,7 +745,7 @@ _This is an automated test message_
   const DISABLED_TAB_IDS = new Set<AdminTab>([
     'affiliates', 'visitors', 'coupons', 'review-moderation', 'videos',
     'home', 'vlog', 'sorteio', 'marketing', 'coupon-usage',
-    'calculator', 'migration', 'thermal-printer', 'whatsapp',
+    'calculator', 'migration', 'thermal-printer', 'whatsapp', 'promotion',
   ]);
 
   // Abas agrupadas (menu lateral) — orientado a dados

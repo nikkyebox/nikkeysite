@@ -16,6 +16,7 @@ import { safeStorage } from '@/utils/storage';
 import { useUser } from '@/context/UserContext';
 import type { Coupon } from '@/context/UserContext';
 import { resendVerificationAsAdmin } from '@/services/mailService';
+import { COUPONS_ENABLED } from '@/config/featureFlags';
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<CustomerStats[]>([]);
@@ -476,15 +477,17 @@ const CustomerList: React.FC = () => {
             <p className="text-xs text-red-600 dark:text-red-300">Operações irreversíveis. Use com cuidado!</p>
           </div>
           <div className="flex gap-2 flex-shrink-0 flex-wrap justify-end">
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-primary hover:text-primary border-primary/30 whitespace-nowrap"
-              onClick={() => setGrantTarget('ALL')}
-            >
-              <Gift className="w-4 h-4 mr-1" />
-              Dar cupom a todos
-            </Button>
+            {COUPONS_ENABLED && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-primary hover:text-primary border-primary/30 whitespace-nowrap"
+                onClick={() => setGrantTarget('ALL')}
+              >
+                <Gift className="w-4 h-4 mr-1" />
+                Dar cupom a todos
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -621,15 +624,17 @@ const CustomerList: React.FC = () => {
                   </div>
 
                   <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs flex-1 text-primary border-primary/30 hover:bg-primary/5"
-                      onClick={() => setGrantTarget({ email: customer.email, name: customer.name })}
-                    >
-                      <Gift className="w-3 h-3 mr-1" />
-                      Dar cupom
-                    </Button>
+                    {COUPONS_ENABLED && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs flex-1 text-primary border-primary/30 hover:bg-primary/5"
+                        onClick={() => setGrantTarget({ email: customer.email, name: customer.name })}
+                      >
+                        <Gift className="w-3 h-3 mr-1" />
+                        Dar cupom
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
@@ -879,8 +884,8 @@ const CustomerList: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal: conceder cupom */}
-      {grantTarget && (
+      {/* Modal: conceder cupom — desativado (ver featureFlags.ts) */}
+      {COUPONS_ENABLED && grantTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-card rounded-2xl w-full max-w-md shadow-xl border border-border">
             <div className="flex items-center justify-between p-5 border-b border-border">
