@@ -107,11 +107,41 @@ export default {
             transform: "scale(1.05)",
           },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+        // Grão de filme sutil sobre overlays escuros — quebra o "flat" do dark mode.
+        grain: {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "10%": { transform: "translate(-2%, -4%)" },
+          "30%": { transform: "translate(3%, 2%)" },
+          "50%": { transform: "translate(-3%, 3%)" },
+          "70%": { transform: "translate(2%, -3%)" },
+          "90%": { transform: "translate(-2%, 4%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-zoom": "pulse-zoom 2s ease-in-out infinite",
+        float: "float 6s ease-in-out infinite",
+        "fade-up": "fade-up 0.6s ease-out forwards",
+        "fade-in": "fade-in 0.8s ease-out forwards",
+        marquee: "marquee 18s linear infinite",
+        grain: "grain 1.4s steps(3) infinite",
       },
     },
   },
