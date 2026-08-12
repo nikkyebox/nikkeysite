@@ -24,13 +24,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-clip">
       <OrganizationJsonLd />
       <Header />
-      {/* Header agora é só logo + botão de menu (64px) — navegação/ações
-          moveram para a Sidebar. overflow-x-clip contém efeitos 3D sem criar
-          um novo scroll container. */}
-      <main className={`flex-1 w-full max-w-full overflow-x-clip ${isAdminPage ? 'pt-20' : 'pt-16'}`}>
+      {/* Mobile (< md): Header (64px) fica no topo, Sidebar é gaveta.
+          Desktop (md+): Sidebar fica fixa à esquerda (w-64) e sempre visível,
+          sem Header — conteúdo ganha padding-left equivalente no lugar do
+          padding-top. Admin não usa a Sidebar (tem a própria aside). */}
+      <main
+        className={`flex-1 w-full max-w-full overflow-x-clip ${
+          isAdminPage ? 'pt-20' : 'pt-16 md:pt-0 md:pl-64'
+        }`}
+      >
         {children}
       </main>
-      <Footer />
+      <div className={isAdminPage ? '' : 'md:pl-64'}>
+        <Footer />
+      </div>
       {!isAdminPage && KIMICLAW_ENABLED && (
         <Suspense fallback={null}>
           <KimiClawAssistant />

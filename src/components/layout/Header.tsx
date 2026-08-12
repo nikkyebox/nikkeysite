@@ -4,16 +4,16 @@ import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 
 /**
- * Header minimalista: logo + botão que abre a Sidebar (busca, navegação,
- * conta, carrinho, favoritos, admin e país/moeda vivem lá agora — ver
- * src/components/layout/Sidebar.tsx).
+ * Header minimalista, visível só no mobile (< md): logo + botão que abre a
+ * Sidebar como gaveta. A partir de md, a Sidebar já fica fixa e visível
+ * sozinha (ver Sidebar.tsx), então este header não precisa aparecer.
  */
 const Header: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-xl md:hidden">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link to="/" className="group flex shrink-0 items-center" aria-label="NikkeyBox — início">
             <div className="flex flex-col leading-none">

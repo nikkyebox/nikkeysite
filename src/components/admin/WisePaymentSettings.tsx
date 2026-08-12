@@ -197,7 +197,7 @@ const WisePaymentSettings: React.FC = () => {
           <input
             value={settings.contactPhone}
             onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
-            placeholder="Ex: 070-1367-1679"
+            placeholder="Ex: 00000-0000"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
           />
           <p className="text-[11px] text-muted-foreground mt-1">

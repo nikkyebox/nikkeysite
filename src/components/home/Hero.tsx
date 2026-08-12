@@ -54,7 +54,11 @@ const Hero: React.FC = () => {
         preload="auto"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/40 to-black/30" />
+      {/* Escurece o vídeo para o texto branco ficar legível, independente do
+          tema da página (claro ou escuro) — e funde suavemente com a cor de
+          fundo só na borda inferior, para a transição de scroll ficar limpa. */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/65" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
         <p className="hero-reveal font-jp mb-4 text-xs uppercase tracking-[0.4em] text-primary/90">

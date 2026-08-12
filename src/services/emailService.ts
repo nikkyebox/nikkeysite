@@ -427,7 +427,7 @@ export const emailService = {
 
         <div class="footer">
           <p><strong>NikkeyBox</strong> - Importados do Japão 🌸</p>
-          <p>📍 Hiroshima-ken, Japão</p>
+          <p>📍 Endereço Teste</p>
           <p>📞 ${WHATSAPP} | 📧 ${COMPANY_PROFILE.email}</p>
           <p style="margin-top: 15px; font-size: 12px; color: #999;">
             Se tiver dúvidas, entre em contato conosco via WhatsApp!
@@ -580,7 +580,7 @@ export const emailService = {
 
         <div class="footer">
           <p><strong>NikkeyBox</strong> - Importados do Japão 🌸</p>
-          <p>📍 Hiroshima-ken, Japão</p>
+          <p>📍 Endereço Teste</p>
           <p>📞 ${WHATSAPP} | 📧 ${COMPANY_PROFILE.email}</p>
           <p style="margin-top: 15px; font-size: 12px; color: #999;">
             Se tiver dúvidas, entre em contato conosco via WhatsApp!

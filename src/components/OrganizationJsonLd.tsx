@@ -17,11 +17,12 @@ const OrganizationJsonLd: React.FC = () => {
       name: COMPANY_PROFILE.brand,
       url: SITE_URL,
       logo: `${SITE_URL}/icons/icon-512x512.png`,
+      // Perfis sociais em "teste" temporariamente — trocar antes de publicar.
       sameAs: [
-        'https://www.instagram.com/japan_express_official/',
-        'https://www.facebook.com/japanexpressoficial',
-        'https://www.tiktok.com/@japanexpressoficial',
-        'https://x.com/japanexpress_of',
+        'https://www.instagram.com/teste/',
+        'https://www.facebook.com/teste',
+        'https://www.tiktok.com/@teste',
+        'https://x.com/teste',
       ],
       address: {
         '@type': 'PostalAddress',

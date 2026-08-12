@@ -1,24 +1,24 @@
 {
   "brand": "NikkeyBox",
   "legalName": "NikkeyBox",
-  "contactName": "Paula Shiokawa",
-  "email": "contato@nikkeybox-store.com",
+  "contactName": "Teste",
+  "email": "teste@teste.com",
   "website": "https://nikkeybox-store.com",
   "whatsapp": {
-    "international": "+81 70-1367-1679",
-    "domestic": "070-1367-1679",
-    "digits": "817013671679"
+    "international": "+00 00000-0000",
+    "domestic": "00000-0000",
+    "digits": "00000000000"
   },
   "fulfillmentOrigin": {
-    "postalCode": "720-1143",
-    "addressLine1": "257-18 Shimoyamamori, Ekiya-cho",
-    "city": "Fukuyama-shi",
-    "prefecture": "Hiroshima-ken",
-    "country": "Japan",
-    "countryPt": "Japão",
-    "formatted": "257-18 Shimoyamamori, Ekiya-cho, Fukuyama-shi, Hiroshima-ken 720-1143, Japan",
-    "formattedJa": "〒720-1143 広島県福山市駅家町下山守257-18",
-    "short": "Fukuyama-shi, Hiroshima-ken, Japan",
-    "shortPt": "Fukuyama-shi, Hiroshima-ken, Japão"
+    "postalCode": "00000-000",
+    "addressLine1": "Endereço Teste",
+    "city": "Cidade Teste",
+    "prefecture": "Estado Teste",
+    "country": "Test",
+    "countryPt": "Teste",
+    "formatted": "Endereço Teste, Cidade Teste, Estado Teste 00000-000",
+    "formattedJa": "Endereço Teste",
+    "short": "Cidade Teste, Estado Teste",
+    "shortPt": "Cidade Teste, Estado Teste"
   }
 }

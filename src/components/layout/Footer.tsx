@@ -4,11 +4,12 @@ import { Instagram, Facebook, Mail, MapPin, MessageCircle, Smartphone, Twitter }
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 
+// Todos os perfis sociais estão em "teste" temporariamente — trocar antes de publicar.
 const WHATSAPP_NUMBER = COMPANY_PROFILE.whatsapp.digits;
-const INSTAGRAM_URL = 'https://www.instagram.com/nikkey_box_official/';
-const FACEBOOK_URL = 'https://www.facebook.com/nikkeyboxoficial';
-const TIKTOK_URL = 'https://www.tiktok.com/@nikkeyboxoficial';
-const X_URL = 'https://x.com/nikkeybox_of';
+const INSTAGRAM_URL = 'https://www.instagram.com/teste/';
+const FACEBOOK_URL = 'https://www.facebook.com/teste';
+const TIKTOK_URL = 'https://www.tiktok.com/@teste';
+const X_URL = 'https://x.com/teste';
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 const CONTACT_EMAIL = COMPANY_PROFILE.email;
 import { useLanguage } from '@/context/LanguageContext';
@@ -42,7 +43,7 @@ const Footer: React.FC = () => {
                 href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram @nikkey_box_official"
+                aria-label="Instagram @teste"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <Instagram className="w-5 h-5" />
@@ -51,7 +52,7 @@ const Footer: React.FC = () => {
                 href={FACEBOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook nikkeyboxoficial"
+                aria-label="Facebook teste"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <Facebook className="w-5 h-5" />
@@ -60,7 +61,7 @@ const Footer: React.FC = () => {
                 href={TIKTOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="TikTok @nikkeyboxoficial"
+                aria-label="TikTok @teste"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -71,7 +72,7 @@ const Footer: React.FC = () => {
                 href={X_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="X (Twitter) @nikkeybox_of"
+                aria-label="X (Twitter) @teste"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <Twitter className="w-5 h-5" />
