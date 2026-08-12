@@ -5,6 +5,7 @@ import Footer from './Footer';
 import AdminPreviewBar from './AdminPreviewBar';
 import { useBirthdayBonus } from '@/hooks/useBirthdayBonus';
 import OrganizationJsonLd from '@/components/OrganizationJsonLd';
+import { KIMICLAW_ENABLED } from '@/config/featureFlags';
 
 // Widget não-crítico (chat flutuante): carregado sob demanda para manter o
 // chunk compartilhado (Layout) leve. Ausência momentânea do botão não afeta
@@ -23,14 +24,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-clip">
       <OrganizationJsonLd />
       <Header />
-      {/* Cliente mobile: barra de confiança (~28px) + topo (80px) = 108px.
-          Desktop também inclui a navegação (~32px), totalizando ~140px.
-          overflow-x-clip contém efeitos 3D sem criar um novo scroll container. */}
-      <main className={`flex-1 w-full max-w-full overflow-x-clip ${isAdminPage ? 'pt-20' : 'pt-[108px] md:pt-[140px]'}`}>
+      {/* Header agora é só logo + botão de menu (64px) — navegação/ações
+          moveram para a Sidebar. overflow-x-clip contém efeitos 3D sem criar
+          um novo scroll container. */}
+      <main className={`flex-1 w-full max-w-full overflow-x-clip ${isAdminPage ? 'pt-20' : 'pt-16'}`}>
         {children}
       </main>
       <Footer />
-      {!isAdminPage && (
+      {!isAdminPage && KIMICLAW_ENABLED && (
         <Suspense fallback={null}>
           <KimiClawAssistant />
         </Suspense>

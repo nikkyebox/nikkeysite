@@ -21,6 +21,7 @@ import { useSeo } from "@/hooks/useSeo";
 import RequireAdmin from "./components/RequireAdmin";
 import CookieBanner from "./components/CookieBanner";
 import InstallPrompt from "./components/InstallPrompt";
+import { PWA_INSTALL_ENABLED } from "./config/featureFlags";
 import ExitIntentPopup from "./components/ExitIntentPopup";
 import CartAbandonmentTracker from "./components/CartAbandonmentTracker";
 import CartRecoveryBanner from "./components/CartRecoveryBanner";
@@ -258,7 +259,7 @@ const App = () => (
   <BrowserRouter>
     <LanguageProvider>
       <CookieBanner />
-      <InstallPrompt />
+      {PWA_INSTALL_ENABLED && <InstallPrompt />}
       <MaintenanceShell />
     </LanguageProvider>
   </BrowserRouter>

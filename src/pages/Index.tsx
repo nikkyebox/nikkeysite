@@ -9,11 +9,12 @@ import NewsletterSection from '@/components/home/NewsletterSection';
 import AppDownloadSection from '@/components/AppDownloadSection';
 import ScrollReveal from '@/components/ScrollReveal';
 import WelcomeCouponBanner from '@/components/WelcomeCouponBanner';
-import CinematicHeroShelfTransition from '@/components/home/CinematicHeroShelfTransition';
+import Hero from '@/components/home/Hero';
+import { PWA_INSTALL_ENABLED } from '@/config/featureFlags';
 
 const Index: React.FC = () => (
   <Layout>
-    <CinematicHeroShelfTransition />
+    <Hero />
 
     <WelcomeCouponBanner />
     <ScrollReveal><CategoryQuickNav /></ScrollReveal>
@@ -33,8 +34,8 @@ const Index: React.FC = () => (
     {/* Newsletter */}
     <ScrollReveal><NewsletterSection /></ScrollReveal>
 
-    {/* App Download */}
-    <ScrollReveal><AppDownloadSection /></ScrollReveal>
+    {/* App Download — desativado (PWA em pausa, ver src/config/featureFlags.ts) */}
+    {PWA_INSTALL_ENABLED && <ScrollReveal><AppDownloadSection /></ScrollReveal>}
   </Layout>
 );
 

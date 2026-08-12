@@ -3,6 +3,7 @@ import { translations, Language } from '@/data/translations';
 import { safeStorage } from '@/utils/storage';
 import { loadFxRates, getRates } from '@/services/fxService';
 import { WORLD_COUNTRIES } from '@/data/worldCountries';
+import { LANGUAGE_SWITCH_ENABLED } from '@/config/featureFlags';
 
 // Nome do país (ver lista completa em src/data/worldCountries.ts).
 // String aberta porque agora há 40+ países — a config vem da tabela central.
@@ -33,6 +34,7 @@ interface LanguageProviderProps { children: ReactNode; }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
+    if (!LANGUAGE_SWITCH_ENABLED) return 'pt';
     const stored = safeStorage.getItem('preferred-language');
     return (stored as Language) || 'pt';
   });
@@ -92,6 +94,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const handleStorage = (event: StorageEvent) => {
       if (event.storageArea !== window.localStorage) return;
       if (event.key === 'preferred-language') {
+        if (!LANGUAGE_SWITCH_ENABLED) return;
         const next = (event.newValue as Language) || 'pt';
         setLanguageState(next);
       } else if (event.key === 'sakura_selected_country') {
@@ -104,6 +107,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   }, []);
 
   const setLanguage = useCallback((lang: Language) => {
+    if (!LANGUAGE_SWITCH_ENABLED) return; // seletor desativado — ver LANGUAGE_SWITCH_ENABLED
     setLanguageState(lang);
     safeStorage.setItem('preferred-language', lang);
     // Marca que a escolha foi do usuário. `migrateLocalStorage` usa a marca

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Wrench, Lock } from 'lucide-react';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MaintenancePage: React.FC = () => {
@@ -9,11 +8,6 @@ const MaintenancePage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-pink-100 via-pink-50 to-white flex items-center justify-center px-4">
-      {/* Language selector */}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
-
       {/* Main content */}
       <div className="text-center max-w-md space-y-6 relative z-10">
         <div className="flex justify-center">

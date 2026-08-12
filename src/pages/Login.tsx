@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { useLanguage } from '@/context/LanguageContext';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
 
 const Login: React.FC = () => {
@@ -135,13 +134,6 @@ const Login: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto">
             <div className="bg-card rounded-2xl border border-border p-6 lg:p-8">
-              
-              {/* Language Switcher */}
-              <div className="flex items-center justify-center gap-2 mb-6 pb-4 border-b border-border">
-                <span className="text-sm text-muted-foreground mr-2">🌐</span>
-                <LanguageSwitcher />
-              </div>
-
               {showForgotPassword ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
