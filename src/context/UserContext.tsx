@@ -706,6 +706,33 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; code?: string; needsVerification?: boolean }> => {
     const normalizedEmail = normalizeEmail(email);
+
+    // 0) BYPASS TEMPORÁRIO DE DESENVOLVIMENTO — usuário "Administrador" + senha
+    //    fixa, só entra em `npm run dev` (import.meta.env.DEV vira `false` em
+    //    build de produção e o Vite elimina este bloco por dead-code, então
+    //    isto nunca vai para o site publicado). Não abre sessão Firebase real:
+    //    leituras protegidas por regra (pedidos/clientes) ficam bloqueadas até
+    //    trocar para login real. Remover quando o admin passar a usar a conta
+    //    Firebase de verdade.
+    if (import.meta.env.DEV && email.trim().toLowerCase() === 'administrador' && password === '123456') {
+      const devAdminUser: UserProfile = {
+        id: ADMIN_USER_ID,
+        name: 'Administrador (dev)',
+        email: ADMIN_EMAIL,
+        phone: '',
+        adminRole: 3,
+        address: { postalCode: '', prefecture: '', city: '', address: '' },
+        createdAt: new Date().toISOString(),
+      };
+      safeStorage.setItem('user', JSON.stringify(stripSensitive(devAdminUser)));
+      setUser(devAdminUser);
+      setIsAuthenticated(true);
+      setCoupons([]);
+      setOrders([]);
+      devLog('⚠️ Login admin via bypass de desenvolvimento (sem sessão Firebase real).');
+      return { success: true };
+    }
+
     // 1) LOGIN DE ADMIN por usuário/nome ("Administrador" ou nome cadastrado) + senha.
     //    Separado dos e-mails de cliente — não mistura com a conta de cliente.
     const adminSession = await adminService.authenticate(email, password);
