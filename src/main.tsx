@@ -5,40 +5,57 @@ import App from "./App.tsx";
 import "./index.css";
 import { migrateLocalStorage } from "./utils/migrate";
 import { isChunkLoadError, recoverFromChunkError } from "./utils/recoverFromChunkError";
+import { PWA_INSTALL_ENABLED } from "./config/featureFlags";
 
 migrateLocalStorage();
 
-// Registra o Service Worker. Novo build não recarrega sozinho — pede
-// confirmação por toque.
-//
-// Antes, `onNeedRefresh` chamava `updateSW(true)` direto, que recarrega a
-// página via JS sem gesto nenhum do usuário. Isso rodava até em segundo
-// plano: a checagem de atualização abaixo roda a cada 60s enquanto o app
-// está aberto, então o reload podia disparar no meio da navegação. No PWA
-// standalone do iOS, um `location.reload()` fora de um toque do usuário é
-// o gatilho clássico do bug do WebKit "pinta a tela em branco até rolar" —
-// era exatamente esse sintoma no iPhone. Pedir confirmação resolve as duas
-// coisas: o reload não pega o cliente no meio de nada, e quando acontece é
-// dentro do gesto de toque no botão, que o WebKit repinta direito.
-let avisoMostrado = false;
-const updateSW = registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    if (avisoMostrado) return;
-    avisoMostrado = true;
-    toast('Nova versão disponível', {
-      description: 'Toque para atualizar e ver as últimas novidades.',
-      duration: Infinity,
-      action: { label: 'Atualizar', onClick: () => updateSW(true) },
-    });
-  },
-  onRegisteredSW(_swUrl, registration) {
-    // Verifica atualização a cada 60s enquanto o app está aberto
-    if (registration) {
-      setInterval(() => registration.update().catch(() => {}), 60_000);
-    }
-  },
-});
+if (PWA_INSTALL_ENABLED) {
+  // Registra o Service Worker. Novo build não recarrega sozinho — pede
+  // confirmação por toque.
+  //
+  // Antes, `onNeedRefresh` chamava `updateSW(true)` direto, que recarrega a
+  // página via JS sem gesto nenhum do usuário. Isso rodava até em segundo
+  // plano: a checagem de atualização abaixo roda a cada 60s enquanto o app
+  // está aberto, então o reload podia disparar no meio da navegação. No PWA
+  // standalone do iOS, um `location.reload()` fora de um toque do usuário é
+  // o gatilho clássico do bug do WebKit "pinta a tela em branco até rolar" —
+  // era exatamente esse sintoma no iPhone. Pedir confirmação resolve as duas
+  // coisas: o reload não pega o cliente no meio de nada, e quando acontece é
+  // dentro do gesto de toque no botão, que o WebKit repinta direito.
+  let avisoMostrado = false;
+  const updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      if (avisoMostrado) return;
+      avisoMostrado = true;
+      toast('Nova versão disponível', {
+        description: 'Toque para atualizar e ver as últimas novidades.',
+        duration: Infinity,
+        action: { label: 'Atualizar', onClick: () => updateSW(true) },
+      });
+    },
+    onRegisteredSW(_swUrl, registration) {
+      // Verifica atualização a cada 60s enquanto o app está aberto
+      if (registration) {
+        setInterval(() => registration.update().catch(() => {}), 60_000);
+      }
+    },
+  });
+} else if ('serviceWorker' in navigator) {
+  // PWA desativado (ver src/config/featureFlags.ts): garante que nenhum
+  // Service Worker de uma visita anterior continue servindo HTML/assets em
+  // cache — foi exatamente isso que deixou o site "preso" no tema antigo
+  // depois de trocarmos o CSS. Roda uma vez por carregamento, sem custo
+  // perceptível quando não há nada registrado.
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((reg) => reg.unregister());
+  }).catch(() => {});
+  if ('caches' in window) {
+    caches.keys().then((keys) => {
+      keys.filter((k) => k.startsWith('workbox-')).forEach((k) => caches.delete(k));
+    }).catch(() => {});
+  }
+}
 
 // Quando o SW carrega um chunk antigo que já não existe no novo deploy,
 // o browser lança erro de "dynamically imported module". Limpamos o cache do

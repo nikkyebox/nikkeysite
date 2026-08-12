@@ -8,7 +8,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useProducts } from '@/context/ProductsContext';
 import { categoryService, DEFAULT_CATEGORIES, type ProductCategory } from '@/services/categoryService';
 import { cn } from '@/lib/utils';
-import CountrySwitcher from '@/components/CountrySwitcher';
 
 export const SIDEBAR_WIDTH_PX = 256; // w-64 — usado pelo Layout para o padding do conteúdo
 
@@ -166,11 +165,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             <UserCircle className="h-4 w-4" />
             {isAdminPage ? 'Ver Loja' : t('nav.admin')}
           </Link>
-        )}
-        {!isAdminPage && (
-          <div className="pt-2">
-            <CountrySwitcher />
-          </div>
         )}
       </div>
     </>

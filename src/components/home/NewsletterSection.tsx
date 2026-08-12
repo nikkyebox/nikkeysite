@@ -21,9 +21,9 @@ const NewsletterSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-br from-pink-600 to-amber-500">
+    <section className="py-16 bg-gradient-to-br from-primary to-accent">
       <div className="container mx-auto px-4">
-        <div className="max-w-xl mx-auto text-center text-white">
+        <div className="max-w-xl mx-auto text-center text-primary-foreground">
           <Mail className="w-10 h-10 mx-auto mb-3" />
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">
             Fique por dentro das novidades
@@ -44,13 +44,13 @@ const NewsletterSection: React.FC = () => {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); if (status === 'invalid') setStatus('idle'); }}
                 placeholder="seu@email.com"
-                className="flex-1 rounded-xl px-4 py-3 text-gray-900 font-medium placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+                className="flex-1 rounded-xl px-4 py-3 text-foreground font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground"
                 required
               />
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl px-6 py-3 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                className="bg-foreground hover:bg-foreground/90 text-background font-bold rounded-xl px-6 py-3 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
               >
                 {status === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Inscrever'}
               </button>
