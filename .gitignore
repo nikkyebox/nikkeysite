@@ -115,3 +115,4 @@ email-template-*.html
 .claude/
 CLAUDE.md.tar.gz
 .env*
+.old-branding-backup/
