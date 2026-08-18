@@ -5,7 +5,6 @@ import { useGSAP } from '@gsap/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getLenis } from '@/lib/smoothScroll';
-import HeroFramedSlogan from './HeroFramedSlogan';
 
 /**
  * Hero simples: um único vídeo de fundo, tocado uma vez (sem loop, sem
@@ -61,12 +60,6 @@ const Hero: React.FC = () => {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/65" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-      {/* Slogan emoldurando o círculo do logo — cada palavra presa a uma
-          borda da tela, nunca esbarra no círculo. Substitui o antigo título +
-          descrição por inteiro (era "Beleza Japonesa" + "Cosméticos
-          japoneses selecionados e enviados com segurança..."). Só aparece
-          depois que a animação do círculo do vídeo termina de se formar. */}
-      <HeroFramedSlogan className="z-10" />
 
       {/* CTA e dica de scroll ficam juntos perto do rodapé da tela — fora do
           centro, que é onde o círculo do logo está, para não cobrir a logo. */}
