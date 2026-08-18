@@ -1,24 +1,24 @@
 {
   "brand": "NikkeyBox",
   "legalName": "NikkeyBox",
-  "contactName": "Teste",
-  "email": "teste@teste.com",
+  "contactName": "NikkeyBox",
+  "email": "contato@nikkeibox.com",
   "website": "https://nikkeybox-store.com",
   "whatsapp": {
-    "international": "+00 00000-0000",
-    "domestic": "00000-0000",
-    "digits": "00000000000"
+    "international": "+81 70-2272-3051",
+    "domestic": "070-2272-3051",
+    "digits": "817022723051"
   },
   "fulfillmentOrigin": {
-    "postalCode": "00000-000",
-    "addressLine1": "Endereço Teste",
-    "city": "Cidade Teste",
-    "prefecture": "Estado Teste",
-    "country": "Test",
-    "countryPt": "Teste",
-    "formatted": "Endereço Teste, Cidade Teste, Estado Teste 00000-000",
-    "formattedJa": "Endereço Teste",
-    "short": "Cidade Teste, Estado Teste",
-    "shortPt": "Cidade Teste, Estado Teste"
+    "postalCode": "514-0817",
+    "addressLine1": "Takachaya Komori-cho 2781",
+    "city": "Tsu-shi",
+    "prefecture": "Mie-Ken",
+    "country": "Japan",
+    "countryPt": "Japão",
+    "formatted": "Mie-Ken Tsu-shi Takachaya Komori-cho 2781, 514-0817",
+    "formattedJa": "三重県津市高茶屋小森町2781",
+    "short": "Tsu-shi, Mie-Ken",
+    "shortPt": "Tsu-shi, Mie-Ken"
   }
 }

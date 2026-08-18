@@ -61,27 +61,27 @@ const Hero: React.FC = () => {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/65" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        {/* Slogan emoldurando o círculo do logo — texto reto e grande nos
-            cantos, sem cobrir a logo. Palavras aparecem uma a uma, alternando
-            o lado de entrada (esquerda/direita). */}
-        <HeroFramedSlogan className="mb-2 h-[220px] w-[92vw] max-w-md sm:h-[300px] sm:max-w-xl md:h-[340px] md:max-w-2xl" />
-        <p className="hero-reveal mb-8 max-w-md text-sm leading-relaxed text-white/80 md:max-w-lg md:text-lg">
-          {t('cinematicHero.intro.description')}
-        </p>
-        <div className="hero-reveal flex flex-col gap-3 sm:flex-row">
-          <Link
-            to="/produtos"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            {t('cinematicHero.outro.cta.products')} <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+      {/* Slogan emoldurando o círculo do logo — cada palavra presa a uma
+          borda da tela, nunca esbarra no círculo. Substitui o antigo título +
+          descrição por inteiro (era "Beleza Japonesa" + "Cosméticos
+          japoneses selecionados e enviados com segurança..."). Só aparece
+          depois que a animação do círculo do vídeo termina de se formar. */}
+      <HeroFramedSlogan className="z-10" />
+
+      {/* CTA e dica de scroll ficam juntos perto do rodapé da tela — fora do
+          centro, que é onde o círculo do logo está, para não cobrir a logo. */}
+      <div className="absolute inset-x-0 bottom-8 z-10 flex flex-col items-center gap-4 px-4 text-center">
+        <Link
+          to="/produtos"
+          className="hero-reveal inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          {t('cinematicHero.outro.cta.products')} <ArrowRight className="h-4 w-4" />
+        </Link>
 
         <button
           type="button"
           onClick={scrollToNext}
-          className="hero-reveal absolute bottom-8 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/70 transition-opacity hover:opacity-100"
+          className="hero-reveal flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/70 transition-opacity hover:opacity-100"
         >
           <ArrowDown className="cinematic-bob h-3 w-3" />
           <span>{t('cinematicHero.intro.scroll')}</span>

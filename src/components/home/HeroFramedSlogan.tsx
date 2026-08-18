@@ -3,29 +3,39 @@ import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { cn } from '@/lib/utils';
 
-// Duas linhas, duas palavras cada — lidas como "Beleza Japonesa · Cosméticos
-// Selecionados". Cada palavra fica num canto do quadrado que envolve o
-// círculo do logo, então nunca cobre o centro (onde a logo está).
+// Novo slogan — lido nos quatro cantos como "Curadoria Japonesa · Entrega
+// Excepcional". Cada palavra precisa caber isolada num canto sem esbarrar
+// no círculo do logo.
 const WORDS = [
-  { text: 'BELEZA', row: 0, side: 'left' as const },
-  { text: 'JAPONESA', row: 0, side: 'right' as const },
-  { text: 'COSMÉTICOS', row: 1, side: 'left' as const },
-  { text: 'SELECIONADOS', row: 1, side: 'right' as const },
+  { text: 'CURADORIA', corner: 'top-left' as const },
+  { text: 'JAPONESA', corner: 'top-right' as const },
+  { text: 'ENTREGA', corner: 'bottom-left' as const },
+  { text: 'EXCEPCIONAL', corner: 'bottom-right' as const },
 ];
+
+// A intro do vídeo do hero leva ~11s até o círculo terminar de se desenhar —
+// as palavras só começam a aparecer depois disso, para não competir com essa
+// animação. 1s de intervalo entre cada palavra, como pedido.
+const START_DELAY_S = 11;
+const WORD_INTERVAL_S = 1;
+
+const CORNER_CLASSES: Record<(typeof WORDS)[number]['corner'], string> = {
+  'top-left': 'left-[4%] top-[12%] sm:left-[6%] sm:top-[14%] text-left',
+  'top-right': 'right-[4%] top-[12%] sm:right-[6%] sm:top-[14%] text-right',
+  'bottom-left': 'left-[4%] top-[70%] sm:left-[6%] sm:top-[68%] text-left',
+  'bottom-right': 'right-[4%] top-[70%] sm:right-[6%] sm:top-[68%] text-right',
+};
 
 interface HeroFramedSloganProps {
   className?: string;
 }
 
 /**
- * Slogan que emoldura o círculo do logo em vez de ficar em cima dele: texto
- * reto e grande, uma palavra em cada canto (topo-esquerda, topo-direita,
- * baixo-esquerda, baixo-direita) — os cantos do quadrado ao redor do círculo
- * ficam naturalmente vazios, então o texto nunca cobre a logo.
- *
- * Cada palavra entra deslizando na horizontal: as da esquerda vêm de mais à
- * esquerda ainda, as da direita vêm de mais à direita, e param encostadas
- * na "linha" do círculo — uma de cada vez, em sequência.
+ * Slogan que emoldura o círculo do logo: cada palavra fica presa a uma borda
+ * da tela (não a uma caixa do tamanho do círculo), então nunca esbarra nele
+ * independente do tamanho exato do círculo do vídeo. Aparecem uma a uma —
+ * esquerda e direita alternando — só depois que a animação do círculo do
+ * vídeo termina de se formar.
  */
 const HeroFramedSlogan: React.FC<HeroFramedSloganProps> = ({ className }) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -38,7 +48,13 @@ const HeroFramedSlogan: React.FC<HeroFramedSloganProps> = ({ className }) => {
         gsap.fromTo(
           el,
           { opacity: 0, x: fromLeft ? -60 : 60 },
-          { opacity: 1, x: 0, duration: 0.7, ease: 'power2.out', delay: 0.35 + i * 0.28 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            delay: START_DELAY_S + i * WORD_INTERVAL_S,
+          },
         );
       });
     },
@@ -46,23 +62,27 @@ const HeroFramedSlogan: React.FC<HeroFramedSloganProps> = ({ className }) => {
   );
 
   return (
-    <div ref={rootRef} className={cn('relative grid grid-rows-2', className)}>
-      {[0, 1].map((row) => (
-        <div key={row} className="flex items-center justify-between">
-          {WORDS.filter((w) => w.row === row).map((w) => (
-            <span
-              key={w.text}
-              data-side={w.side}
-              className={cn(
-                'hero-frame-word font-display text-xl font-bold uppercase tracking-wide text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-3xl md:text-4xl',
-                w.side === 'right' && 'text-right',
-              )}
-            >
-              {w.text}
-            </span>
-          ))}
-        </div>
-      ))}
+    <div
+      ref={rootRef}
+      className={cn('pointer-events-none absolute inset-0', className)}
+      role="img"
+      aria-label="Curadoria Japonesa · Entrega Excepcional"
+    >
+      {WORDS.map((w) => {
+        const side = w.corner.endsWith('left') ? 'left' : 'right';
+        return (
+          <span
+            key={w.text}
+            data-side={side}
+            className={cn(
+              'hero-frame-word absolute font-brand text-2xl font-bold uppercase tracking-wide text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] sm:text-3xl md:text-4xl lg:text-5xl',
+              CORNER_CLASSES[w.corner],
+            )}
+          >
+            {w.text}
+          </span>
+        );
+      })}
     </div>
   );
 };
