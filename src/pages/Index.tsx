@@ -1,8 +1,10 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import CategoryQuickNav from '@/components/home/CategoryQuickNav';
+import TrustHighlights from '@/components/home/TrustHighlights';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import RecentlyViewed from '@/components/home/RecentlyViewed';
+import PersonalShopperBanner from '@/components/home/PersonalShopperBanner';
 import HomeVideos from '@/components/home/HomeVideos';
 import ShippingBanner from '@/components/home/ShippingBanner';
 import NewsletterSection from '@/components/home/NewsletterSection';
@@ -18,12 +20,16 @@ const Index: React.FC = () => (
 
     <WelcomeCouponBanner />
     <ScrollReveal><CategoryQuickNav /></ScrollReveal>
+    <ScrollReveal><TrustHighlights /></ScrollReveal>
 
     {/* Most Viewed / Featured Products */}
     <ScrollReveal><FeaturedProducts /></ScrollReveal>
 
     {/* Recently Viewed */}
     <RecentlyViewed />
+
+    {/* Personal Shopper Conversion Section */}
+    <ScrollReveal><PersonalShopperBanner /></ScrollReveal>
 
     {/* Videos */}
     <ScrollReveal><HomeVideos /></ScrollReveal>

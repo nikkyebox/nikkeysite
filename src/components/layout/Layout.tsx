@@ -11,13 +11,14 @@ import { KIMICLAW_ENABLED } from '@/config/featureFlags';
 // chunk compartilhado (Layout) leve. Ausência momentânea do botão não afeta
 // o conteúdo principal da página — fallback null é apropriado aqui.
 const KimiClawAssistant = lazy(() => import('../KimiClawAssistant'));
+const FloatingWhatsAppWidget = lazy(() => import('../FloatingWhatsAppWidget'));
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // KimiClaw é assistente do cliente — não aparece no painel admin
+  // KimiClaw e WhatsApp são assistentes do cliente — não aparecem no painel admin
   const isAdminPage = useLocation().pathname.startsWith('/admin');
   useBirthdayBonus(); // concede 1000 pts no aniversário
   return (
@@ -41,6 +42,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {!isAdminPage && KIMICLAW_ENABLED && (
         <Suspense fallback={null}>
           <KimiClawAssistant />
+        </Suspense>
+      )}
+      {!isAdminPage && (
+        <Suspense fallback={null}>
+          <FloatingWhatsAppWidget />
         </Suspense>
       )}
       <AdminPreviewBar />
