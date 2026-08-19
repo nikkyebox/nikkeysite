@@ -1,7 +1,7 @@
 import { safeStorage } from '@/utils/storage';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Printer, ShoppingBag, User, MapPin, Phone, Mail, Calendar, TestTube, Tag, Truck, CheckCircle, XCircle, Trash2, BarChart3, Users, PackagePlus, Video, Megaphone, Clapperboard, Building2, Sparkles, ShieldCheck, Calculator, CloudUpload, FileText, Handshake, Flag, TrendingDown, MessageCircle, Trophy } from 'lucide-react';
+import { Package, Printer, ShoppingBag, User, MapPin, Phone, Mail, Calendar, TestTube, Tag, Truck, CheckCircle, XCircle, Trash2, BarChart3, Users, PackagePlus, Video, Megaphone, Clapperboard, Building2, Sparkles, ShieldCheck, Calculator, CloudUpload, FileText, Handshake, Flag, TrendingDown, MessageCircle, Trophy, Store } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/UserContext';
@@ -809,6 +809,17 @@ _This is an automated test message_
             <p className="text-muted-foreground text-lg">
               Gestão de Pedidos - Paula Shiokawa
             </p>
+
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => navigate('/produtos')}
+              >
+                <Store className="w-4 h-4" />
+                Ver Loja
+              </Button>
+            </div>
             {ADMIN_HEADER_ACTIONS_ENABLED && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <Button
