@@ -10,25 +10,19 @@ import {
 } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// Firebase Configuration (projeto nikkey-33f93)
-// Os 4 campos PENDING_NIKKEY33F93_* abaixo DEVEM ser preenchidos com os valores
-// reais do console do Firebase (Project Settings → Your apps → Web app → SDK
-// setup and configuration). Até lá, firebaseConfigReady fica false e o app
-// roda em modo local (sem Auth/Firestore/Storage) — ver banner em App.tsx.
+// Firebase Configuration (projeto nikkeybox)
+// Config real obtida via `firebase apps:sdkconfig` (web app "nikkeysite").
 const firebaseConfig = {
-  apiKey: "PENDING_NIKKEY33F93_API_KEY",
-  authDomain: "nikkey-33f93.firebaseapp.com",
-  projectId: "nikkey-33f93",
-  storageBucket: "nikkey-33f93.firebasestorage.app",
-  messagingSenderId: "PENDING_NIKKEY33F93_MSG_SENDER_ID",
-  appId: "PENDING_NIKKEY33F93_APP_ID",
-  measurementId: "PENDING_NIKKEY33F93_MEASUREMENT_ID"
+  apiKey: "AIzaSyAtURjGGtYG9qFKHgG4AJN4op1-1X7rUWY",
+  authDomain: "nikkeybox.firebaseapp.com",
+  projectId: "nikkeybox",
+  storageBucket: "nikkeybox.firebasestorage.app",
+  messagingSenderId: "597547036364",
+  appId: "1:597547036364:web:fe6c79faa57318ac9b5c69",
+  measurementId: "G-WW4MZ7MEGE"
 };
 
-const PENDING_RE = /PENDING_NIKKEY33F93_/;
-const firebaseConfigReady = !Object.values(firebaseConfig).some(
-  (v) => typeof v === 'string' && PENDING_RE.test(v)
-);
+const firebaseConfigReady = true;
 const firebaseConfigSource = 'direct-config';
 const firebaseDisabled = import.meta.env.VITE_DISABLE_FIREBASE === 'true';
 const allowLocalOnly = import.meta.env.VITE_ALLOW_LOCAL_ONLY === 'true';

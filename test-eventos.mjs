@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-const cfg = { apiKey:"PENDING_NIKKEY33F93_API_KEY", authDomain:"nikkey-33f93.firebaseapp.com", projectId:"nikkey-33f93", storageBucket:"nikkey-33f93.firebasestorage.app", messagingSenderId:"PENDING_NIKKEY33F93_MSG_SENDER_ID", appId:"PENDING_NIKKEY33F93_APP_ID" };
+const cfg = { apiKey:"AIzaSyAtURjGGtYG9qFKHgG4AJN4op1-1X7rUWY", authDomain:"nikkeybox.firebaseapp.com", projectId:"nikkeybox", storageBucket:"nikkeybox.firebasestorage.app", messagingSenderId:"597547036364", appId:"1:597547036364:web:fe6c79faa57318ac9b5c69" };
 const app=initializeApp(cfg); const db=getFirestore(app); const auth=getAuth(app);
 (async()=>{
   const cred = await signInWithEmailAndPassword(auth,'dracko2007@gmail.com','admin123');
