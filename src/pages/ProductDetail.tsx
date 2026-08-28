@@ -66,6 +66,12 @@ const ProductDetail: React.FC = () => {
   const productVariants = product ? getVariants(product) : [];
   const [selectedSize, setSelectedSize] = useState<string>('small');
   const selectedVariant = productVariants.find((v) => v.id === selectedSize) || productVariants[0];
+  // Estoque limitado no admin ("Quantidade específica") vira teto do seletor
+  // — sem isso o cliente marca 6, 7... com só 5 disponíveis, paga no Stripe
+  // e o pedido cai em revisão manual (o servidor recusa, mas depois de cobrar).
+  const stockLimit = product?.stock && !product.stock.unlimited
+    ? Math.max(0, Math.floor(Number(product.stock.quantity) || 0))
+    : null;
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(
     user?.email ? wishlistService.isInWishlist(user.email, id || '') : false
@@ -173,10 +179,15 @@ const ProductDetail: React.FC = () => {
       toast({ title: '🚫 ' + deliveryBlockTitle, variant: 'destructive' });
       return;
     }
-    addToCart(product, selectedSize, quantity, selectedVariant?.label);
+    const finalQuantity = stockLimit != null ? Math.min(quantity, stockLimit) : quantity;
+    if (stockLimit != null && stockLimit <= 0) {
+      toast({ title: 'Produto esgotado', variant: 'destructive' });
+      return;
+    }
+    addToCart(product, selectedSize, finalQuantity, selectedVariant?.label);
     toast({
       title: t('productDetail.added'),
-      description: `${translatedName} (${selectedVariant?.label || ''}) x${quantity}`,
+      description: `${translatedName} (${selectedVariant?.label || ''}) x${finalQuantity}`,
     });
   };
 
@@ -366,8 +377,9 @@ const ProductDetail: React.FC = () => {
                       </button>
                       <span className="px-6 font-semibold">{quantity}</span>
                       <button
-                        onClick={() => setQuantity(q => q + 1)}
-                        className="px-4 py-3 hover:bg-secondary transition-colors"
+                        onClick={() => setQuantity(q => stockLimit != null ? Math.min(stockLimit, q + 1) : q + 1)}
+                        disabled={stockLimit != null && quantity >= stockLimit}
+                        className="px-4 py-3 hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                       >
                         +
                       </button>
@@ -376,6 +388,11 @@ const ProductDetail: React.FC = () => {
                       {formatPrice(currentPrice * quantity, currency)}
                     </div>
                   </div>
+                  {stockLimit != null && (
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      Máximo {stockLimit} {stockLimit === 1 ? 'unidade' : 'unidades'} em estoque.
+                    </p>
+                  )}
                 </div>
 
                 {/* Aviso de restrição de destino */}

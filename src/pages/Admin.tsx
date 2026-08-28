@@ -358,6 +358,10 @@ const Admin: React.FC = () => {
       shipped: 'Enviado',
       delivered: 'Entregue',
       cancelled: 'Cancelado',
+      // Pago no Stripe/PIX, mas a separação recusou (estoque insuficiente,
+      // valor divergente etc.) — dinheiro entrou, pedido não foi para
+      // fulfillment. Ver `fulfillmentError`/`refundAmount` no card abaixo.
+      payment_review: '⚠️ Revisão de Pagamento',
     };
     return labels[status] || status;
   };
@@ -370,6 +374,7 @@ const Admin: React.FC = () => {
       shipped: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
       delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
       cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+      payment_review: 'bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-200',
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -1031,6 +1036,19 @@ _This is an automated test message_
                             : order.paymentMethod === 'boleto' ? 'Boleto Bancário'
                             : order.paymentMethod || 'N/A'}
                         </p>
+                        {order.status === 'payment_review' && (
+                          <div className="mt-2 text-xs bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-800 rounded-lg p-2 text-red-800 dark:text-red-300">
+                            <p className="font-semibold">
+                              💸 Cliente foi cobrado, pedido NÃO foi separado. Motivo: {order.fulfillmentError || 'desconhecido'}
+                            </p>
+                            {order.refundPending && (
+                              <p>
+                                Estorno pendente: {formatPrice(Number(order.refundAmount || 0), order.refundCurrency || order.currency || 'BRL')}
+                                {order.refundReference ? ` · ref: ${order.refundReference}` : ''}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex gap-2 flex-wrap justify-end">

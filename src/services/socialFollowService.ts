@@ -6,12 +6,12 @@ export type SocialNetwork = 'instagram' | 'facebook' | 'tiktok' | 'x';
 
 export const SOCIAL_POINTS = 500;
 
-// Perfis sociais em "teste" temporariamente — trocar antes de publicar.
+// Facebook e X seguem em "teste" — trocar quando os perfis existirem.
 export const SOCIAL_CONFIG: Record<SocialNetwork, { label: string; url: string; color: string }> = {
-  instagram: { label: 'Instagram', url: 'https://www.instagram.com/teste/', color: 'bg-pink-500' },
-  facebook:  { label: 'Facebook',  url: 'https://www.facebook.com/teste',   color: 'bg-blue-600' },
-  tiktok:    { label: 'TikTok',    url: 'https://www.tiktok.com/@teste',    color: 'bg-gray-900' },
-  x:         { label: 'X (Twitter)', url: 'https://x.com/teste',           color: 'bg-black' },
+  instagram: { label: 'Instagram', url: 'https://www.instagram.com/nikkeybox/', color: 'bg-pink-500' },
+  facebook:  { label: 'Facebook',  url: 'https://www.facebook.com/teste',       color: 'bg-blue-600' },
+  tiktok:    { label: 'TikTok',    url: 'https://www.tiktok.com/@nikkeybox',    color: 'bg-gray-900' },
+  x:         { label: 'X (Twitter)', url: 'https://x.com/teste',               color: 'bg-black' },
 };
 
 export const socialFollowService = {
