@@ -365,6 +365,11 @@ async function handleCreate(req, res) {
     // antes de qualquer cobrança. A palavra final continua sendo a da transação.
     if (requestedPoints > pontosDisponiveis(userData)) throw new HttpError(409, 'insufficient_points');
     const rates = await getFxRates();
+    // 'fallback' = nem Wise nem open.er-api responderam: a taxa fixa
+    // (¥28/R$) pode estar longe da cotação real e cobrar errado. Silenciar
+    // isso e seguir em frente é como o total exibido no checkout divergiu do
+    // que foi de fato cobrado. Melhor recusar e o cliente tentar de novo.
+    if (rates.source === 'fallback') throw new HttpError(503, 'fx_rate_unavailable');
     const homePromoData = homePromoSnap.exists ? homePromoSnap.data() : null;
     const promoStateData = promoStateSnap.exists ? promoStateSnap.data() : null;
     const reservedCount = homePromoData ? quantidadeReservada(promoStateData, homePromoData) : 0;

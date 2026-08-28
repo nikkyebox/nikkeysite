@@ -16,7 +16,7 @@ vi.mock('./rate-limit.js', () => ({ enforceRateLimit: mocks.limitar }));
 
 vi.mock('./fx.js', async (importOriginal) => ({
   ...(await importOriginal()),
-  getFxRates: async () => ({ BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'fallback' }),
+  getFxRates: async () => ({ BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'open-er' }),
 }));
 
 vi.mock('./mailer.js', async (importOriginal) => ({

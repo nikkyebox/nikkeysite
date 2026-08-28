@@ -4,6 +4,12 @@ const FALLBACK_YEN_PER_UNIT = Object.freeze({
   USD: 150 / 1.04,
 });
 
+// "Pendente" = qualquer pedido que ainda não chegou num estado terminal.
+// Pedido nasce com status 'pending_payment' (api/orders.js), nunca 'pending'
+// — contar só 'pending' zerava o card sempre, mesmo com pedidos represados
+// aguardando pagamento/confirmação/envio.
+const DONE_ORDER_STATUSES = new Set(['shipped', 'delivered', 'cancelled']);
+
 function number(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -118,7 +124,7 @@ export function buildDashboardAnalytics(orders, products = [], now = new Date())
     const withoutShipping = Math.max(revenue - orderShippingYen(order), 0);
     receitaComFrete += revenue;
     receitaSemFrete += withoutShipping;
-    receitaPS += number(order?.psFeeFinalYen);
+    receitaPS += number(order?.psFeeYen);
     custo += orderCostYen(order, costs);
     descontosCupomYen += orderDiscountYen(order);
 
@@ -168,7 +174,7 @@ export function buildDashboardAnalytics(orders, products = [], now = new Date())
   return {
     stats: {
       totalOrders: active.length,
-      pendingOrders: orders.filter((order) => order?.status === 'pending').length,
+      pendingOrders: orders.filter((order) => !DONE_ORDER_STATUSES.has(order?.status)).length,
       shippedOrders: orders.filter((order) => order?.status === 'shipped').length,
       deliveredOrders: orders.filter((order) => order?.status === 'delivered').length,
       cancelledOrders: orders.filter((order) => order?.status === 'cancelled').length,

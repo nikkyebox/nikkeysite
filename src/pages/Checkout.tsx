@@ -22,7 +22,7 @@ import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
 import { useLanguage, CountryType } from '@/context/LanguageContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen } from '@/utils/pricing';
-import { convertYen as fxConvert, yenFromConverted, getRates } from '@/services/fxService';
+import { convertYen as fxConvert, yenFromConverted, getRates, loadFxRates } from '@/services/fxService';
 import { POINTS } from '@/services/pointsService';
 import { safeStorage } from '@/utils/storage';
 import { checkoutPointsCoverage, psFeeWaiver, PS_FEE_WAIVER_EVENT } from '@/utils/psFeeWaiver';
@@ -142,6 +142,14 @@ const Checkout: React.FC = () => {
   const [psFeeUnitYen, setPsFeeUnitYen] = useState(DEFAULT_PS_FEE_UNIT_YEN);
   useEffect(() => {
     psFeeSettingsService.get().then((s) => setPsFeeUnitYen(s.psFeeUnitYen));
+  }, []);
+
+  // Mesma cotação pode estar minutos/horas desatualizada (carregada no boot
+  // do app) — busca de novo ao entrar no checkout pra reduzir a divergência
+  // com a cotação que o servidor busca na hora de criar o pedido.
+  const [, setFxRatesTick] = useState(0);
+  useEffect(() => {
+    loadFxRates().then(() => setFxRatesTick((v) => v + 1)).catch(() => {});
   }, []);
   const totalQty = items.reduce((s, i) => i.freeGift ? s : s + i.quantity, 0);
   const psFeeQty = items.reduce((s, i) => (i.freeGift || i.product.noPsFee) ? s : s + i.quantity, 0);

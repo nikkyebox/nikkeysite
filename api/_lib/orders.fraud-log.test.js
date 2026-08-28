@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   add: vi.fn(),
   verify: vi.fn(),
   limitar: vi.fn(),
+  fxRates: vi.fn(),
   banco: new Map(),
 }));
 
@@ -17,7 +18,7 @@ vi.mock('./rate-limit.js', () => ({ enforceRateLimit: mocks.limitar }));
 
 vi.mock('./fx.js', async (importOriginal) => ({
   ...(await importOriginal()),
-  getFxRates: async () => ({ BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'fallback' }),
+  getFxRates: mocks.fxRates,
 }));
 
 vi.mock('./mailer.js', async (importOriginal) => ({
@@ -85,6 +86,7 @@ beforeEach(() => {
   mocks.add.mockReset().mockResolvedValue({ id: 'f1' });
   mocks.limitar.mockReset().mockResolvedValue(undefined);
   mocks.verify.mockReset().mockResolvedValue({ uid: 'u1', email: 'cliente@exemplo.com' });
+  mocks.fxRates.mockReset().mockResolvedValue({ BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'open-er' });
   mocks.banco.clear();
   mocks.banco.set('products/p1', { name: 'Produto', prices: { small: 1000 }, weightGrams: 500, stock: { unlimited: true } });
   mocks.banco.set('affiliates/ANA10', { active: true, discountPercent: 10, commissionPercent: 10, ownerEmail: 'ana@exemplo.com' });
@@ -135,5 +137,22 @@ describe('registro de tentativa de fraude', () => {
 
     expect(res.statusCode).not.toBe(409);
     expect(mocks.add).not.toHaveBeenCalled();
+  });
+});
+
+// Nem Wise nem open.er-api responderam: cobrar pela taxa fixa (~1/28) pode
+// destoar muito da cotação real. Recusar aqui é mais barato que cobrar
+// errado — o checkout mostra "tente de novo" em vez de uma conta que não
+// bate com o que o cliente viu na tela.
+describe('cotação indisponível recusa o pedido', () => {
+  it('recusa criar o pedido quando nem Wise nem open.er-api responderam', async () => {
+    mocks.banco.set(`cpf_index/${CPF}`, { productIds: [], affiliateCodes: [] });
+    mocks.fxRates.mockResolvedValue({ BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'fallback' });
+    const res = resposta();
+
+    await handleCreate(pedido(), res);
+
+    expect(res.statusCode).toBe(503);
+    expect(res.body).toEqual({ error: 'fx_rate_unavailable' });
   });
 });

@@ -17,7 +17,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useProducts } from '@/context/ProductsContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen, roundYen } from '@/utils/pricing';
-import { convertYen as fxConvert, yenFromConverted } from '@/services/fxService';
+import { convertYen as fxConvert, yenFromConverted, loadFxRates } from '@/services/fxService';
 import { negotiationService } from '@/services/negotiationService';
 import { psFeeWaiver } from '@/utils/psFeeWaiver';
 import { productService } from '@/services/productService';
@@ -92,6 +92,16 @@ const OrderReview: React.FC = () => {
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [orderCreating, setOrderCreating] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
+
+  // A cotação usada aqui pode ter sido carregada minutos/horas atrás (no
+  // boot do app, em LanguageContext). O servidor busca uma cotação NOVA no
+  // momento de criar o pedido (`api/orders.js`) — se a de mercado se mexeu
+  // nesse intervalo, o total exibido aqui diverge do que é cobrado. Busca de
+  // novo ao entrar na revisão final para reduzir essa janela ao mínimo.
+  const [, setFxRatesTick] = useState(0);
+  useEffect(() => {
+    loadFxRates().then(() => setFxRatesTick((v) => v + 1)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     paymentSettingsService.get().then((s) => {
@@ -324,11 +334,14 @@ const OrderReview: React.FC = () => {
       const codigo = error instanceof Error ? error.message : '';
       const waiverInvalid = codigo === 'invalid_ps_fee_waiver' || codigo === 'ps_fee_waiver_already_used';
       if (waiverInvalid) psFeeWaiver.clear();
+      const fxUnavailable = codigo === 'fx_rate_unavailable';
       toast({
         title: 'Não foi possível criar o pedido',
         description: waiverInvalid
           ? 'A isenção da taxa expirou ou já foi usada. O total foi atualizado; tente novamente.'
-          : codigo || 'Revise os itens e tente novamente.',
+          : fxUnavailable
+            ? 'Não conseguimos confirmar a cotação do iene agora. Tente novamente em instantes.'
+            : codigo || 'Revise os itens e tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -942,7 +955,7 @@ const OrderReview: React.FC = () => {
                         <div className="flex justify-between text-muted-foreground">
                           <span>Taxa PS</span>
                           <span className={effectivePsFeeDiscountYen > 0 ? 'text-green-600 font-semibold' : ''}>
-                            {currency === 'JPY' ? `¥ ${psFeeFinalYen.toLocaleString()}` : formatPrice(psFeeDisplay, currency, true)}
+                            {currency === 'JPY' ? `¥ ${psFeeFinalYen.toLocaleString()}` : `${formatPrice(psFeeDisplay, currency, true)} (¥ ${psFeeFinalYen.toLocaleString()})`}
                           </span>
                         </div>
                       )}

@@ -31,10 +31,17 @@ describe('order analytics', () => {
         totalPrice: 20,
         currency: 'BRL',
         shippingCost: 2,
-        psFeeFinalYen: 50,
+        psFeeYen: 50,
         couponDiscount: 5,
         paymentMethod: 'pix',
         items: [{ productId: 'p1', productName: 'Produto', quantity: 2 }],
+      },
+      {
+        id: 'awaiting',
+        orderDate: '2026-07-12T00:00:00.000Z',
+        status: 'pending_payment',
+        grandTotalYen: 500,
+        items: [],
       },
       {
         id: 'cancelled',
@@ -51,14 +58,15 @@ describe('order analytics', () => {
     );
 
     expect(orderRevenueYen(orders[0])).toBe(1200);
-    expect(result.stats.totalOrders).toBe(1);
+    expect(result.stats.totalOrders).toBe(2);
+    expect(result.stats.pendingOrders).toBe(1);
     expect(result.stats.cancelledOrders).toBe(1);
-    expect(result.stats.totalRevenue).toBe(1200);
+    expect(result.stats.totalRevenue).toBe(1700);
     expect(result.finance.custo).toBe(200);
     expect(result.finance.receitaPS).toBe(50);
     expect(result.topProducts).toEqual([{ name: 'Produto', count: 2 }]);
-    expect(result.paymentMethods).toEqual([{ method: 'PIX', revenue: 1200 }]);
-    expect(result.monthlyData.at(-1)).toMatchObject({ orders: 1, receitaComFrete: 1200 });
+    expect(result.paymentMethods).toEqual([{ method: 'PIX', revenue: 1200 }, { method: 'Outro', revenue: 500 }]);
+    expect(result.monthlyData.at(-1)).toMatchObject({ orders: 2, receitaComFrete: 1700 });
   });
 
   it('builds and filters coupon rows without leaking cancelled orders', () => {

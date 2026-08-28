@@ -508,14 +508,25 @@ const ProductManager: React.FC = () => {
       // ── Upload de imagens para Cloudinary CDN ────────────────────────────
       const folder = `japanexpress/products/${id}`;
 
+      // Migrar imagem pro CDN não pode travar o resto do salvamento: produto
+      // com imagem externa (Yahoo/Rakuten) frequentemente falha o fetch por
+      // CORS, e isso não pode impedir uma simples atualização de estoque.
+      // Em falha, mantém a URL original e o admin vê um aviso — não um erro
+      // que descarta a edição inteira.
+      const imageWarnings: string[] = [];
       const toCdnUrl = async (imgStr: string): Promise<string> => {
         if (!imgStr) return '';
-        if (cloudinaryService.isCloudinaryUrl(imgStr)) return imgStr;
-        let dataUrl = imgStr;
-        if (cloudinaryService.isExternalUrl(imgStr)) {
-          dataUrl = await urlToCompressedDataURL(imgStr);
+        if (cloudinaryService.isCloudinaryUrl(imgStr) || cloudinaryService.isFirebaseUrl(imgStr)) return imgStr;
+        try {
+          let dataUrl = imgStr;
+          if (cloudinaryService.isExternalUrl(imgStr)) {
+            dataUrl = await urlToCompressedDataURL(imgStr);
+          }
+          return await cloudinaryService.uploadDataUrl(dataUrl, folder);
+        } catch (e) {
+          imageWarnings.push(e instanceof Error ? e.message : String(e));
+          return imgStr;
         }
-        return cloudinaryService.uploadDataUrl(dataUrl, folder);
       };
 
       // Capa primeiro (precisamos do data URL ainda em memória para o thumb)
@@ -524,14 +535,18 @@ const ProductManager: React.FC = () => {
 
       // Thumbnail HD 1200px a partir do data URL original
       let thumbnailUrl = editing.thumbnail || '';
-      const needNewThumb = rawCover && !cloudinaryService.isCloudinaryUrl(rawCover);
+      const needNewThumb = rawCover && !cloudinaryService.isCloudinaryUrl(rawCover) && !cloudinaryService.isFirebaseUrl(rawCover);
       if (needNewThumb) {
-        const thumbData = await urlToCompressedDataURL(
-          cloudinaryService.isDataUrl(rawCover) ? rawCover : coverUrl,
-          1600,
-          0.95
-        );
-        thumbnailUrl = await cloudinaryService.uploadDataUrl(thumbData, folder);
+        try {
+          const thumbData = await urlToCompressedDataURL(
+            cloudinaryService.isDataUrl(rawCover) ? rawCover : coverUrl,
+            1600,
+            0.95
+          );
+          thumbnailUrl = await cloudinaryService.uploadDataUrl(thumbData, folder);
+        } catch (e) {
+          imageWarnings.push(e instanceof Error ? e.message : String(e));
+        }
       }
 
       // Demais fotos da galeria
@@ -567,7 +582,10 @@ const ProductManager: React.FC = () => {
       await refresh();
       toast({
         title: isNew ? '✅ Produto adicionado!' : '✅ Produto atualizado!',
-        description: `${product.name} · ${product.gallery?.length ?? 0} foto(s) salva(s) no Firestore`,
+        description: imageWarnings.length > 0
+          ? `${product.name} salvo, mas ${imageWarnings.length} foto(s) não migraram pro CDN: ${imageWarnings[0]}`
+          : `${product.name} · ${product.gallery?.length ?? 0} foto(s) salva(s) no Firestore`,
+        variant: imageWarnings.length > 0 ? 'destructive' : undefined,
       });
       close();
     } catch (e: any) {

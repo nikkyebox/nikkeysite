@@ -969,7 +969,7 @@ _This is an automated test message_
                   <h3 className="font-semibold text-lg">Pendentes carregados</h3>
                 </div>
                 <p className="text-3xl font-bold text-yellow-600">
-                  {allOrders.filter(o => o.status === 'pending').length}
+                  {pendingOrdersCount}
                 </p>
               </div>
               
