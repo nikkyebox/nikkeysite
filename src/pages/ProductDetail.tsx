@@ -324,18 +324,32 @@ const ProductDetail: React.FC = () => {
                 <div className="mb-6 border-b pb-4 border-border/50">
                   <span className="block text-sm font-semibold text-muted-foreground mb-1">Preço Unitário</span>
                   {promoActive ? (
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-3xl font-black text-primary">{formatPrice(currentPrice, currency)}</span>
-                      <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 line-through decoration-2">
-                        {formatPrice(originalPrice, currency)}
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-extrabold shadow-sm">
-                        -{product.discountPercent}% OFF
-                      </span>
+                    <div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-3xl font-black text-primary">{formatPrice(currentPrice, currency)}</span>
+                        <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 line-through decoration-2">
+                          {formatPrice(originalPrice, currency)}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-extrabold shadow-sm">
+                          {`-${product.discountPercent}% OFF`}
+                        </span>
+                      </div>
+                      {currency !== 'JPY' && (
+                        <p className="text-sm font-bold text-muted-foreground mt-1">
+                          ≈ ¥{effectiveYen(product, selectedSize).toLocaleString('ja-JP')}
+                        </p>
+                      )}
                     </div>
                   ) : (
-                    <div className="text-3xl font-black text-primary">
-                      {formatPrice(currentPrice, currency)}
+                    <div>
+                      <div className="text-3xl font-black text-primary">
+                        {formatPrice(currentPrice, currency)}
+                      </div>
+                      {currency !== 'JPY' && (
+                        <p className="text-sm font-bold text-muted-foreground mt-1">
+                          ≈ ¥{effectiveYen(product, selectedSize).toLocaleString('ja-JP')}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

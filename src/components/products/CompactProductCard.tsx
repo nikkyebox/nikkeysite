@@ -44,8 +44,10 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
   const convertYen = (yen: number) => fxConvert(yen, currency);
 
   const promoActive = hasDiscount(product);
-  const price = convertYen(effectiveYen(product, firstVariant?.id || 'small'));
-  const originalPrice = convertYen(baseYen(product, firstVariant?.id || 'small'));
+  const priceYen = effectiveYen(product, firstVariant?.id || 'small');
+  const originalPriceYen = baseYen(product, firstVariant?.id || 'small');
+  const price = convertYen(priceYen);
+  const originalPrice = convertYen(originalPriceYen);
   const isSoldOut = product.stock && !product.stock.unlimited && product.stock.quantity === 0;
   const name = productEnglishName(product);
 
@@ -187,8 +189,13 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
             <p className={cn('text-base font-black leading-none tracking-tight', promoActive ? 'text-red-600' : 'text-pink-600')}>
               {formatPrice(price, currency)}
             </p>
+            {currency !== 'JPY' && (
+              <p className="text-[11px] font-semibold text-muted-foreground leading-none mt-1">
+                (¥{priceYen.toLocaleString('ja-JP')})
+              </p>
+            )}
             {promoActive && (
-              <p className="text-[10px] text-gray-400 line-through leading-none mt-0.5">
+              <p className="text-[10px] text-gray-400 line-through leading-none mt-1">
                 {formatPrice(originalPrice, currency)}
               </p>
             )}

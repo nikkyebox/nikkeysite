@@ -743,8 +743,8 @@ _This is an automated test message_
   // de cada uma continua no projeto (ver renderização de `activeTab` abaixo)
   // caso precise reativar depois.
   const DISABLED_TAB_IDS = new Set<AdminTab>([
-    'affiliates', 'visitors', 'coupons', 'review-moderation', 'videos',
-    'home', 'vlog', 'sorteio', 'marketing', 'coupon-usage',
+    'affiliates', 'visitors', 'review-moderation', 'videos',
+    'home', 'vlog', 'sorteio', 'marketing',
     'calculator', 'migration', 'thermal-printer', 'whatsapp', 'promotion',
   ]);
 
