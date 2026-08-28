@@ -388,6 +388,11 @@ async function searchRakuten(productName) {
       'rakuten'
     );
 
+    // Extrai JAN / GTIN code se presente no itemCode, itemCaption ou attributes
+    const fullText = [item.itemName, item.itemCaption, item.itemDescription, item.itemCode, JSON.stringify(item.attributes || {})].filter(Boolean).join(' ');
+    const janMatch = fullText.match(/\b(49\d{11}|45\d{11})\b/);
+    const gtin = janMatch ? janMatch[1] : undefined;
+
     // mediumImageUrls pode ser array de strings ou de objetos {imageUrl}
     const rawImgs = item.mediumImageUrls || item.smallImageUrls || [];
     const images  = rawImgs
@@ -398,7 +403,7 @@ async function searchRakuten(productName) {
 
     const weightGrams = extractWeightGrams(item, [item.itemName, item.itemCaption, item.itemDescription].filter(Boolean).join('\n'));
 
-    return { priceYen, descJa, descSource, images, suggestName, source: 'rakuten', packageDimensionsCm, weightGrams };
+    return { priceYen, descJa, descSource, images, suggestName, source: 'rakuten', packageDimensionsCm, weightGrams, gtin };
   } catch (e) {
     lastRakutenDebug.error = String(e?.message || e);
     return null;
@@ -499,13 +504,14 @@ ${descJa || '(vazia — crie uma descrição comercial curta e fiel ao produto)'
 
 Tarefas:
 1) "name_en": o NOME do produto em INGLÊS, curto e comercial (marca + linha + tipo). NÃO use japonês, NÃO use português.
-   Se o nome de referência estiver em japonês, traduza/romanize para o nome comercial em inglês.
-   Exemplos: 肌ラボ 極潤 化粧水 -> Hada Labo Gokujyun Hyaluronic Acid Lotion; DHC ディープクレンジングオイル -> DHC Deep Cleansing Oil; ビオレUV アクアリッチ -> Biore UV Aqua Rich.
-2) Se a DESCRIÇÃO original estiver preenchida, traduza fielmente essa descrição para 3 idiomas, em 2-3 parágrafos curtos, sem inventar fatos. Pode deixar o texto comercial, mas só com informações presentes no original.
-   Se estiver vazia, crie uma descrição curta e genérica, sem inventar ingredientes, volume, promessas técnicas, modo de uso ou certificações.
+2) Se a DESCRIÇÃO original estiver preenchida, traduza fielmente essa descrição para 3 idiomas, em 2-3 parágrafos curtos, sem inventar fatos.
+3) "category": escolha UMA categoria adequada entre: ["cosmeticos", "doces", "acessorios", "papelaria", "eletronicos", "masculino", "vestuario", "higiene", "pet"].
+4) "flavor": sabor ou variação do produto em português/inglês (ex: "Matcha", "Chocolate", "Hidratante", "Sensível", "Original") ou string vazia "".
+5) "tags": array com 2 a 5 tags descritivas em português/inglês minúsculas (ex: ["chocolate", "matcha", "biscoito", "snack"] ou ["skincare", "hidratante", "protetor"]).
+6) "gtin": código de barras JAN/EAN-13 de 13 dígitos do produto japonês (começa com 49 ou 45) SE você souber com certeza o código oficial, caso contrário string vazia "".
 
 Responda APENAS com JSON válido, sem markdown, exatamente neste formato:
-{"name_en":"","pt":{"description":""},"en":{"description":""},"ja":{"description":""}}
+{"name_en":"","category":"","flavor":"","tags":[],"gtin":"","pt":{"description":""},"en":{"description":""},"ja":{"description":""}}
 pt = português do Brasil, en = English, ja = 日本語.`;
 
   const rawText = await callAICompletions({ prompt, max_tokens: 1600, temperature: 0.6 });
@@ -516,8 +522,14 @@ pt = português do Brasil, en = English, ja = 日本語.`;
     const m = text.match(/\{[\s\S]*\}/);
     if (m) text = m[0];
     const parsed = JSON.parse(text);
-    if (parsed?.pt?.description || parsed?.en?.description || parsed?.ja?.description) {
+    if (parsed?.pt?.description || parsed?.en?.description || parsed?.ja?.description || parsed?.name_en) {
       const nameEn = (parsed.name_en || '').trim();
+      const validCats = ['cosmeticos', 'doces', 'acessorios', 'papelaria', 'eletronicos', 'masculino', 'vestuario', 'higiene', 'pet'];
+      const category = validCats.includes(parsed.category) ? parsed.category : undefined;
+      const flavor = typeof parsed.flavor === 'string' ? parsed.flavor.trim() : undefined;
+      const tags = Array.isArray(parsed.tags) ? parsed.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean) : undefined;
+      const gtin = (typeof parsed.gtin === 'string' && /^(49\d{11}|45\d{11})$/.test(parsed.gtin.trim())) ? parsed.gtin.trim() : undefined;
+
       i18nDebug = {
         ok: true,
         nameLen: nameEn.length,
@@ -527,6 +539,10 @@ pt = português do Brasil, en = English, ja = 日本語.`;
       };
       return {
         name_en: nameEn,
+        category,
+        flavor,
+        tags,
+        gtin,
         pt: { description: parsed.pt?.description || '' },
         en: { description: parsed.en?.description || '' },
         ja: { description: parsed.ja?.description || '' },
@@ -975,10 +991,13 @@ export default async function handler(req, res) {
                                 : (wantWeight ? null : undefined),
       images:                 wantImages ? finalImages : [],
       suggestName: nameEn,
+      category:    enrich?.category,
+      flavor:      enrich?.flavor,
+      tags:        enrich?.tags,
+      gtin:        rakuten?.gtin || enrich?.gtin,
       source:      rakuten?.source || 'ai',
       ...(body.debug === true ? { rakutenDebug: lastRakutenDebug, yahooDebug, searchTerm, searchTerms: terms, generatedNameEn, i18nDebug } : {}),
     });
   } catch (e) {
-    res.status(500).json({ error: String(e?.message || e) });
   }
 }

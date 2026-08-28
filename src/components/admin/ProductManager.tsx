@@ -348,8 +348,27 @@ const ProductManager: React.FC = () => {
       if (data.suggestName && data.suggestName !== editing.name) {
         updatedEditing.name = data.suggestName;
       }
+      // Categoria, sabor/tag, tags do filtro e código de barras JAN
+      if (data.category && !updatedEditing.category) {
+        updatedEditing.category = data.category;
+      } else if (data.category && updatedEditing.category === 'cosmeticos' && data.category !== 'cosmeticos') {
+        updatedEditing.category = data.category;
+      }
 
-      // Custo e preço de venda — sempre atualiza quando a IA retorna valor
+      if (data.flavor && (!updatedEditing.flavor || updatedEditing.flavor.trim() === '')) {
+        updatedEditing.flavor = data.flavor;
+      }
+
+      if (Array.isArray(data.tags) && data.tags.length > 0) {
+        const existing = updatedEditing.tags || [];
+        updatedEditing.tags = Array.from(new Set([...existing, ...data.tags]));
+      }
+
+      if (data.gtin && !updatedEditing.gtin) {
+        updatedEditing.gtin = data.gtin;
+      }
+
+      // Medidas da embalagem
       if (data.packageDimensionsCm) {
         const dimensions = sanitizePackageDimensions(data.packageDimensionsCm);
         if (dimensions) updatedEditing.packageDimensionsCm = dimensions;
