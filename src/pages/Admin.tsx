@@ -46,6 +46,8 @@ import SorteioManager from '@/components/admin/SorteioManager';
 import { customerService } from '@/services/customerService';
 import { requireAdminPassword } from '@/utils/adminGuard';
 import { negotiationService } from '@/services/negotiationService';
+import { convertYen } from '@/services/fxService';
+import { formatPrice } from '@/utils/currency';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 import { ADMIN_EMAIL } from '@/config/admin';
 import { auth } from '@/config/firebase';
@@ -513,7 +515,11 @@ _This is an automated test message_
 
     const itemsSubtotal = order.items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);
     const discount = order.couponDiscount || (itemsSubtotal > order.totalPrice ? itemsSubtotal - order.totalPrice : 0);
-    const shippingCost = order.shipping?.cost ?? null;
+    const shippingCostYen = order.shipping?.cost ?? null;
+    const orderCurrency = order.currency || 'BRL';
+    const shippingCostDisplay = shippingCostYen != null
+      ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(convertYen(shippingCostYen, orderCurrency), orderCurrency))
+      : 'N/A';
     const grandTotal = order.totalPrice ?? order.total ?? 0;
     const grandTotalYen = (order as any).grandTotalYen;
 
@@ -618,7 +624,7 @@ _This is an automated test message_
       <tr>
         <td>Frete ${order.shippingCarrier ? `(${order.shippingCarrier})` : ''}</td>
         <td></td>
-        <td>${shippingCost != null ? (shippingCost === 0 ? 'Grátis' : `R$ ${shippingCost.toFixed(2)}`) : 'N/A'}</td>
+        <td>${shippingCostDisplay}</td>
       </tr>
       ${(order.federalTax > 0 || order.icmsTax > 0 || order.taxAmount > 0) ? `<tr><td style="color:#888;font-size:12px;">Impostos (II + ICMS)</td><td></td><td style="color:#888;font-size:12px;">R$ ${Number(order.federalTax && order.icmsTax ? (order.federalTax + order.icmsTax) : order.taxAmount || 0).toFixed(2)}</td></tr>` : ''}
       <tr class="grand">
@@ -1101,7 +1107,8 @@ _This is an automated test message_
                             const itemsSubtotal = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
                             // Detect coupon discount: saved field OR inferred from items sum vs totalPrice
                             const discount = order.couponDiscount || (itemsSubtotal > order.totalPrice ? itemsSubtotal - order.totalPrice : 0);
-                            const shippingCost = order.shipping?.cost ?? null;
+                            const shippingCostYen = order.shipping?.cost ?? null;
+                            const cardCurrency = order.currency || 'BRL';
                             return (
                               <div className="pt-2 border-t border-border space-y-1">
                                 {/* Subtotal */}
@@ -1127,7 +1134,7 @@ _This is an automated test message_
                                     <Truck className="w-3 h-3" />
                                     Frete {order.shippingCarrier && <span className="text-muted-foreground text-xs">({order.shippingCarrier})</span>}
                                   </span>
-                                  <span className="font-mono">{shippingCost != null ? (shippingCost === 0 ? <span className="text-green-600">Grátis</span> : `R$ ${shippingCost.toFixed(2)}`) : 'N/A'}</span>
+                                  <span className="font-mono">{shippingCostYen != null ? (shippingCostYen === 0 ? <span className="text-green-600">Grátis</span> : formatPrice(convertYen(shippingCostYen, cardCurrency), cardCurrency)) : 'N/A'}</span>
                                 </div>
 
                                 {/* Impostos */}
