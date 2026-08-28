@@ -5,16 +5,17 @@
 // 4. Sem marketplace: AI estima o preço com base no próprio conhecimento.
 // Preço de venda = custo de aquisição × 1.5 (50% de markup).
 
-const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID || '';
+const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID || 'ec65ace1-9e87-4d23-83e4-b54103335b56';
+const RAKUTEN_ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY || 'pk_thp8WuFagFNOQh9VnsoWHJ8mAQhhRsHt4NWvW4wUA4q';
 const YAHOO_APP_ID   = process.env.YAHOO_APP_ID || ''; // Yahoo! Shopping Client ID
 const GROQ_API_KEY   = process.env.GROQ_API_KEY || '';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const DEFAULT_GROQ_MODELS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b'];
 const DEFAULT_OPENROUTER_MODELS = [
+  'openrouter/free',
   'meta-llama/llama-3.3-70b-instruct:free',
-  'meta-llama/llama-3.3-70b-instruct',
+  'minimax/minimax-m3:free',
   'google/gemini-2.0-flash-001',
-  'qwen/qwen-2.5-72b-instruct',
 ];
 const DISABLED_GROQ_MODELS = new Set(['moonshotai/kimi-k2-instruct']);
 const GROQ_MODELS = uniqueNonEmpty([
@@ -314,37 +315,72 @@ async function fetchYahooPageDescription(url) {
 let lastRakutenDebug = null; // diagnóstico temporário
 
 async function searchRakuten(productName) {
-  lastRakutenDebug = { hasAppId: !!RAKUTEN_APP_ID, appIdLen: (RAKUTEN_APP_ID || '').length };
-  if (!RAKUTEN_APP_ID) { lastRakutenDebug.reason = 'RAKUTEN_APP_ID ausente'; return null; }
-  try {
-    const params = new URLSearchParams({
-      format:        'json',
-      keyword:       productName,
-      applicationId: RAKUTEN_APP_ID,
-      hits:          '5',
-      imageFlag:     '1',
-      availability:  '1',
-      sort:          '-reviewCount',
-    });
-    const r = await fetchWithTimeout(
-      `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?${params}`,
-      { headers: { Referer: 'https://nikkeybox-store.com/', 'User-Agent': 'JapanExpress/1.0' } },
-      10000
-    );
-    lastRakutenDebug.status = r.status;
-    if (!r.ok) {
-      lastRakutenDebug.body = (await r.text().catch(() => '')).slice(0, 300);
-      return null;
-    }
-    const data = await r.json();
-    lastRakutenDebug.count = (data?.Items || []).length;
-    // A API envolve cada item em { Item: {...} } ou retorna direto
-    const rawItems = (data?.Items || []).map(i => i?.Item || i).filter(Boolean);
-    if (!rawItems.length) return null;
+  const appId = (RAKUTEN_APP_ID || '').trim();
+  const accessKey = (RAKUTEN_ACCESS_KEY || '').trim();
+  lastRakutenDebug = { hasAppId: !!appId, appIdLen: appId.length, hasAccessKey: !!accessKey };
+  if (!appId) { lastRakutenDebug.reason = 'RAKUTEN_APP_ID ausente'; return null; }
 
+  try {
+    let data = null;
+
+    // 1. Tenta a nova OpenAPI 20260701 do Rakuten (com accessKey)
+    if (accessKey) {
+      try {
+        const openApiParams = new URLSearchParams({
+          format: 'json',
+          keyword: productName,
+          genreId: '0',
+          applicationId: appId,
+          accessKey: accessKey,
+          hits: '5',
+        });
+        const openApiUrl = `https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701?${openApiParams}`;
+        const originsToTry = ['https://nikkeybox.jp', 'https://www.nikkeybox.jp', 'http://localhost:5173'];
+        for (const origin of originsToTry) {
+          const r = await fetchWithTimeout(openApiUrl, {
+            headers: {
+              Origin: origin,
+              Referer: `${origin}/`,
+              'User-Agent': 'NikkeyBox/1.0',
+            },
+          }, 6000);
+          if (r.ok) {
+            data = await r.json();
+            if (data?.Items?.length || data?.hits?.length || data?.items?.length) break;
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Fallback para a API clássica 20220601 se a nova não respondeu
+    if (!data || (!data.Items && !data.items && !data.hits)) {
+      const legacyParams = new URLSearchParams({
+        format:        'json',
+        keyword:       productName,
+        applicationId: appId,
+        hits:          '5',
+        imageFlag:     '1',
+        availability:  '1',
+        sort:          '-reviewCount',
+      });
+      const rLegacy = await fetchWithTimeout(
+        `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?${legacyParams}`,
+        { headers: { Referer: 'https://nikkeybox.jp/', 'User-Agent': 'NikkeyBox/1.0' } },
+        8000
+      );
+      if (rLegacy.ok) {
+        data = await rLegacy.json();
+      }
+    }
+
+    lastRakutenDebug.count = (data?.Items || data?.items || data?.hits || []).length;
+    const rawItems = (data?.Items || data?.items || data?.hits || [])
+      .map(i => i?.Item || i?.item || i)
+      .filter(Boolean);
+    if (!rawItems.length) return null;
     const item = rawItems[0];
-    const priceYen    = Number(item.itemPrice) || 0;
-    const descJa      = cleanDescription(item.itemCaption || item.itemDescription || '');
+    const priceYen    = Number(item.itemPrice || item.price) || 0;
+    const descJa      = cleanDescription(item.itemCaption || item.itemDescription || item.description || '');
     const descSource  = descJa ? 'rakuten-api-description' : 'none';
     const suggestName = (item.itemName || productName).slice(0, 120);
     const packageDimensionsCm = extractPackageDimensions(

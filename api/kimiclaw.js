@@ -220,10 +220,10 @@ export default async function handler(req, res) {
       url: 'https://openrouter.ai/api/v1/chat/completions',
       key: openrouterKey,
       models: [
+        'openrouter/free',
         'meta-llama/llama-3.3-70b-instruct:free',
-        'meta-llama/llama-3.3-70b-instruct',
+        'minimax/minimax-m3:free',
         'google/gemini-2.0-flash-001',
-        'qwen/qwen-2.5-72b-instruct',
       ],
     });
   }
