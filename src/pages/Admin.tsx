@@ -527,7 +527,7 @@ _This is an automated test message_
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;">${item.productName || item.name}${item.size ? ` <span style="color:#888;font-size:12px;">(${item.size})</span>` : ''}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">R$ ${(item.price * item.quantity).toFixed(2)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">${formatPrice(item.price * item.quantity, orderCurrency)}</td>
       </tr>
     `).join('');
 
@@ -618,7 +618,7 @@ _This is an automated test message_
       <tr>
         <td>Subtotal</td>
         <td></td>
-        <td>R$ ${itemsSubtotal.toFixed(2)}</td>
+        <td>${formatPrice(itemsSubtotal, orderCurrency)}</td>
       </tr>
       ${discount > 0 ? `<tr class="discount"><td>Cupom ${order.couponCode ? `(${order.couponCode})` : ''}</td><td></td><td>-R$ ${discount.toFixed(2)}</td></tr>` : ''}
       <tr>
@@ -626,11 +626,11 @@ _This is an automated test message_
         <td></td>
         <td>${shippingCostDisplay}</td>
       </tr>
-      ${(order.federalTax > 0 || order.icmsTax > 0 || order.taxAmount > 0) ? `<tr><td style="color:#888;font-size:12px;">Impostos (II + ICMS)</td><td></td><td style="color:#888;font-size:12px;">R$ ${Number(order.federalTax && order.icmsTax ? (order.federalTax + order.icmsTax) : order.taxAmount || 0).toFixed(2)}</td></tr>` : ''}
+      ${(order.federalTax > 0 || order.icmsTax > 0 || order.taxAmount > 0) ? `<tr><td style="color:#888;font-size:12px;">Impostos (II + ICMS)</td><td></td><td style="color:#888;font-size:12px;">${formatPrice(Number(order.federalTax && order.icmsTax ? (order.federalTax + order.icmsTax) : order.taxAmount || 0), orderCurrency)}</td></tr>` : ''}
       <tr class="grand">
         <td>Total Geral</td>
         <td></td>
-        <td style="color:#e4003a;">R$ ${grandTotal.toFixed(2)}${grandTotalYen ? ` (¥ ${Number(grandTotalYen).toLocaleString()})` : ''}</td>
+        <td style="color:#e4003a;">${grandTotalYen ? `R$ ${grandTotal.toFixed(2)} (¥ ${Number(grandTotalYen).toLocaleString()})` : formatPrice(grandTotal, orderCurrency)}</td>
       </tr>
     </table>
   </div>
@@ -1100,7 +1100,7 @@ _This is an automated test message_
                           {order.items.map((item: any, i: number) => (
                             <div key={i} className="flex justify-between text-sm">
                                <span>{item.productName || item.name} ({item.size}) x{item.quantity}</span>
-                               <span className="font-semibold font-mono">R$ {(item.price * item.quantity).toFixed(2)}</span>
+                               <span className="font-semibold font-mono">{formatPrice(item.price * item.quantity, order.currency || 'BRL')}</span>
                             </div>
                           ))}
                           {(() => {
@@ -1114,7 +1114,7 @@ _This is an automated test message_
                                 {/* Subtotal */}
                                 <div className="flex justify-between text-sm">
                                   <span>Subtotal</span>
-                                  <span className="font-mono">R$ {itemsSubtotal.toFixed(2)}</span>
+                                  <span className="font-mono">{formatPrice(itemsSubtotal, cardCurrency)}</span>
                                 </div>
                                 
                                 {/* Coupon Discount */}
@@ -1143,17 +1143,17 @@ _This is an automated test message_
                                     <>
                                       <div className="flex justify-between text-xs text-muted-foreground">
                                         <span>II Federal</span>
-                                        <span className="font-mono">R$ {Number(order.federalTax).toFixed(2)}</span>
+                                        <span className="font-mono">{formatPrice(Number(order.federalTax), cardCurrency)}</span>
                                       </div>
                                       <div className="flex justify-between text-xs text-muted-foreground">
                                         <span>ICMS (17%)</span>
-                                        <span className="font-mono">R$ {Number(order.icmsTax).toFixed(2)}</span>
+                                        <span className="font-mono">{formatPrice(Number(order.icmsTax), cardCurrency)}</span>
                                       </div>
                                     </>
                                   ) : (
                                     <div className="flex justify-between text-xs text-muted-foreground">
                                       <span>Impostos Estimados (II + ICMS)</span>
-                                      <span className="font-mono">R$ {Number(order.taxAmount || 0).toFixed(2)}</span>
+                                      <span className="font-mono">{formatPrice(Number(order.taxAmount || 0), cardCurrency)}</span>
                                     </div>
                                   )
                                 )}
@@ -1164,7 +1164,7 @@ _This is an automated test message_
                                   <span className="text-primary font-mono">
                                     {order.currency !== 'JPY' && (order as any).grandTotalYen
                                       ? `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)} (¥ ${((order as any).grandTotalYen as number).toLocaleString()})`
-                                      : `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)}`}
+                                      : formatPrice(order.totalPrice ?? order.total ?? 0, cardCurrency)}
                                   </span>
                                 </div>
                               </div>
