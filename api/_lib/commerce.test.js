@@ -150,7 +150,7 @@ describe('authoritative checkout quote', () => {
   // nunca alcançava os descontos, então a conta da tela ficava 4% dos descontos
   // acima do total cobrado — cerca de R$2 num pedido com ¥1.500 de cupom.
   // A prova é que a soma das linhas exibidas agora fecha com o total.
-  it('a soma das linhas exibidas fecha com o total', () => {
+  it('a soma das linhas exibidas (sem imposto) fecha com o total', () => {
     const result = quote({
       requestedItems: [{ productId: 'p1', variantId: 'small', quantity: 3 }],
       coupon: { code: 'GLOBAL10', discountType: 'percentage', discount: 10 },
@@ -163,10 +163,12 @@ describe('authoritative checkout quote', () => {
     expect(psFee).toBeGreaterThan(0);
     expect(tax).toBeGreaterThan(0);
 
-    // A invariante essencial: as linhas exibidas devem somar exatamente o total,
-    // em centavos inteiros (para evitar ruído de float).
+    // A invariante essencial: as linhas cobradas (produtos+frete+taxaPS) devem
+    // somar exatamente o total, em centavos inteiros (para evitar ruído de
+    // float). O imposto é só estimativa exibida — cobrado pela alfândega na
+    // entrega, nunca somado ao total cobrado pela loja.
     const centavos = (valor) => Math.round(valor * 100);
-    expect(centavos(products) + centavos(shipping) + centavos(psFee) + centavos(tax))
+    expect(centavos(products) + centavos(shipping) + centavos(psFee))
       .toBe(centavos(result.total));
   });
 

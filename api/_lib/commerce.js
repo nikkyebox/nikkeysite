@@ -313,8 +313,14 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
   const productsDisplay = normalizeMoney(convertYen(netProductsYen, currency, rates), currency);
   const shippingDisplay = normalizeMoney(convertYen(finalShippingYen, currency, rates), currency);
   const psFeeDisplay = normalizeMoney(convertYen(psFeeYen - psDiscountYen, currency, rates, { exact: true }), currency);
+  // Imposto de importação é estimado só para informar o cliente — é cobrado
+  // pela alfândega/transportadora na entrega, nunca pela loja. Por isso NÃO
+  // entra no total cobrado (Stripe usa `total` como valor da cobrança em
+  // `api/orders.js`); a tela de checkout já dizia isso em texto
+  // ("Ele NÃO foi somado ao total pago no site") mas o servidor cobrava com
+  // imposto embutido mesmo assim — overcharge silencioso.
   const taxDisplay = country === 'Japão' ? 0 : normalizeMoney(displayTax(productsDisplay, country, state || prefecture), currency);
-  const total = normalizeMoney(productsDisplay + shippingDisplay + psFeeDisplay + taxDisplay, currency);
+  const total = normalizeMoney(productsDisplay + shippingDisplay + psFeeDisplay, currency);
   if (!(total > 0)) throw new HttpError(400, 'invalid_total');
 
   // O defeito era só nas linhas de cima da conta: subtotal saía com cushion e
@@ -354,7 +360,7 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
   return {
     currency,
     total,
-    totalYen: netProductsYen + finalShippingYen + (psFeeYen - psDiscountYen) + Math.round(taxDisplay / (currency === 'JPY' ? 1 : rates[currency])),
+    totalYen: netProductsYen + finalShippingYen + (psFeeYen - psDiscountYen),
     productSubtotalYen,
     netProductsYen,
     couponDiscountYen,
@@ -370,7 +376,8 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
     tax: normalizeMoney(taxDisplay, currency),
     // A conta decomposta, com as linhas já coerentes entre si:
     // `subtotal - couponDiscount - pointsDiscount - paymentDiscount == products`
-    // e `products + shipping + psFee + tax == total`. Vai gravada no pedido
+    // e `products + shipping + psFee == total` (tax é só estimativa exibida,
+    // cobrada pela alfândega na entrega — nunca soma no total cobrado). Vai
     // (`orders.js`, campo `priceBreakdown`) para congelar o que o cliente viu no
     // momento da compra — sem isso, uma variação de câmbio depois torna
     // impossível reconstruir a conta numa contestação.

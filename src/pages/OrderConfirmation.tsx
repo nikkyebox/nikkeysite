@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { QRCodeSVG } from 'qrcode.react';
 import { formatPrice } from '@/utils/currency';
+import { convertYen } from '@/services/fxService';
 import { paymentSettingsService } from '@/services/paymentSettingsService';
 import { buildPixPayload } from '@/utils/pixPayload';
 import { trackPurchase } from '@/lib/analytics';
@@ -19,6 +20,14 @@ import { COMPANY_PROFILE } from '@/config/companyProfile';
 // digitar o formato internacional não encontra a loja. Já o WhatsApp é discado
 // do Brasil, onde o DDI é obrigatório. Por isso os dois formatos convivem — o
 // que não pode é cada tela escolher o seu, que foi como divergiram.
+
+type ConfirmedOrderItem = {
+  image?: string;
+  name?: string;
+  size?: string;
+  quantity: number;
+  price: number;
+};
 const { international: WHATSAPP, domestic: PAYPAY_ID } = COMPANY_PROFILE.whatsapp;
 
 const OrderConfirmation: React.FC = () => {
@@ -508,7 +517,7 @@ const OrderConfirmation: React.FC = () => {
                     {t('order.items')}
                   </h4>
                   <div className="space-y-3">
-                    {order.items.map((item: any, idx: number) => (
+                    {(order.items as ConfirmedOrderItem[]).map((item, idx: number) => (
                       <div key={idx} className="flex justify-between items-center text-xs md:text-sm border-b border-gray-100 pb-2 last:border-0">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {item.image && (
@@ -529,36 +538,44 @@ const OrderConfirmation: React.FC = () => {
 
                 {/* Invoice Totals */}
                 <div className="border-t pt-4 space-y-2 text-xs md:text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t('order.subtotal')}</span>
-                    <span className="font-semibold text-gray-800">
-                      {formatPrice(order.subtotal, order.currency || 'BRL')}
-                    </span>
-                  </div>
+                  {(() => {
+                    const itemsSubtotal = (order.items as ConfirmedOrderItem[] || []).reduce(
+                      (s: number, i: ConfirmedOrderItem) => s + i.price * i.quantity, 0,
+                    );
+                    return (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('order.subtotal')}</span>
+                        <span className="font-semibold text-gray-800">
+                          {formatPrice(itemsSubtotal, order.currency || 'BRL')}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
-                  {order.couponDiscount > 0 && (
+                  {order.couponDiscountYen > 0 && (
                     <div className="flex justify-between text-green-600 font-bold">
                       <span>{t('order.couponDiscount')} ({order.couponCode})</span>
-                      <span>-{formatPrice(order.couponDiscount, order.currency || 'BRL')}</span>
+                      <span>-{formatPrice(convertYen(order.couponDiscountYen, order.currency || 'BRL'), order.currency || 'BRL')}</span>
                     </div>
                   )}
-
-                  {order.currency !== 'JPY' && order.pixDiscount > 0 && (
-                    <div className="flex justify-between text-pink-600 font-bold">
-                      <span>{t('order.pixDiscount')}</span>
-                      <span>-{formatPrice(order.pixDiscount, 'BRL')}</span>
-                    </div>
-                  )}
-
-                  {order.currency !== 'JPY' && (order.taxAmount > 0 || order.federalTax > 0) && (
+                  {order.currency !== 'JPY' && order.taxAmount > 0 && (
                     <div className="bg-pink-50/50 dark:bg-pink-950/10 border border-pink-200/60 rounded-xl p-3 space-y-2 mt-2">
                       <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-pink-300">
                         <span>{t('order.tax.estimate')}</span>
-                        <span>{formatPrice(order.taxAmount || (order.federalTax + order.icmsTax), order.currency)}</span>
+                        <span>{formatPrice(order.taxAmount, order.currency)}</span>
                       </div>
                       <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
                         {t('order.tax.note')}
                       </p>
+                    </div>
+                  )}
+
+                  {order.psFeeYen > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Taxa PS</span>
+                      <span className="font-semibold text-gray-800">
+                        {formatPrice(convertYen(order.psFeeYen, order.currency || 'BRL', true), order.currency || 'BRL')}
+                      </span>
                     </div>
                   )}
 
@@ -567,7 +584,9 @@ const OrderConfirmation: React.FC = () => {
                       {order.currency === 'JPY' ? t('order.shipping.local') : t('order.shipping.intl')}
                     </span>
                     <span className="font-semibold text-gray-800">
-                      {order.shippingCost === 0 ? t('order.shipping.free') : formatPrice(order.shippingCost, order.currency || 'BRL')}
+                      {(order.shipping?.cost ?? 0) === 0
+                        ? t('order.shipping.free')
+                        : formatPrice(convertYen(order.shipping?.cost ?? 0, order.currency || 'BRL'), order.currency || 'BRL')}
                     </span>
                   </div>
 

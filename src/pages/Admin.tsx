@@ -1137,6 +1137,18 @@ _This is an automated test message_
                                   <span className="font-mono">{shippingCostYen != null ? (shippingCostYen === 0 ? <span className="text-green-600">Grátis</span> : formatPrice(convertYen(shippingCostYen, cardCurrency), cardCurrency)) : 'N/A'}</span>
                                 </div>
 
+                                {/* Taxa PS */}
+                                {Number(order.psFeeYen) > 0 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="flex items-center gap-1">
+                                      🤝 Taxa PS
+                                    </span>
+                                    <span className="font-mono">
+                                      {formatPrice(convertYen(Number(order.psFeeYen), cardCurrency, true), cardCurrency)}
+                                    </span>
+                                  </div>
+                                )}
+
                                 {/* Impostos */}
                                 {(order.federalTax > 0 || order.icmsTax > 0 || order.taxAmount > 0) && (
                                   order.federalTax != null && order.icmsTax != null ? (
