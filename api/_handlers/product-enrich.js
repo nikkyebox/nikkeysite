@@ -12,10 +12,10 @@ const GROQ_API_KEY   = process.env.GROQ_API_KEY || '';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const DEFAULT_GROQ_MODELS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b'];
 const DEFAULT_OPENROUTER_MODELS = [
-  'openrouter/free',
   'meta-llama/llama-3.3-70b-instruct:free',
-  'minimax/minimax-m3:free',
   'google/gemini-2.0-flash-001',
+  'qwen/qwen-2.5-72b-instruct',
+  'openrouter/free',
 ];
 const DISABLED_GROQ_MODELS = new Set(['moonshotai/kimi-k2-instruct']);
 const GROQ_MODELS = uniqueNonEmpty([
@@ -497,32 +497,42 @@ let i18nDebug = null;
 async function buildI18n(productName, descJa) {
   i18nDebug = { called: true };
   if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return null;
-  const prompt = `Produto importado do Japão.
-Nome de referência (pode estar em inglês/japonês): "${productName}".
-Descrição ORIGINAL do produto (japonês, vinda da loja — pode estar vazia):
-${descJa || '(vazia — crie uma descrição comercial curta e fiel ao produto)'}
+  const prompt = `Você é o especialista em catálogo de produtos importados do Japão da NikkeyBox.
+Produto: "${productName}".
+Descrição ORIGINAL do marketplace japonês:
+${descJa || '(vazia)'}
 
-Tarefas:
-1) "name_en": o NOME do produto em INGLÊS, curto e comercial (marca + linha + tipo). NÃO use japonês, NÃO use português.
-2) Se a DESCRIÇÃO original estiver preenchida, traduza fielmente essa descrição para 3 idiomas, em 2-3 parágrafos curtos, sem inventar fatos.
-3) "category": escolha UMA categoria adequada entre: ["cosmeticos", "doces", "acessorios", "papelaria", "eletronicos", "masculino", "vestuario", "higiene", "pet"].
-4) "flavor": sabor ou variação do produto em português/inglês (ex: "Matcha", "Chocolate", "Hidratante", "Sensível", "Original") ou string vazia "".
-5) "tags": array com 2 a 5 tags descritivas em português/inglês minúsculas (ex: ["chocolate", "matcha", "biscoito", "snack"] ou ["skincare", "hidratante", "protetor"]).
-6) "gtin": código de barras JAN/EAN-13 de 13 dígitos do produto japonês (começa com 49 ou 45) SE você souber com certeza o código oficial, caso contrário string vazia "".
+TAREFAS (retorne APENAS um objeto JSON puro, sem markdown, sem explicações):
+1. "name_en": Nome comercial conciso e oficial em INGLÊS (marca + linha + tipo). Ex: "Nestle KitKat Matcha Green Tea", "Hada Labo Gokujyun Hyaluronic Acid Lotion", "DHC Deep Cleansing Oil".
+2. "category": Escolha EXATAMENTE uma das seguintes categorias: "cosmeticos", "doces", "acessorios", "papelaria", "eletronicos", "masculino", "vestuario", "higiene", "pet".
+3. "flavor": Sabor ou variante do produto em português/inglês (ex: "Matcha", "Chocolate Intenso", "Original", "Morango") ou "".
+4. "tags": Lista de 3 a 5 tags descritivas minúsculas em português (ex: ["chocolate", "matcha", "snack", "doce"]).
+5. "gtin": Código de barras oficial JAN/EAN de 13 dígitos do Japão se souber (iniciado em 49 ou 45, ex: "4902201178822"), caso contrário "".
+6. "pt": {"description": "Descrição comercial de 2 a 3 parágrafos curtos em português do Brasil, natural e atraente para a loja online."}
+7. "en": {"description": "Commercial description in English."}
+8. "ja": {"description": "日本語の商品説明。"}
 
-Responda APENAS com JSON válido, sem markdown, exatamente neste formato:
-{"name_en":"","category":"","flavor":"","tags":[],"gtin":"","pt":{"description":""},"en":{"description":""},"ja":{"description":""}}
-pt = português do Brasil, en = English, ja = 日本語.`;
+FORMATO DE RESPOSTA OBRIGATÓRIO (JSON PURO):
+{
+  "name_en": "Nestle KitKat Matcha Green Tea",
+  "category": "doces",
+  "flavor": "Matcha",
+  "tags": ["chocolate", "matcha", "snack", "doce"],
+  "gtin": "",
+  "pt": {"description": "..."},
+  "en": {"description": "..."},
+  "ja": {"description": "..."}
+}`;
 
-  const rawText = await callAICompletions({ prompt, max_tokens: 1600, temperature: 0.6 });
+  const rawText = await callAICompletions({ prompt, max_tokens: 1600, temperature: 0.3 });
   if (!rawText) return null;
 
   try {
     let text = rawText.trim();
-    const m = text.match(/\{[\s\S]*\}/);
-    if (m) text = m[0];
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) text = jsonMatch[0];
     const parsed = JSON.parse(text);
-    if (parsed?.pt?.description || parsed?.en?.description || parsed?.ja?.description || parsed?.name_en) {
+    if (parsed) {
       const nameEn = (parsed.name_en || '').trim();
       const validCats = ['cosmeticos', 'doces', 'acessorios', 'papelaria', 'eletronicos', 'masculino', 'vestuario', 'higiene', 'pet'];
       const category = validCats.includes(parsed.category) ? parsed.category : undefined;
@@ -533,9 +543,10 @@ pt = português do Brasil, en = English, ja = 日本語.`;
       i18nDebug = {
         ok: true,
         nameLen: nameEn.length,
-        ptLen: (parsed.pt?.description || '').length,
-        enLen: (parsed.en?.description || '').length,
-        jaLen: (parsed.ja?.description || '').length,
+        category,
+        flavor,
+        tagsCount: tags?.length,
+        gtin,
       };
       return {
         name_en: nameEn,
@@ -548,7 +559,9 @@ pt = português do Brasil, en = English, ja = 日本語.`;
         ja: { description: parsed.ja?.description || '' },
       };
     }
-  } catch {}
+  } catch (err) {
+    i18nDebug = { error: String(err) };
+  }
   return null;
 }
 
