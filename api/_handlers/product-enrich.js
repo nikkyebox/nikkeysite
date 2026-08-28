@@ -5,8 +5,8 @@
 // 4. Sem marketplace: AI estima o preço com base no próprio conhecimento.
 // Preço de venda = custo de aquisição × 1.5 (50% de markup).
 
-const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID || 'ec65ace1-9e87-4d23-83e4-b54103335b56';
-const RAKUTEN_ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY || 'pk_thp8WuFagFNOQh9VnsoWHJ8mAQhhRsHt4NWvW4wUA4q';
+const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID || 'd99ed1da-a6c3-405f-8dae-396b04deffee';
+const RAKUTEN_ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY || 'pk_Ma12ps3ArF2i67r4wkcksdzKcLigeODVLibWcS0ewzt';
 const YAHOO_APP_ID   = process.env.YAHOO_APP_ID || ''; // Yahoo! Shopping Client ID
 const GROQ_API_KEY   = process.env.GROQ_API_KEY || '';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
