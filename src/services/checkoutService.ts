@@ -46,6 +46,20 @@ export interface AuthoritativeCheckoutOrder {
   customerName: string;
   shippingAddress: CheckoutDraft['shippingAddress'];
   shipping: { carrier: string; cost: number; weightG?: number };
+  psFeeYen?: number;
+  taxAmount?: number;
+  // Congelado no momento da compra (mesma conta que gerou `total`) — usar
+  // isto na tela de confirmação, nunca reconverter ¥ com a cotação atual.
+  priceBreakdown?: {
+    subtotal: number;
+    couponDiscount: number;
+    pointsDiscount: number;
+    paymentDiscount: number;
+    products: number;
+    shipping: number;
+    psFee: number;
+    tax: number;
+  };
   items: Array<{
     productId: string;
     requestedId: string;

@@ -555,7 +555,12 @@ const OrderConfirmation: React.FC = () => {
                   {order.couponDiscountYen > 0 && (
                     <div className="flex justify-between text-green-600 font-bold">
                       <span>{t('order.couponDiscount')} ({order.couponCode})</span>
-                      <span>-{formatPrice(convertYen(order.couponDiscountYen, order.currency || 'BRL'), order.currency || 'BRL')}</span>
+                      <span>
+                        -{formatPrice(
+                          order.priceBreakdown?.couponDiscount ?? convertYen(order.couponDiscountYen, order.currency || 'BRL'),
+                          order.currency || 'BRL',
+                        )}
+                      </span>
                     </div>
                   )}
                   {order.currency !== 'JPY' && order.taxAmount > 0 && (
@@ -574,7 +579,10 @@ const OrderConfirmation: React.FC = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxa PS</span>
                       <span className="font-semibold text-gray-800">
-                        {formatPrice(convertYen(order.psFeeYen, order.currency || 'BRL', true), order.currency || 'BRL')}
+                        {formatPrice(
+                          order.priceBreakdown?.psFee ?? convertYen(order.psFeeYen, order.currency || 'BRL', true),
+                          order.currency || 'BRL',
+                        )}
                       </span>
                     </div>
                   )}
@@ -586,7 +594,10 @@ const OrderConfirmation: React.FC = () => {
                     <span className="font-semibold text-gray-800">
                       {(order.shipping?.cost ?? 0) === 0
                         ? t('order.shipping.free')
-                        : formatPrice(convertYen(order.shipping?.cost ?? 0, order.currency || 'BRL'), order.currency || 'BRL')}
+                        : formatPrice(
+                          order.priceBreakdown?.shipping ?? convertYen(order.shipping?.cost ?? 0, order.currency || 'BRL'),
+                          order.currency || 'BRL',
+                        )}
                     </span>
                   </div>
 

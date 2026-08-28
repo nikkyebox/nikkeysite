@@ -157,6 +157,10 @@ function publicOrder(order) {
     shippingCostYen: order.shippingCostYen,
     shipping: order.shipping,
     psFeeYen: order.psFeeYen,
+    // Congelado no momento da compra (mesma função que gerou `total`) — a
+    // tela de confirmação precisa mostrar EXATAMENTE essas linhas, não
+    // recalcular com a cotação de agora, senão a soma diverge do total pago.
+    priceBreakdown: order.priceBreakdown,
     psFeeWaiverApplied: order.psFeeWaiverApplied === true,
     shippingAddress: order.shippingAddress,
     items: order.items.map(({ cost, ...item }) => item),

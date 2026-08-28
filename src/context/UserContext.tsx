@@ -103,6 +103,19 @@ export interface Order {
     cost: number;
     estimatedDays?: string;
   };
+  // Congelado no momento da compra (mesma conta que gerou `totalAmount`) —
+  // usar isto pra exibir subtotal/frete/taxa PS, nunca reconverter ¥ com a
+  // cotação atual (diverge do que o cliente realmente pagou).
+  priceBreakdown?: {
+    subtotal: number;
+    couponDiscount: number;
+    pointsDiscount: number;
+    paymentDiscount: number;
+    products: number;
+    shipping: number;
+    psFee: number;
+    tax: number;
+  };
   shippingAddress: {
     name: string;
     postalCode: string;

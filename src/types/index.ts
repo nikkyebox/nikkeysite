@@ -122,6 +122,22 @@ export interface Order {
   shippingCarrier?: string;
   shippingCost?: number;
   shipping?: { cost?: number; carrier?: string };
+  psFeeYen?: number;
+  totalYen?: number;
+  grandTotalYen?: number;
+  // Congelado no momento da compra (mesma conta que gerou `totalPrice`) —
+  // usar isto pra exibir subtotal/frete/taxa PS, nunca reconverter ¥ com a
+  // cotação atual (diverge do que o cliente realmente pagou).
+  priceBreakdown?: {
+    subtotal: number;
+    couponDiscount: number;
+    pointsDiscount: number;
+    paymentDiscount: number;
+    products: number;
+    shipping: number;
+    psFee: number;
+    tax: number;
+  };
   shippingAddress?: OrderShippingAddress;
   trackingNumber?: string;
   trackingUrl?: string;

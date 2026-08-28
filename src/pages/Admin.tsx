@@ -523,7 +523,7 @@ _This is an automated test message_
     const shippingCostYen = order.shipping?.cost ?? null;
     const orderCurrency = order.currency || 'BRL';
     const shippingCostDisplay = shippingCostYen != null
-      ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(convertYen(shippingCostYen, orderCurrency), orderCurrency))
+      ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, orderCurrency), orderCurrency))
       : 'N/A';
     const grandTotal = order.totalPrice ?? order.total ?? 0;
     const grandTotalYen = (order as any).grandTotalYen || (order as any).totalYen;
@@ -1152,7 +1152,7 @@ _This is an automated test message_
                                     <Truck className="w-3 h-3" />
                                     Frete {order.shippingCarrier && <span className="text-muted-foreground text-xs">({order.shippingCarrier})</span>}
                                   </span>
-                                  <span className="font-mono">{shippingCostYen != null ? (shippingCostYen === 0 ? <span className="text-green-600">Grátis</span> : formatPrice(convertYen(shippingCostYen, cardCurrency), cardCurrency)) : 'N/A'}</span>
+                                  <span className="font-mono">{shippingCostYen != null ? (shippingCostYen === 0 ? <span className="text-green-600">Grátis</span> : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, cardCurrency), cardCurrency)) : 'N/A'}</span>
                                 </div>
 
                                 {/* Taxa PS */}
@@ -1162,7 +1162,7 @@ _This is an automated test message_
                                       🤝 Taxa PS
                                     </span>
                                     <span className="font-mono">
-                                      {formatPrice(convertYen(Number(order.psFeeYen), cardCurrency, true), cardCurrency)}
+                                      {formatPrice(order.priceBreakdown?.psFee ?? convertYen(Number(order.psFeeYen), cardCurrency, true), cardCurrency)}
                                     </span>
                                   </div>
                                 )}
