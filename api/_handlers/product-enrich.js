@@ -8,13 +8,64 @@
 const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID || '';
 const YAHOO_APP_ID   = process.env.YAHOO_APP_ID || ''; // Yahoo! Shopping Client ID
 const GROQ_API_KEY   = process.env.GROQ_API_KEY || '';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const DEFAULT_GROQ_MODELS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b'];
+const DEFAULT_OPENROUTER_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'meta-llama/llama-3.3-70b-instruct',
+  'google/gemini-2.0-flash-001',
+  'qwen/qwen-2.5-72b-instruct',
+];
 const DISABLED_GROQ_MODELS = new Set(['moonshotai/kimi-k2-instruct']);
 const GROQ_MODELS = uniqueNonEmpty([
   ...(process.env.GROQ_MODEL || '').split(','),
   ...DEFAULT_GROQ_MODELS,
 ]).filter((model) => !DISABLED_GROQ_MODELS.has(model));
 
+async function callAICompletions({ prompt, messages, max_tokens = 700, temperature = 0.6 }) {
+  const payloadMessages = messages || [{ role: 'user', content: prompt }];
+
+  // 1. Tenta Groq se configurado
+  if (GROQ_API_KEY) {
+    for (const model of GROQ_MODELS) {
+      try {
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+          body: JSON.stringify({ model, max_tokens, temperature, messages: payloadMessages }),
+        });
+        if (!r.ok) continue;
+        const data = await r.json();
+        const text = data?.choices?.[0]?.message?.content?.trim();
+        if (text) return text;
+      } catch {}
+    }
+  }
+
+  // 2. Tenta OpenRouter se configurado (fallback ou primário)
+  if (OPENROUTER_API_KEY) {
+    for (const model of DEFAULT_OPENROUTER_MODELS) {
+      try {
+        const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+            'HTTP-Referer': 'https://nikkeybox.jp',
+            'X-Title': 'NikkeyBox',
+          },
+          body: JSON.stringify({ model, max_tokens, temperature, messages: payloadMessages }),
+        });
+        if (!r.ok) continue;
+        const data = await r.json();
+        const text = data?.choices?.[0]?.message?.content?.trim();
+        if (text) return text;
+      } catch {}
+    }
+  }
+
+  return null;
+}
 // ---- Rate limiting em memória (10 req/min por IP) --------------------------
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX       = 10;
@@ -386,7 +437,7 @@ async function searchYahoo(productName) {
 
 // ---- Tradução / geração de descrição via Groq ------------------------------
 async function buildDescription(productName, descJa, targetLang) {
-  if (!GROQ_API_KEY) return '';
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return '';
   const langMap = { pt: 'português do Brasil', en: 'English', ja: '日本語' };
   const langName = langMap[targetLang] || 'português do Brasil';
 
@@ -394,21 +445,8 @@ async function buildDescription(productName, descJa, targetLang) {
     ? `Você é especialista em produtos japoneses. Traduza fielmente a descrição real abaixo para ${langName}, com texto natural para loja online, mas SEM inventar características, benefícios, ingredientes, volume, modo de uso ou promessas que não estejam no texto original. Mantenha os detalhes técnicos relevantes. Responda SOMENTE com a descrição (2-3 parágrafos curtos), sem título, sem introdução, sem comentários.\n\nDescrição original (japonês/inglês, vinda do marketplace):\n${descJa}`
     : `Você é especialista em produtos japoneses. Não foi encontrada descrição real no marketplace para "${productName}". Escreva uma descrição curta e genérica em ${langName}, sem inventar ingredientes, volume, promessas técnicas, modo de uso ou certificações. Responda SOMENTE com a descrição (1-2 parágrafos curtos), sem título nem comentários.`;
 
-  for (const model of GROQ_MODELS) {
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-        body:    JSON.stringify({ model, max_tokens: 700, temperature: 0.65,
-          messages: [{ role: 'user', content }] }),
-      });
-      if (!r.ok) continue;
-      const data = await r.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
-      if (text) return text;
-    } catch {}
-  }
-  return '';
+  const res = await callAICompletions({ prompt: content, max_tokens: 700, temperature: 0.65 });
+  return res ? res.trim() : '';
 }
 
 // ---- Nome em INGLÊS + descrição traduzida (a partir da descrição real do Yahoo) ----
@@ -417,7 +455,7 @@ async function buildDescription(productName, descJa, targetLang) {
 let i18nDebug = null;
 async function buildI18n(productName, descJa) {
   i18nDebug = { called: true };
-  if (!GROQ_API_KEY) return null;
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return null;
   const prompt = `Produto importado do Japão.
 Nome de referência (pode estar em inglês/japonês): "${productName}".
 Descrição ORIGINAL do produto (japonês, vinda da loja — pode estar vazia):
@@ -434,44 +472,31 @@ Responda APENAS com JSON válido, sem markdown, exatamente neste formato:
 {"name_en":"","pt":{"description":""},"en":{"description":""},"ja":{"description":""}}
 pt = português do Brasil, en = English, ja = 日本語.`;
 
-  for (const model of GROQ_MODELS) {
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model, max_tokens: 1600, temperature: 0.6,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
-      if (!r.ok) { i18nDebug = { model, status: r.status, body: (await r.text().catch(()=> '')).slice(0,200) }; continue; }
-      const data = await r.json();
-      let text = data?.choices?.[0]?.message?.content?.trim();
-      if (!text) continue;
-      // Extrai o bloco JSON do texto (caso venha com markdown/explicação)
-      const m = text.match(/\{[\s\S]*\}/);
-      if (m) text = m[0];
-      const parsed = JSON.parse(text);
-      if (parsed?.pt?.description || parsed?.en?.description || parsed?.ja?.description) {
-        // Mantém o nome em inglês para TODOS os idiomas (não traduz o nome)
-        const nameEn = (parsed.name_en || '').trim();
-        i18nDebug = {
-          model,
-          ok: true,
-          nameLen: nameEn.length,
-          ptLen: (parsed.pt?.description || '').length,
-          enLen: (parsed.en?.description || '').length,
-          jaLen: (parsed.ja?.description || '').length,
-        };
-        return {
-          name_en: nameEn,
-          pt: { description: parsed.pt?.description || '' },
-          en: { description: parsed.en?.description || '' },
-          ja: { description: parsed.ja?.description || '' },
-        };
-      }
-    } catch { /* tenta próximo modelo */ }
-  }
+  const rawText = await callAICompletions({ prompt, max_tokens: 1600, temperature: 0.6 });
+  if (!rawText) return null;
+
+  try {
+    let text = rawText.trim();
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) text = m[0];
+    const parsed = JSON.parse(text);
+    if (parsed?.pt?.description || parsed?.en?.description || parsed?.ja?.description) {
+      const nameEn = (parsed.name_en || '').trim();
+      i18nDebug = {
+        ok: true,
+        nameLen: nameEn.length,
+        ptLen: (parsed.pt?.description || '').length,
+        enLen: (parsed.en?.description || '').length,
+        jaLen: (parsed.ja?.description || '').length,
+      };
+      return {
+        name_en: nameEn,
+        pt: { description: parsed.pt?.description || '' },
+        en: { description: parsed.en?.description || '' },
+        ja: { description: parsed.ja?.description || '' },
+      };
+    }
+  } catch {}
   return null;
 }
 
@@ -527,7 +552,7 @@ async function buildEnglishName(productName, sourceName, descJa, currentName) {
   if (looksEnglishProductName(currentName)) return currentName.trim().slice(0, 120);
   if (looksEnglishProductName(productName)) return productName.trim().slice(0, 120);
 
-  if (!GROQ_API_KEY) return local;
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return local;
 
   const prompt = `Convert the Japanese/Portuguese/romaji product name below into a short commercial ENGLISH product name.
 Return ONLY the English name, no quotes, no explanation.
@@ -543,22 +568,14 @@ DHC Limpeza Profunda -> DHC Deep Cleansing Oil
 ビオレUV アクアリッチ -> Biore UV Aqua Rich
 メラノCC -> Melano CC Vitamin C Brightening Essence`;
 
-  for (const model of GROQ_MODELS) {
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-        body: JSON.stringify({ model, max_tokens: 80, temperature: 0.15, messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!r.ok) continue;
-      const data = await r.json();
-      const text = (data?.choices?.[0]?.message?.content || '')
-        .trim()
-        .replace(/^["'「『]|["'」』]$/g, '')
-        .split(/\r?\n/)[0]
-        .trim();
-      if (looksEnglishProductName(text)) return text.slice(0, 120);
-    } catch {}
+  const rawText = await callAICompletions({ prompt, max_tokens: 80, temperature: 0.15 });
+  if (rawText) {
+    const text = rawText
+      .trim()
+      .replace(/^["'「『]|["'」』]$/g, '')
+      .split(/\r?\n/)[0]
+      .trim();
+    if (looksEnglishProductName(text)) return text.slice(0, 120);
   }
 
   return local;
@@ -678,7 +695,7 @@ function parseJapaneseTermList(text) {
 }
 
 async function toJapaneseKeywords(name) {
-  if (!GROQ_API_KEY) return [];
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return [];
   const prompt = `Você é especialista em produtos japoneses vendidos no Yahoo Shopping Japão e Rakuten.
 Converta o nome do produto abaixo para 3 a 5 TERMOS DE BUSCA em japonês (katakana/kanji) usados nas lojas.
 
@@ -703,18 +720,11 @@ Exemplos:
 
 Responda APENAS com um JSON array de strings (sem markdown, sem explicação).
 Produto: "${name}"`;
-  for (const model of GROQ_MODELS) {
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-        body: JSON.stringify({ model, max_tokens: 250, temperature: 0.15, messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!r.ok) continue;
-      const data = await r.json();
-      const terms = parseJapaneseTermList(data?.choices?.[0]?.message?.content || '');
-      if (terms.length) return terms.slice(0, 5);
-    } catch {}
+
+  const rawText = await callAICompletions({ prompt, max_tokens: 250, temperature: 0.15 });
+  if (rawText) {
+    const terms = parseJapaneseTermList(rawText);
+    if (terms.length) return terms.slice(0, 5);
   }
   return [];
 }
@@ -759,22 +769,13 @@ async function ocrImageForJapaneseName(imageUrl) {
 
 // ---- Estimativa de preço via IA (fallback sem Rakuten) ---------------------
 async function estimatePriceAI(productName) {
-  if (!GROQ_API_KEY) return 0;
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY) return 0;
   const prompt = `Qual o preço de varejo médio em ienes japoneses (¥) do produto "${productName}" vendido no Japão? Responda APENAS com o número inteiro, sem texto, sem símbolo. Exemplo: 1280`;
-  for (const model of GROQ_MODELS) {
-    try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-        body:    JSON.stringify({ model, max_tokens: 20, temperature: 0.1,
-          messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!r.ok) continue;
-      const data = await r.json();
-      const text = (data?.choices?.[0]?.message?.content || '').replace(/[^0-9]/g, '');
-      const p    = parseInt(text, 10);
-      if (p > 0) return p;
-    } catch {}
+  const rawText = await callAICompletions({ prompt, max_tokens: 20, temperature: 0.1 });
+  if (rawText) {
+    const text = rawText.replace(/[^0-9]/g, '');
+    const p = parseInt(text, 10);
+    if (p > 0) return p;
   }
   return 0;
 }

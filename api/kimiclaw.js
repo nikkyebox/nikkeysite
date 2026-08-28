@@ -202,18 +202,31 @@ export default async function handler(req, res) {
     return;
   }
 
-  // ---------- Chaves de IA (prioriza GLM-5.2 via Z.ai; Groq como fallback) ----------
+  // ---------- Chaves de IA (prioriza GLM-5.2 via Z.ai; Groq; OpenRouter) ----------
   const zaiKey = process.env.ZAI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
-  if (!zaiKey && !groqKey) {
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+  if (!zaiKey && !groqKey && !openrouterKey) {
     res.status(503).json({ error: 'AI not configured' });
     return;
   }
-  // Ordem de prioridade: GLM-5.2 primeiro (mais inteligente), Groq como reserva.
+  // Ordem de prioridade: GLM-5.2 -> Groq -> OpenRouter
   const providers = [];
   if (zaiKey) providers.push({ name: 'glm', url: ZAI_API_URL, key: zaiKey, models: ZAI_MODELS });
   if (groqKey) providers.push({ name: 'groq', url: GROQ_API_URL, key: groqKey, models: GROQ_MODELS });
-
+  if (openrouterKey) {
+    providers.push({
+      name: 'openrouter',
+      url: 'https://openrouter.ai/api/v1/chat/completions',
+      key: openrouterKey,
+      models: [
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'meta-llama/llama-3.3-70b-instruct',
+        'google/gemini-2.0-flash-001',
+        'qwen/qwen-2.5-72b-instruct',
+      ],
+    });
+  }
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
