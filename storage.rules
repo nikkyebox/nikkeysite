@@ -14,7 +14,20 @@ service firebase.storage {
                    && request.resource.contentType.matches('video/.*');
     }
 
-    // Fotos de avaliação (caso passem a subir aqui): até 8MB, só imagem.
+    // Fotos de produtos (japanexpress/products e products): até 10MB, somente imagem
+    match /japanexpress/products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Fotos de avaliação: até 8MB, só imagem.
     match /review-photos/{productId}/{fileName} {
       allow read: if true;
       allow write: if request.resource.size < 8 * 1024 * 1024
