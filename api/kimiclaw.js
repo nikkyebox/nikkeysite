@@ -104,6 +104,8 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
 
 // Adiciona os domínios padrão da loja se não configurado
 const DEFAULT_ORIGINS = [
+  'https://nikkeybox.jp',
+  'https://www.nikkeybox.jp',
   'https://nikkeybox-store.com',
   'https://www.nikkeybox-store.com',
   'http://localhost:8080',

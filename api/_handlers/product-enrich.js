@@ -51,6 +51,8 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
   .split(',').map(s => s.trim()).filter(Boolean);
 const DEFAULT_ORIGINS = [
+  'https://nikkeybox.jp',
+  'https://www.nikkeybox.jp',
   'https://nikkeybox-store.com',
   'https://www.nikkeybox-store.com',
   'http://localhost:8080',

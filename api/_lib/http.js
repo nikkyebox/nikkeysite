@@ -1,4 +1,6 @@
 const DEFAULT_ORIGINS = [
+  'https://nikkeybox.jp',
+  'https://www.nikkeybox.jp',
   'https://nikkeybox-store.com',
   'https://www.nikkeybox-store.com',
 ];
