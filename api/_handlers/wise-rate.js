@@ -1,15 +1,14 @@
 // Cotação ¥ → BRL/EUR/USD para o cliente, com a MESMA cadeia usada no servidor
-// para calcular pedidos (api/_lib/fx.js): Wise → open.er-api → fallback fixo.
+// para calcular pedidos (api/_lib/fx.js): open.er-api → fallback fixo.
 //
-// Antes este arquivo falava com a Wise por conta própria e devolvia 502 quando
-// ela recusava. A Wise fechou o endpoint público `api.wise.com/v1/rates`: ele
-// responde 401 mesmo sem token (o token sempre foi opcional aqui). Resultado:
-// toda visita fazia uma requisição condenada, esperava o 502 e só então caía
-// no open.er-api — com o console cheio de erro.
+// A Wise fechou o endpoint público `api.wise.com/v1/rates` (401 mesmo sem
+// token) e, mesmo quando respondia, era inconsistente entre invocações
+// serverless distintas: uma chamada de preview podia cair na Wise (cushion
+// 0%) enquanto a criação do pedido, segundos depois, caía no open.er-api
+// (cushion 4%) — cliente e servidor cobravam totais diferentes. Tirar a Wise
+// da cadeia faz os dois lados sempre convergirem pro mesmo cushion.
 //
-// Devolve `source` para que o cliente aplique o cushion certo: a taxa da Wise
-// já bate com o app (0%), as demais precisam de +4% pela defasagem diária.
-// Se a Wise voltar a funcionar, isto se corrige sozinho — sem mudar código.
+// Devolve `source` para o cliente e o servidor aplicarem o mesmo cushion.
 import { getFxRates } from '../_lib/fx.js';
 
 export default async function handler(req, res) {

@@ -1,6 +1,8 @@
 // Cotação cambial ao vivo: converte ¥ → R$/€/$ via /api/wise-rate, que aplica a
-// mesma cadeia usada para cobrar (Wise → open.er-api → fixo) e informa a origem.
-// Taxa PS (noBuffer=true) nunca tem margem — exibe o ¥ exato.
+// mesma cadeia usada para cobrar (open.er-api → fixo) e informa a origem.
+// Wise foi removida da cadeia (endpoint público fechado, e intermitente
+// entre invocações serverless — ver api/_lib/fx.js). Taxa PS (noBuffer=true)
+// nunca tem margem — exibe o ¥ exato.
 import { safeStorage } from '@/utils/storage';
 
 const BUFFER_YEN = 5;    // margem fixa somada ao ¥ (proteção em itens pequenos)
@@ -61,10 +63,10 @@ export function convertYen(yen: number, currency: string, noBuffer = false): num
 export async function loadFxRates(): Promise<Rates> {
   const today = new Date().toISOString().slice(0, 10);
 
-  // 1. Endpoint próprio: mesma cadeia que o servidor usa para cobrar (Wise →
-  //    open.er-api → fixo), cacheada 10 min. Confiamos no `source` que ele
-  //    informa: assumir 'wise' aqui zeraria o cushion de 4% e derrubaria todos
-  //    os preços sempre que a taxa viesse, na verdade, do open.er-api.
+  // 1. Endpoint próprio: mesma cadeia que o servidor usa para cobrar
+  //    (open.er-api → fixo), cacheada 10 min. `source` nunca mais vem 'wise'
+  //    (removida — ver api/_lib/fx.js), mas o cushion continua correto
+  //    porque a checagem abaixo trata qualquer outra origem como fallback.
   try {
     const res = await fetch('/api/wise-rate');
     if (res.ok) {

@@ -190,7 +190,12 @@ export function buildDashboardAnalytics(orders, products = [], now = new Date())
       receitaProduto,
       receitaPS,
       custo,
-      lucro: receitaProduto - custo,
+      // "Bruto" precisa somar toda a receita de mercadoria antes das
+      // despesas operacionais (afiliados/marketing/salários) — Taxa PS é
+      // receita real da loja. Excluí-la aqui e somá-la só no "Líquido"
+      // (Dashboard.tsx) fazia o líquido aparecer MAIOR que o bruto sempre
+      // que a Taxa PS superasse as despesas operacionais do mês.
+      lucro: receitaProduto + receitaPS - custo,
       descontosCupomYen,
     },
     monthlyData,

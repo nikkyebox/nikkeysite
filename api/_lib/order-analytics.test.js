@@ -64,6 +64,10 @@ describe('order analytics', () => {
     expect(result.stats.totalRevenue).toBe(1700);
     expect(result.finance.custo).toBe(200);
     expect(result.finance.receitaPS).toBe(50);
+    // Líquido (Dashboard.tsx) parte de `finance.lucro` e só subtrai despesas
+    // operacionais — se "Bruto" não somar a Taxa PS aqui, líquido aparece
+    // maior que bruto sempre que a Taxa PS superar as despesas do mês.
+    expect(result.finance.lucro).toBe(result.finance.receitaProduto + result.finance.receitaPS - result.finance.custo);
     expect(result.topProducts).toEqual([{ name: 'Produto', count: 2 }]);
     expect(result.paymentMethods).toEqual([{ method: 'PIX', revenue: 1200 }, { method: 'Outro', revenue: 500 }]);
     expect(result.monthlyData.at(-1)).toMatchObject({ orders: 2, receitaComFrete: 1700 });

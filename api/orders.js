@@ -6,6 +6,7 @@ import { assertCouponEligibility } from './_lib/coupon-eligibility.js';
 import { adminDb } from './_lib/firebase-admin.js';
 import { comReserva, pontosDisponiveis } from './_lib/points-hold.js';
 import { comReservaPromo, quantidadeReservada, refEstadoPromo, semReservaPromo } from './_lib/promo-reserve.js';
+import { comReservaEstoque, estoqueDisponivel } from './_lib/stock-hold.js';
 import { indiceDePessoaId, promoUsageId } from './_lib/promo-identity.js';
 import { fulfillOrder } from './_lib/fulfillment.js';
 import { recentProductSpendYen } from './_lib/loyalty-tier.js';
@@ -492,12 +493,18 @@ async function handleCreate(req, res) {
     // Reserva da unidade da promoção da home: só quando há quantidade promocional
     // e a promoção está ativa.
     const promoStateRef = quote.homePromoQuantity > 0 ? refEstadoPromo(db) : null;
+    // Só reserva produtos com estoque limitado (`unlimited === false`) — o
+    // resto não precisa pagar o custo de ler/reescrever o doc do produto.
+    const limitedStockRefs = [...stockByProduct.keys()]
+      .filter((productId) => products.get(productId)?.stock?.unlimited === false)
+      .map((productId) => db.collection('products').doc(productId));
     await db.runTransaction(async (transaction) => {
-      const [current, waiverClaim, userAtual, promoStateAtual] = await Promise.all([
+      const [current, waiverClaim, userAtual, promoStateAtual, ...stockSnaps] = await Promise.all([
         transaction.get(orderRef),
         waiverClaimRef ? transaction.get(waiverClaimRef) : Promise.resolve(null),
         userRefParaReserva ? transaction.get(userRefParaReserva) : Promise.resolve(null),
         promoStateRef ? transaction.get(promoStateRef) : Promise.resolve(null),
+        ...limitedStockRefs.map((ref) => transaction.get(ref)),
       ]);
       if (current.exists) throw new HttpError(409, 'order_id_conflict');
       if (waiverClaim?.exists) throw new HttpError(409, 'ps_fee_waiver_already_used');
@@ -536,6 +543,22 @@ async function handleCreate(req, res) {
         });
         transaction.set(promoStateRef, novoEstado);
       }
+      // Revalidação atômica do estoque: a checagem lá em cima (`stockByProduct`)
+      // roda fora de transação, em cima de uma leitura de minutos atrás. Se
+      // dois checkouts do mesmo produto saem de lá e chegam aqui, um deles vê
+      // a unidade já reservada pelo outro e é recusado — antes de cobrar,
+      // porque isto roda ANTES do Stripe (`stripeIntent`, logo abaixo).
+      limitedStockRefs.forEach((ref, index) => {
+        const productId = ref.id;
+        const quantity = stockByProduct.get(productId) || 0;
+        const snap = stockSnaps[index];
+        const productAgora = snap?.exists ? snap.data() : null;
+        if (!productAgora) throw new HttpError(409, 'product_unavailable');
+        if (quantity > estoqueDisponivel(productAgora, orderId)) throw new HttpError(409, 'insufficient_stock');
+        transaction.update(ref, {
+          stockHolds: comReservaEstoque(productAgora, orderId, quantity),
+        });
+      });
       transaction.create(orderRef, order);
       if (waiverClaimRef) {
         transaction.create(waiverClaimRef, {

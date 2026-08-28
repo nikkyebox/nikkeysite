@@ -4,6 +4,7 @@ import { adminDb } from './firebase-admin.js';
 import { HttpError } from './http.js';
 import { buildPaymentReviewEmail, sendMail } from './mailer.js';
 import { semReserva } from './points-hold.js';
+import { semReservaEstoque } from './stock-hold.js';
 import { indiceDePessoaId, promoUsageId } from './promo-identity.js';
 import { refEstadoPromo, semReservaPromo } from './promo-reserve.js';
 
@@ -176,7 +177,11 @@ export async function fulfillOrder(orderId, { provider, reference, confirmedBy }
       const product = byPath.get(ref.path).data();
       const quantity = quantities.get(ref.id);
       const update = { salesCount: Number(product.salesCount || 0) + quantity };
-      if (product.stock?.unlimited === false) update['stock.quantity'] = Number(product.stock.quantity || 0) - quantity;
+      if (product.stock?.unlimited === false) {
+        update['stock.quantity'] = Number(product.stock.quantity || 0) - quantity;
+        // Pagou: a baixa real acima substitui a reserva, que sai da lista.
+        update.stockHolds = semReservaEstoque(product, orderId);
+      }
       transaction.update(ref, update);
     }
     transaction.create(eventRef, { orderId, provider, reference, createdAt: new Date().toISOString() });
@@ -358,6 +363,11 @@ export async function markFulfillmentReview(orderId, reason, { paymentIntentId =
   await liberarReservaPromo(db, orderId).catch((erro) => {
     console.error('[fulfillment] falha ao liberar reserva promo do pedido em revisao:', erro instanceof Error ? erro.message : erro);
   });
+  // Idem para estoque: a unidade que este pedido segurava volta a ficar
+  // disponível para outros clientes.
+  await liberarReservaEstoque(db, orderId, order.items).catch((erro) => {
+    console.error('[fulfillment] falha ao liberar reserva de estoque do pedido em revisao:', erro instanceof Error ? erro.message : erro);
+  });
   const paraEmail = { ...order, stripePaymentIntentId: referencia, totalPrice: valorCobrado, currency: moedaCobrada };
   return { notified: await notificarRevisao(paraEmail, codigo) };
 }
@@ -379,6 +389,27 @@ async function liberarReserva(db, userId, orderId) {
       updatedAt: new Date().toISOString(),
     });
   });
+}
+
+/**
+ * Devolve ao estoque as unidades que o pedido segurava, produto a produto.
+ * Transação por produto porque cada um pode estar sendo mexido por outro
+ * checkout concorrente ao mesmo tempo.
+ */
+async function liberarReservaEstoque(db, orderId, items) {
+  const productIds = [...new Set((Array.isArray(items) ? items : [])
+    .map((item) => item?.productId)
+    .filter(Boolean))];
+  await Promise.all(productIds.map((productId) => {
+    const ref = db.collection('products').doc(productId);
+    return db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(ref);
+      if (!snap.exists) return;
+      const dados = snap.data();
+      if (!Array.isArray(dados.stockHolds) || dados.stockHolds.length === 0) return;
+      transaction.update(ref, { stockHolds: semReservaEstoque(dados, orderId) });
+    });
+  }));
 }
 
 /**

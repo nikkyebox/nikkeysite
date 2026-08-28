@@ -12,11 +12,13 @@ import AppDownloadSection from '@/components/AppDownloadSection';
 import ScrollReveal from '@/components/ScrollReveal';
 import WelcomeCouponBanner from '@/components/WelcomeCouponBanner';
 import Hero from '@/components/home/Hero';
+import PromoCarouselSection from '@/components/home/PromoCarouselSection';
 import { PWA_INSTALL_ENABLED } from '@/config/featureFlags';
 
 const Index: React.FC = () => (
   <Layout>
     <Hero />
+    <PromoCarouselSection />
 
     <WelcomeCouponBanner />
     <ScrollReveal><CategoryQuickNav /></ScrollReveal>

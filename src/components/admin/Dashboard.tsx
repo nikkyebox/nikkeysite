@@ -176,9 +176,10 @@ const Dashboard: React.FC = () => {
       const totalComissoesYen = comissoesYen + comissoesConfirmYen;
       const marketingYen = marketingJPY + Math.round(marketingBRL * 28);
       const salariosYen = salariosJPY + Math.round(salariosBRL * 28);
-      const lucroLiquido = dashboard.finance.receitaProduto
-        + dashboard.finance.receitaPS
-        - dashboard.finance.custo
+      // Líquido parte do Bruto (que já inclui Produto + PS − Custo) e só
+      // desconta as despesas operacionais — assim líquido nunca aparece
+      // maior que bruto, por construção.
+      const lucroLiquido = dashboard.finance.lucro
         - totalComissoesYen
         - marketingYen
         - salariosYen;
@@ -404,7 +405,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-card rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground mb-1">Lucro Bruto</p>
               <p className={`text-xl font-bold ${finance.lucro >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>¥{finance.lucro.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Produto − custo</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Produto + PS − Custo</p>
             </div>
           </div>
 

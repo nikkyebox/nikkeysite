@@ -2,18 +2,13 @@ const FALLBACK = { BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150 };
 const CACHE_TTL_MS = 10 * 60 * 1000;
 let cache = null;
 
-async function wiseRate(target) {
-  const headers = { 'User-Agent': 'JapanExpress/1.0' };
-  if (process.env.WISE_API_TOKEN) headers.Authorization = `Bearer ${process.env.WISE_API_TOKEN}`;
-  const response = await fetch(`https://api.wise.com/v1/rates?source=JPY&target=${target}`, { headers });
-  if (!response.ok) throw new Error('wise_unavailable');
-  const payload = await response.json();
-  const entries = Array.isArray(payload) ? payload : [payload];
-  const rate = Number(entries.find((entry) => entry.source === 'JPY' && entry.target === target)?.rate);
-  if (!(rate > 0)) throw new Error('wise_invalid_rate');
-  return rate;
-}
-
+// A Wise fechou o endpoint público `api.wise.com/v1/rates` (401 mesmo com
+// token) e, quando responde, é inconsistente entre invocações serverless
+// distintas — uma chamada de preview (`/api/wise-rate`) podia pegar a Wise
+// (cushion 0%) enquanto a criação do pedido, segundos depois, caía no
+// open.er-api (cushion 4%), cobrando um total diferente do que a tela
+// mostrou. Tirar a Wise da cadeia é o que faz cliente e servidor sempre
+// convergirem pro mesmo cushion. Ver AUDITORIA.md se ela reabrir o endpoint.
 async function openExchangeRates() {
   const response = await fetch('https://open.er-api.com/v6/latest/JPY');
   if (!response.ok) throw new Error('exchange_unavailable');
@@ -30,18 +25,12 @@ async function openExchangeRates() {
 export async function getFxRates() {
   if (cache && Date.now() - cache.loadedAt < CACHE_TTL_MS) return cache;
   try {
-    const [BRL, EUR, USD] = await Promise.all(['BRL', 'EUR', 'USD'].map(wiseRate));
-    cache = { BRL, EUR, USD, source: 'wise', loadedAt: Date.now() };
+    const rates = await openExchangeRates();
+    cache = { ...rates, source: 'open-er', loadedAt: Date.now() };
     return cache;
   } catch {
-    try {
-      const rates = await openExchangeRates();
-      cache = { ...rates, source: 'open-er', loadedAt: Date.now() };
-      return cache;
-    } catch {
-      cache = { ...FALLBACK, source: 'fallback', loadedAt: Date.now() };
-      return cache;
-    }
+    cache = { ...FALLBACK, source: 'fallback', loadedAt: Date.now() };
+    return cache;
   }
 }
 

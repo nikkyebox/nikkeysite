@@ -39,10 +39,19 @@ const PromoCarouselSection: React.FC = () => {
   const currency = getCurrencyByCountry(selectedCountry);
   const convertYen = (yen: number) => fxConvert(yen, currency);
 
-  const featured = useMemo(
-    () => products.filter(p => !p.hidden && p.featured).slice(0, 4),
+  // Produtos marcados "Hero Carrossel" no admin (campo `heroCarousel`, distinto
+  // de `featured` — que alimenta a grade "Mais Vistos" em FeaturedProducts.tsx).
+  // Até 4, mostra todos; acima disso, sorteia 4 diferentes a cada visita (sem
+  // repetir dentro do próprio sorteio), como o texto do admin promete.
+  const heroProducts = useMemo(
+    () => products.filter(p => !p.hidden && p.heroCarousel),
     [products]
   );
+  const featured = useMemo(() => {
+    if (heroProducts.length <= 4) return heroProducts;
+    const shuffled = [...heroProducts].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 4);
+  }, [heroProducts]);
 
   const slides: CarouselSlide[] = useMemo(() => {
     const list: CarouselSlide[] = [

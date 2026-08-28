@@ -138,6 +138,20 @@ describe('payment fulfillment transaction', () => {
     expect(db.get('users/user-O1').points).toBe(110);
   });
 
+  it('releases the stock hold once fulfilled — the real decrement replaces it', async () => {
+    const db = database(order(), 2, {
+      'products/p1': {
+        name: 'Produto',
+        stock: { unlimited: false, quantity: 2 },
+        salesCount: 0,
+        stockHolds: [{ orderId: 'O1', quantity: 1, expiresAt: Date.now() + 60000 }],
+      },
+    });
+    injected.db = db;
+    await fulfillOrder('O1', { provider: 'manual', reference: 'pix:O1', confirmedBy: 'admin' });
+    expect(db.get('products/p1').stockHolds).toEqual([]);
+  });
+
   it('rolls back every write when stock is insufficient', async () => {
     const insufficient = order('O1', { items: [{ productId: 'p1', quantity: 3, unitYen: 1000, freeGift: false, homePromo: false }] });
     const db = database(insufficient, 2);
@@ -233,6 +247,22 @@ describe('pedido pago que não pôde ser separado', () => {
       refundAmount: 114,
       refundCurrency: 'BRL',
     });
+  });
+
+  it('libera a reserva de estoque — pedido morto não pode segurar a unidade', async () => {
+    const db = database(order('O1', { totalPrice: 114, currency: 'BRL' }), 2, {
+      'products/p1': {
+        name: 'Produto',
+        stock: { unlimited: false, quantity: 2 },
+        salesCount: 0,
+        stockHolds: [{ orderId: 'O1', quantity: 1, expiresAt: Date.now() + 60000 }],
+      },
+    });
+    injected.db = db;
+
+    await markFulfillmentReview('O1', 'insufficient_stock', cobranca);
+
+    expect(db.get('products/p1').stockHolds).toEqual([]);
   });
 
   it('avisa o cliente e a loja', async () => {
