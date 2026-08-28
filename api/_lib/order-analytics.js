@@ -36,24 +36,26 @@ export function toYen(amount, currency) {
 
 export function orderRevenueYen(order) {
   return number(order?.grandTotalYen)
+    || number(order?.totalYen)
     || toYen(number(order?.totalPrice ?? order?.totalAmount), order?.currency);
 }
 
+// `shippingCost`/`shipping.cost` são sempre gravados em ienes na criação do pedido
+// (`quote.shippingYen` em `api/orders.js`), nunca na moeda de exibição do cliente.
+// Rodar `toYen()` em cima disso convertia o valor em ienes como se fosse BRL/EUR/USD
+// e inflava o frete em ~28x — o que também zerava "receita sem frete" por subtração.
 function orderShippingYen(order) {
   const shipping = number(order?.shippingCost ?? order?.shipping?.cost);
-  const localTotal = number(order?.totalPrice ?? order?.totalAmount);
-  const grandTotalYen = number(order?.grandTotalYen);
-  if (grandTotalYen > 0 && localTotal > 0) return Math.round(shipping * (grandTotalYen / localTotal));
-  return toYen(shipping, order?.currency);
+  return Math.round(shipping);
 }
 
 function orderDiscountYen(order) {
   const discount = number(order?.couponDiscount);
   if (!discount) return 0;
   const currency = String(order?.currency || 'BRL').toUpperCase();
-  const localTotal = number(order?.totalPrice ?? order?.totalAmount);
-  const grandTotalYen = number(order?.grandTotalYen);
   if (currency === 'JPY') return Math.round(discount);
+  const localTotal = number(order?.totalPrice ?? order?.totalAmount);
+  const grandTotalYen = number(order?.grandTotalYen) || number(order?.totalYen);
   if (grandTotalYen > 0 && localTotal > 0) return Math.round(discount * (grandTotalYen / localTotal));
   return toYen(discount, currency);
 }
@@ -209,7 +211,7 @@ export function couponRow(order) {
     couponDiscount,
     currency: String(order?.currency || 'BRL'),
     discountYen: orderDiscountYen(order),
-    grandTotalYen: number(order?.grandTotalYen),
+    grandTotalYen: orderRevenueYen(order),
     isAffiliate: Boolean(affiliateCode),
     affiliateCode,
   };

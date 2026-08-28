@@ -16,6 +16,7 @@ import { japanPrefectures } from '@/data/japanPrefectures';
 import { useLanguage } from '@/context/LanguageContext';
 import { addAddressHints } from '@/utils/romanize';
 import { formatPrice } from '@/utils/currency';
+import { convertYen } from '@/services/fxService';
 import { useProducts } from '@/context/ProductsContext';
 import { isValidEmail, isValidPhone, isNonEmpty, maskPhone, isValidCPF, isValidCNPJ, maskCPF, maskCNPJ } from '@/utils/validation';
 import { affiliateService, AffiliateRequest } from '@/services/affiliateService';
@@ -1107,8 +1108,8 @@ const Profile: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-lg text-foreground">
-                            {(order as any).grandTotalYen && (order as any).currency !== 'JPY'
-                              ? `${formatPrice(order.totalAmount, (order as any).currency || 'BRL', true)} (¥ ${((order as any).grandTotalYen as number).toLocaleString()})`
+                            {((order as any).grandTotalYen || (order as any).totalYen) && (order as any).currency !== 'JPY'
+                              ? `${formatPrice(order.totalAmount, (order as any).currency || 'BRL', true)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
                               : formatPrice(order.totalAmount, (order as any).currency || 'JPY')}
                           </p>
                           <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -1347,14 +1348,14 @@ const Profile: React.FC = () => {
                                   <Truck className="w-3 h-3" />
                                   {t('profile.orders.shipping')} {carrierName && <span className="text-xs">({carrierName})</span>}
                                 </span>
-                                <span>{shippingCost === 0 ? <span className="text-green-600">{t('profile.orders.free')}</span> : formatPrice(shippingCost, oc)}</span>
+                                <span>{shippingCost === 0 ? <span className="text-green-600">{t('profile.orders.free')}</span> : formatPrice(convertYen(shippingCost, oc), oc)}</span>
                               </div>
                             )}
                             <div className="flex justify-between font-semibold pt-1 border-t border-border">
                               <span>{t('profile.orders.total')}</span>
                               <span className="text-primary">
-                                {(order as any).grandTotalYen && oc !== 'JPY'
-                                  ? `${formatPrice(order.totalAmount, oc, true)} (¥ ${((order as any).grandTotalYen as number).toLocaleString()})`
+                                {((order as any).grandTotalYen || (order as any).totalYen) && oc !== 'JPY'
+                                  ? `${formatPrice(order.totalAmount, oc, true)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
                                   : formatPrice(order.totalAmount, oc)}
                               </span>
                             </div>

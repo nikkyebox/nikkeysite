@@ -16,7 +16,7 @@ import { buildDashboardAnalytics, couponRow, matchesCouponFilters, orderEpoch } 
 // ── admin-dashboard.js ───────────────────────────────────────────────
 const ORDER_FIELDS = [
   'orderDate', 'date', 'syncedAt', 'status', 'paymentMethod', 'currency',
-  'grandTotalYen', 'totalPrice', 'totalAmount', 'shippingCost', 'shipping',
+  'grandTotalYen', 'totalYen', 'totalPrice', 'totalAmount', 'shippingCost', 'shipping',
   'psFeeFinalYen', 'couponDiscount', 'items',
 ];
 

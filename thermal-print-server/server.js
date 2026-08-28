@@ -105,7 +105,16 @@ function printOrder(order) {
       (itemsSubtotal > order.totalPrice ? itemsSubtotal - order.totalPrice : 0);
     const shippingCost = order.shipping?.cost ?? null;
     const grandTotal = order.totalPrice ?? order.total ?? 0;
-    const grandTotalYen = order.grandTotalYen;
+    const grandTotalYen = order.grandTotalYen || order.totalYen;
+    const orderCurrency = order.currency || 'BRL';
+    const YEN_PER_BRL_FALLBACK = 28 / 1.04;
+    const shippingCostDisplay = shippingCost == null
+      ? null
+      : shippingCost === 0
+        ? 'GRATIS'
+        : orderCurrency === 'JPY'
+          ? `\u00a5${Math.round(shippingCost).toLocaleString()}`
+          : `R$${(shippingCost / YEN_PER_BRL_FALLBACK).toFixed(2)}`;
 
     device.open((err) => {
       if (err) return reject(err);
@@ -181,13 +190,11 @@ function printOrder(order) {
           printer.text(cols2(couponLabel, `-R$${discount.toFixed(2)}`));
         }
 
-        if (shippingCost != null) {
+        if (shippingCostDisplay != null) {
           const freteLabel = order.shippingCarrier
             ? `Frete (${order.shippingCarrier})`
             : 'Frete';
-          printer.text(
-            cols2(freteLabel, shippingCost === 0 ? 'GRATIS' : `R$${shippingCost.toFixed(2)}`)
-          );
+          printer.text(cols2(freteLabel, shippingCostDisplay));
         }
 
         const taxTotal =

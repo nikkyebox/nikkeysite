@@ -110,6 +110,8 @@ export function escapeHtml(value) {
 
 export function sendError(res, error) {
   const status = error instanceof HttpError ? error.statusCode : 500;
-  const code = error instanceof HttpError ? error.code : 'internal_error';
-  res.status(status).json({ error: code });
+  const code = error instanceof HttpError ? error.code : (error?.message || 'internal_error');
+  const body = { error: code };
+  if (!(error instanceof HttpError) && error?.message) body.details = error.message;
+  res.status(status).json(body);
 }

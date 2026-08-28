@@ -521,7 +521,7 @@ _This is an automated test message_
       ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(convertYen(shippingCostYen, orderCurrency), orderCurrency))
       : 'N/A';
     const grandTotal = order.totalPrice ?? order.total ?? 0;
-    const grandTotalYen = (order as any).grandTotalYen;
+    const grandTotalYen = (order as any).grandTotalYen || (order as any).totalYen;
 
     const itemsHtml = order.items.map((item: any) => `
       <tr>
@@ -1162,8 +1162,8 @@ _This is an automated test message_
                                 <div className="flex justify-between font-bold pt-1 border-t border-border text-base">
                                   <span>Total Geral</span>
                                   <span className="text-primary font-mono">
-                                    {order.currency !== 'JPY' && (order as any).grandTotalYen
-                                      ? `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)} (¥ ${((order as any).grandTotalYen as number).toLocaleString()})`
+                                    {order.currency !== 'JPY' && ((order as any).grandTotalYen || (order as any).totalYen)
+                                      ? `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
                                       : formatPrice(order.totalPrice ?? order.total ?? 0, cardCurrency)}
                                   </span>
                                 </div>
