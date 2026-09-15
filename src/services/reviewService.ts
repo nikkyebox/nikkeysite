@@ -1,7 +1,7 @@
 import { safeStorage } from '@/utils/storage';
 import { Review, ProductRating } from '@/types/review';
 
-const REVIEWS_KEY = 'japan-express-reviews';
+const REVIEWS_KEY = 'nikkeybox-reviews';
 
 export const reviewService = {
   // Obter todas as avaliações

@@ -173,7 +173,7 @@ const Profile: React.FC = () => {
       );
       safeStorage.setItem(ordersKey, JSON.stringify(updatedOrders));
 
-      const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
+      const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
       Object.keys(users).forEach((email) => {
         (users[email].orders || []).forEach((o, i: number) => {
           if (o.orderNumber === orderNumber) {
@@ -182,7 +182,7 @@ const Profile: React.FC = () => {
           }
         });
       });
-      safeStorage.setItem('japan-express-users', JSON.stringify(users));
+      safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
 
       const sakura = JSON.parse(safeStorage.getItem('sakura_orders') || '[]');
       const updatedSakura = sakura.map((o) =>

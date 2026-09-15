@@ -27,7 +27,7 @@ const CookiePolicy: React.FC = () => (
                 <h3 className="font-semibold text-green-800 dark:text-green-300 mb-1">✅ Cookies Essenciais — sempre ativos</h3>
                 <p className="text-sm">Necessários para o funcionamento básico do site. Sem eles, funcionalidades como carrinho, login e configurações de idioma não funcionam.</p>
                 <ul className="list-disc pl-5 mt-2 text-sm space-y-1">
-                  <li><code>japan-express-users</code> — dados de conta do usuário (localStorage)</li>
+                  <li><code>nikkeybox-users</code> — dados de conta do usuário (localStorage)</li>
                   <li><code>cart</code> — itens no carrinho (localStorage)</li>
                   <li><code>loginAs</code> — modo de sessão admin/cliente</li>
                   <li><code>maintenance_state</code> — status de manutenção do site</li>

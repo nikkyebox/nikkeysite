@@ -65,7 +65,7 @@ export default function FirebaseSync() {
       addLog('✅ Firestore conectado!', '#22c55e');
       addLog('✅ Authentication conectado!', '#22c55e');
 
-      const usersData = safeStorage.getItem('japan-express-users');
+      const usersData = safeStorage.getItem('nikkeybox-users');
       if (usersData) {
         const users = JSON.parse(usersData);
         const userCount = Object.keys(users).length;
@@ -114,8 +114,8 @@ export default function FirebaseSync() {
   const debugLocalStorage = () => {
     addLog('🔍 Debugando safeStorage...', '#3b82f6');
     
-    const usersData = safeStorage.getItem('japan-express-users');
-    addLog(`📦 japan-express-users existe? ${!!usersData}`, '#06b6d4');
+    const usersData = safeStorage.getItem('nikkeybox-users');
+    addLog(`📦 nikkeybox-users existe? ${!!usersData}`, '#06b6d4');
     
     if (usersData) {
       const users = JSON.parse(usersData);

@@ -369,16 +369,16 @@ const CustomerList: React.FC = () => {
       safeStorage.removeItem('sakura_cart');
       safeStorage.removeItem('activeNegId');
 
-      // Limpa orders de todos os usuários em japan-express-users (localStorage legado)
+      // Limpa orders de todos os usuários em nikkeybox-users (localStorage legado)
       try {
-        const raw = safeStorage.getItem('japan-express-users');
+        const raw = safeStorage.getItem('nikkeybox-users');
         if (raw) {
           const users = JSON.parse(raw) as Record<string, { orders?: unknown[]; points?: number }>;
           Object.keys(users).forEach(email => {
             users[email].orders = [];
             users[email].points = 0;
           });
-          safeStorage.setItem('japan-express-users', JSON.stringify(users));
+          safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
         }
       } catch { /* ignora se localStorage não disponível */ }
 

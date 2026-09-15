@@ -136,7 +136,7 @@ export const orderService = {
       }
     }
 
-    const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
+    const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
     Object.keys(users).forEach((email) => {
       const user = users[email];
       if (user.orders && user.orders.length > 0) {
@@ -149,7 +149,7 @@ export const orderService = {
         });
       }
     });
-    safeStorage.setItem('japan-express-users', JSON.stringify(users));
+    safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
     return updated;
   },
 
@@ -178,7 +178,7 @@ export const orderService = {
   deleteOrder: async (orderNumber: string): Promise<boolean> => {
     let deletedLocal = false;
 
-    const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
+    const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
     Object.keys(users).forEach((email) => {
       const user = users[email];
       if (user.orders && user.orders.length > 0) {
@@ -192,7 +192,7 @@ export const orderService = {
       }
     });
     if (deletedLocal) {
-      safeStorage.setItem('japan-express-users', JSON.stringify(users));
+      safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
     }
 
     // Exclui de verdade no Firestore (deleteDoc), não apenas marca como cancelado
@@ -235,13 +235,13 @@ export const orderService = {
       });
       safeStorage.removeItem('sakura_orders');
 
-      const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
+      const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
       Object.keys(users).forEach((email) => {
         if (users[email] && Array.isArray(users[email].orders)) {
           users[email].orders = [];
         }
       });
-      safeStorage.setItem('japan-express-users', JSON.stringify(users));
+      safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
     } catch (err) {
       devError('❌ [ORDER] clearAllOrders localStorage falhou:', err);
     }
@@ -275,7 +275,7 @@ export const orderService = {
     }
 
     // Also update in safeStorage
-    const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
+    const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
     Object.keys(users).forEach((email) => {
       const user = users[email];
       if (user.orders && user.orders.length > 0) {
@@ -291,7 +291,7 @@ export const orderService = {
         });
       }
     });
-    safeStorage.setItem('japan-express-users', JSON.stringify(users));
+    safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
 
     // Also update per-user orders storage
     const allKeys = safeStorage.keys();

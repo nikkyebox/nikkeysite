@@ -93,7 +93,7 @@ export default function WhatsAppSettings() {
             type="text"
             value={cfg.authToken}
             onChange={e => setCfg(c => ({ ...c, authToken: e.target.value.trim() }))}
-            placeholder="japan-express-whatsapp-token-2024"
+            placeholder="nikkeybox-whatsapp-token-2024"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
           />
           <p className="text-xs text-muted-foreground mt-1">

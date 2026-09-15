@@ -1,13 +1,13 @@
 /**
- * Migra chaves do localStorage da marca antiga (sweet-japan-*) para a nova (japan-express-*).
+ * Migra chaves do localStorage da marca antiga (sweet-japan-*) para a nova (nikkeybox-*).
  * Chamado uma única vez no startup — se a chave nova já existe, não faz nada.
  */
 export function migrateLocalStorage(): void {
   try {
     const PAIRS: [string, string][] = [
-      ['sweet-japan-users', 'japan-express-users'],
-      ['sweet-japan-coupons', 'japan-express-coupons'],
-      ['sweet-japan-reviews', 'japan-express-reviews'],
+      ['sweet-japan-users', 'nikkeybox-users'],
+      ['sweet-japan-coupons', 'nikkeybox-coupons'],
+      ['sweet-japan-reviews', 'nikkeybox-reviews'],
     ];
 
     for (const [oldKey, newKey] of PAIRS) {
@@ -20,12 +20,12 @@ export function migrateLocalStorage(): void {
       }
     }
 
-    // Wishlist é dinâmica (sufixo por e-mail): japan-express-wishlist_email
+    // Wishlist é dinâmica (sufixo por e-mail): nikkeybox-wishlist_email
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!key) continue;
       if (key.startsWith('sweet-japan-wishlist_')) {
-        const newKey = key.replace('sweet-japan-wishlist_', 'japan-express-wishlist_');
+        const newKey = key.replace('sweet-japan-wishlist_', 'nikkeybox-wishlist_');
         if (localStorage.getItem(newKey) === null) {
           const value = localStorage.getItem(key);
           if (value !== null) {

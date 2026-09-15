@@ -180,8 +180,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Limpa o carrinho quando o usuário faz logout (evento disparado pelo UserContext)
   useEffect(() => {
     const onLogout = () => setRawItems([]);
-    window.addEventListener('japan-express:logout', onLogout);
-    return () => window.removeEventListener('japan-express:logout', onLogout);
+    window.addEventListener('nikkeybox:logout', onLogout);
+    return () => window.removeEventListener('nikkeybox:logout', onLogout);
   }, []);
 
   const totalItems = useMemo(

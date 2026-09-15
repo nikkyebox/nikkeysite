@@ -8,7 +8,7 @@ const devWarn = isDev ? console.warn.bind(console) : () => {};
 const devError = isDev ? console.error.bind(console) : () => {};
 
 
-const STORAGE_KEY = 'japan-express-coupons';
+const STORAGE_KEY = 'nikkeybox-coupons';
 const FIRESTORE_COUPONS = 'coupons';
 
 // ==================== FIRESTORE HELPERS ====================

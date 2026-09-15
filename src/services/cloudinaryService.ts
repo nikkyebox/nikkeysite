@@ -5,7 +5,7 @@ import { storage } from '@/config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const CLOUD_NAME = 'dw4j4tpub';
-const UPLOAD_PRESET = 'japanexpress';
+const UPLOAD_PRESET = 'nikkeybox';
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const UPLOAD_URL_VIDEO = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
 

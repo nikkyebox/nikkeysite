@@ -247,12 +247,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     safeStorage.removeItem('activeNegId');
     safeStorage.removeItem('redeem_points');
     safeStorage.removeItem('sakura_orders');
-    window.dispatchEvent(new Event('japan-express:logout'));
+    window.dispatchEvent(new Event('nikkeybox:logout'));
   };
 
   // Helper functions for users database
   const getAllUsers = (): UserProfile[] => {
-    const usersData = safeStorage.getItem('japan-express-users');
+    const usersData = safeStorage.getItem('nikkeybox-users');
     if (!usersData) return [];
     
     const usersObj = JSON.parse(usersData);
@@ -265,7 +265,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     users.forEach(u => {
       usersObj[u.email] = stripSensitive(u);
     });
-    safeStorage.setItem('japan-express-users', JSON.stringify(usersObj));
+    safeStorage.setItem('nikkeybox-users', JSON.stringify(usersObj));
   };
 
   const getUserCoupons = (userId: string): Coupon[] => {
@@ -374,8 +374,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     try {
       const normalizedEmail = email ? normalizeEmail(email) : '';
-      const users = JSON.parse(safeStorage.getItem('japan-express-users') || '{}');
-      // japan-express-users has tracking updates → highest priority, overwrites all
+      const users = JSON.parse(safeStorage.getItem('nikkeybox-users') || '{}');
+      // nikkeybox-users has tracking updates → highest priority, overwrites all
       addOrders(users[normalizedEmail]?.orders || users[email || '']?.orders, true);
     } catch {
       // Ignore malformed local users backup.
@@ -1388,7 +1388,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     
     // Também atualiza na base global de usuários (safeStorage backup)
     if (user) {
-      const usersData = safeStorage.getItem('japan-express-users');
+      const usersData = safeStorage.getItem('nikkeybox-users');
       if (usersData) {
         const users = JSON.parse(usersData);
         const customerEmail = normalizeEmail((orderData as any).customerEmail || user.email);
@@ -1402,7 +1402,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             orderDate: newOrder.date,
             totalPrice: newOrder.totalAmount,
           });
-          safeStorage.setItem('japan-express-users', JSON.stringify(users));
+          safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
         }
       }
     }

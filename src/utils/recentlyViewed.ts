@@ -1,6 +1,6 @@
 import { safeStorage } from '@/utils/storage';
 
-const STORAGE_KEY = 'japan-express-recently-viewed';
+const STORAGE_KEY = 'nikkeybox-recently-viewed';
 const MAX_ITEMS = 10;
 
 /** Histórico local (por navegador) de produtos visitados — usado para a seção "Visto Recentemente". */

@@ -904,7 +904,7 @@ export const firebaseSyncService = {
       ensureFirebaseReady();
       devLog('🔄 [FIREBASE] Starting migration from safeStorage...');
 
-      const usersData = safeStorage.getItem('japan-express-users');
+      const usersData = safeStorage.getItem('nikkeybox-users');
       if (!usersData) return { success: true, migrated: 0, orders: 0 };
 
       const users = JSON.parse(usersData);
@@ -1011,7 +1011,7 @@ export const firebaseSyncService = {
 
   clearAllReviews(): void {
     try {
-      localStorage.removeItem('japan-express-reviews');
+      localStorage.removeItem('nikkeybox-reviews');
     } catch { /* ignora */ }
   },
 

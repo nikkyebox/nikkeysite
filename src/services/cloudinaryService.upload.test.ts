@@ -46,7 +46,7 @@ describe('cloudinaryService.uploadDataUrl', () => {
   it('devolve a URL do Cloudinary quando o envio funciona', async () => {
     encenar({ ok: true, json: async () => ({ secure_url: 'https://res.cloudinary.com/x/a.jpg' }) } as Partial<Response>);
 
-    const url = await cloudinaryService.uploadDataUrl(IMAGEM, 'japanexpress/products/p1');
+    const url = await cloudinaryService.uploadDataUrl(IMAGEM, 'nikkeybox/products/p1');
 
     expect(url).toBe('https://res.cloudinary.com/x/a.jpg');
   });
@@ -56,7 +56,7 @@ describe('cloudinaryService.uploadDataUrl', () => {
     storageMocks.uploadBytes.mockResolvedValue({});
     storageMocks.getDownloadURL.mockResolvedValue('https://firebasestorage.app/b.png');
 
-    const url = await cloudinaryService.uploadDataUrl(IMAGEM, 'japanexpress/products/p1');
+    const url = await cloudinaryService.uploadDataUrl(IMAGEM, 'nikkeybox/products/p1');
 
     expect(url).toBe('https://firebasestorage.app/b.png');
   });
@@ -70,7 +70,7 @@ describe('cloudinaryService.uploadDataUrl', () => {
     let devolvido: string | null = null;
     let mensagem = '';
     try {
-      devolvido = await cloudinaryService.uploadDataUrl(IMAGEM, 'japanexpress/products/p1');
+      devolvido = await cloudinaryService.uploadDataUrl(IMAGEM, 'nikkeybox/products/p1');
     } catch (e) {
       mensagem = e instanceof Error ? e.message : String(e);
     }

@@ -19,7 +19,7 @@ export interface ThermalPrinterConfig {
 const DEFAULT_CONFIG: ThermalPrinterConfig = {
   enabled: false,
   serverUrl: 'http://localhost:3210',
-  authToken: 'japan-express-print-token-2024',
+  authToken: 'nikkeybox-print-token-2024',
 };
 
 export const thermalPrintService = {

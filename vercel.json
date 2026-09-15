@@ -39,7 +39,7 @@
     { "source": "/api/create-order", "destination": "/api/orders?action=create" },
     { "source": "/api/ps-fee-waiver", "destination": "/api/orders?action=ps-fee-waiver" },
     { "source": "/api/confirm-manual-payment", "destination": "/api/orders?action=confirm-manual-payment" },
-    { "source": "/api/send-email", "destination": "/api/notify?action=email" },
+    { "source": "/api/webhook-resend", "destination": "/api/webhook-resend" },
     { "source": "/api/send-push", "destination": "/api/notify?action=push" },
     { "source": "/api/promo-campaign", "destination": "/api/notify?action=promo-campaign" },
     { "source": "/api/public-submission", "destination": "/api/public-forms?action=submission" },

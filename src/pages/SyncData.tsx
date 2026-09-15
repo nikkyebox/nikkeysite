@@ -13,7 +13,7 @@ const SyncData: React.FC = () => {
 
   React.useEffect(() => {
     // Count local users
-    const usersData = safeStorage.getItem('japan-express-users');
+    const usersData = safeStorage.getItem('nikkeybox-users');
     if (usersData) {
       const users = JSON.parse(usersData);
       setLocalUsers(Object.keys(users).length);

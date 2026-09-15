@@ -46,12 +46,12 @@ describe('migrateLocalStorage — idioma', () => {
   });
 
   it('não mexe nas chaves de marca antiga que já foram migradas', () => {
-    localStorage.setItem('japan-express-users', '{"a":1}');
+    localStorage.setItem('nikkeybox-users', '{"a":1}');
     localStorage.setItem('sweet-japan-users', '{"b":2}');
 
     migrateLocalStorage();
 
-    expect(localStorage.getItem('japan-express-users')).toBe('{"a":1}');
+    expect(localStorage.getItem('nikkeybox-users')).toBe('{"a":1}');
     expect(localStorage.getItem('sweet-japan-users')).toBe('{"b":2}');
   });
 });

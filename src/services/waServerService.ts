@@ -19,7 +19,7 @@ export interface WaServerConfig {
 const DEFAULT_CONFIG: WaServerConfig = {
   enabled: false,
   serverUrl: 'http://localhost:3220',
-  authToken: 'japan-express-whatsapp-token-2024',
+  authToken: 'nikkeybox-whatsapp-token-2024',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

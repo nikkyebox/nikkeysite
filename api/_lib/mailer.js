@@ -1,65 +1,17 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { encodeEmail, unsubscribeToken } from './email-optout.js';
 import { escapeHtml, HttpError } from './http.js';
 
-export const MAIL_FROM = 'noreply@nikkeybox-store.com';
-export const MAIL_REPLY_TO = 'contato@nikkeybox-store.com';
+export const MAIL_FROM = 'contato@nikkeybox.com';
+export const MAIL_REPLY_TO = 'contato@nikkeybox.com';
 export const BRAND = 'NikkeyBox';
 
+// Instância Resend com API key
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export function siteOrigin() {
-  const configured = String(process.env.APP_ORIGIN || 'https://nikkeybox-store.com');
-  try {
-    return new URL(configured).origin;
-  } catch {
-    throw new HttpError(503, 'app_origin_misconfigured');
-  }
-}
-
-/**
- * Link de cancelamento do proprio destinatario. Vale para sempre: e-mail e
- * lido meses depois, e um link expirado significa cliente sem saida a nao ser
- * marcar como spam — que e o pior desfecho possivel para o dominio.
- */
-export function unsubscribeUrl(email) {
-  return `${siteOrigin()}/api/unsubscribe?e=${encodeEmail(email)}&t=${unsubscribeToken(email)}`;
-}
-
-/**
- * `unsubscribeUrl` so e passado em e-mail de marketing. Confirmacao de pedido,
- * redefinicao de senha e verificacao de conta sao transacionais: oferecer
- * "cancelar inscricao" neles promete algo que a loja nao pode cumprir — ela
- * precisa avisar o cliente sobre o pedido dele de qualquer forma.
- */
-export function wrapEmail(inner, { unsubscribeUrl: unsubscribe = '' } = {}) {
-  const optOut = unsubscribe
-    ? `<p style="margin:10px 0 0">Voce recebe estas mensagens porque se cadastrou na loja. <a href="${escapeHtml(unsubscribe)}" style="color:#777;text-decoration:underline">Cancelar inscricao</a> para parar de receber.</p>`
-    : '';
-  return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden"><div style="background:linear-gradient(135deg,#a855f7,#f59e0b);padding:20px;text-align:center;color:#fff"><h1 style="margin:0;font-size:22px">${BRAND}</h1><p style="margin:4px 0 0;font-size:12px;opacity:.9">Importados do Japao</p></div><div style="padding:24px;color:#333;font-size:15px;line-height:1.6">${inner}</div><div style="padding:14px;text-align:center;font-size:11px;color:#777;border-top:1px solid #eee">${BRAND} · ${MAIL_REPLY_TO} · nikkeybox-store.com${optOut}</div></div>`;
-}
-
-// Login SMTP e remetente são coisas DIFERENTES.
-//
-// `noreply@` e `contato@` deixaram de ser contas próprias no Workspace e viraram
-// alias da conta principal (economia de licença). Alias NÃO autentica no Gmail:
-// só caixa real tem senha. Com o login fixo em `MAIL_FROM`, todo envio passou a
-// morrer em `535-5.7.8 Username and Password not accepted` — e configurar
-// "Enviar como" no Gmail não resolve, porque isso governa o cabeçalho `From`,
-// nunca a autenticação.
-//
-// `SMTP_USER` é a caixa que autentica (a dona da App Password); `MAIL_FROM`
-// continua sendo o endereço que o cliente vê, desde que esteja verificado em
-// "Enviar como" na conta que autentica. Sem `SMTP_USER`, mantém o comportamento
-// antigo, para instalação onde `noreply@` ainda é conta de verdade.
-function transporter() {
-  const pass = process.env.NOREPLY_EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
-  if (!pass) throw new HttpError(503, 'email_not_configured');
-  const user = String(process.env.SMTP_USER || MAIL_FROM).trim();
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: { user, pass },
-  });
+  const origin = process.env.SITE_ORIGIN || 'https://nikkeybox.com';
+  return origin.replace(/\/$/, '');
 }
 
 /**
@@ -102,12 +54,12 @@ function htmlParaTexto(html) {
  */
 export async function sendMail({ to, subject, html, unsubscribe = '' }) {
   const mensagem = {
-    from: `"${BRAND}" <${MAIL_FROM}>`,
+    from: `${MAIL_FROM}`,
     replyTo: MAIL_REPLY_TO,
     to,
     subject,
-    text: htmlParaTexto(html),
     html,
+    text: htmlParaTexto(html),
     ...(unsubscribe
       ? {
         headers: {
@@ -118,30 +70,34 @@ export async function sendMail({ to, subject, html, unsubscribe = '' }) {
       : {}),
   };
 
-  // Credencial recusada precisa CHEGAR ao painel com esse nome. Antes o EAUTH
-  // do nodemailer subia como erro desconhecido e virava `internal_error` 500:
-  // o admin via "erro interno" enquanto o problema era só a App Password
-  // (foi o que escondeu, por horas, o login preso no alias `noreply@`).
-  let info;
   try {
-    info = await transporter().sendMail(mensagem);
-  } catch (erro) {
-    if (erro?.code === 'EAUTH' || erro?.responseCode === 535) {
-      throw new HttpError(503, 'email_auth_failed');
+    if (!process.env.RESEND_API_KEY) {
+      throw new HttpError(503, 'email_service_not_configured');
     }
-    throw erro;
+
+    const response = await resend.emails.send(mensagem);
+
+    if (response.error) {
+      console.error('[Resend] Email error:', response.error);
+      if (response.error.message?.includes('validation')) {
+        throw new HttpError(400, 'email_validation_failed');
+      }
+      throw new HttpError(503, 'email_send_failed');
+    }
+
+    console.log(`[Resend] Email sent: ${response.data?.id} to ${to}`);
+    return {
+      accepted: [to],
+      rejected: [],
+      messageId: response.data?.id,
+    };
+  } catch (error) {
+    console.error('[Resend] Send mail error:', error);
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    throw new HttpError(503, 'email_send_failed');
   }
-  // O SMTP pode aceitar a conexão e ainda assim recusar o destinatário. Antes
-  // isso passava batido: `sendMail` resolvia, o endpoint respondia 200 e o app
-  // dava a mensagem como enviada — mas nada era entregue, e ninguém ficava
-  // sabendo. Falha silenciosa em e-mail de confirmação trava o cadastro do
-  // cliente sem deixar rastro.
-  const aceitos = Array.isArray(info.accepted) ? info.accepted : [];
-  const recusados = Array.isArray(info.rejected) ? info.rejected : [];
-  if (aceitos.length === 0 || recusados.length > 0) {
-    throw new HttpError(502, 'email_rejected_by_smtp');
-  }
-  return { accepted: info.accepted, rejected: info.rejected, messageId: info.messageId };
 }
 
 function money(value, currency) {

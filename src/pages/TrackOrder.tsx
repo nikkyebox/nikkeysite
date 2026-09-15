@@ -84,7 +84,7 @@ const TrackOrder: React.FC = () => {
     setIsSearching(true);
 
     // 1. Buscar no safeStorage (usuários locais)
-    const usersData = safeStorage.getItem('japan-express-users');
+    const usersData = safeStorage.getItem('nikkeybox-users');
     let order: TrackedOrder | null = null;
 
     if (usersData) {

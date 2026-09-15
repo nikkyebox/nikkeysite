@@ -36,7 +36,7 @@ export default function ThermalPrinterSettings() {
       status: 'pending',
       paymentMethod: 'pix',
       orderDate: new Date().toISOString(),
-      customerEmail: 'teste@japanexpress.com',
+      customerEmail: 'contato@nikkeybox.jp',
       shippingAddress: {
         name: 'Cliente Teste',
         phone: '(11) 99999-9999',
@@ -107,7 +107,7 @@ export default function ThermalPrinterSettings() {
             type="text"
             value={cfg.authToken}
             onChange={e => setCfg(c => ({ ...c, authToken: e.target.value.trim() }))}
-            placeholder="japan-express-print-token-2024"
+            placeholder="nikkeybox-print-token-2024"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
           />
           <p className="text-xs text-muted-foreground mt-1">

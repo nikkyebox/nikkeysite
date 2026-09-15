@@ -477,7 +477,7 @@ const ProductManager: React.FC = () => {
     }
     setUploadingVideo(true);
     try {
-      const folder = `japanexpress/products/${editing.id || 'temp-' + Date.now()}`;
+      const folder = `nikkeybox/products/${editing.id || 'temp-' + Date.now()}`;
       const url = await cloudinaryService.uploadVideoFile(file, folder);
       setEditing((prev) => (prev ? { ...prev, video: url } : prev));
       toast({ title: '✅ Vídeo enviado' });
@@ -506,7 +506,7 @@ const ProductManager: React.FC = () => {
       const rawGallery = editing.gallery && editing.gallery.length > 0 ? editing.gallery : [editing.image].filter(Boolean);
 
       // ── Upload de imagens para Cloudinary CDN ────────────────────────────
-      const folder = `japanexpress/products/${id}`;
+      const folder = `nikkeybox/products/${id}`;
 
       // Migrar imagem pro CDN não pode travar o resto do salvamento: produto
       // com imagem externa (Yahoo/Rakuten) frequentemente falha o fetch por

@@ -52,7 +52,7 @@ async function uploadImage(dataUrl: string, folder: string): Promise<string> {
 }
 
 async function migrateProduct(p: Product): Promise<Product> {
-  const folder = `japanexpress/products/${p.id}`;
+  const folder = `nikkeybox/products/${p.id}`;
   const rawGallery = (p.gallery && p.gallery.length > 0) ? p.gallery : [p.image].filter(Boolean) as string[];
 
   // Upload da galeria em paralelo
@@ -96,7 +96,7 @@ async function fetchAsDataUrl(src: string): Promise<string> {
 
 // Re-envia TODAS as imagens (inclusive Cloudinary) em alta qualidade usando fetch
 async function remigrateProductHD(p: Product): Promise<Product> {
-  const folder = `japanexpress/products/${p.id}`;
+  const folder = `nikkeybox/products/${p.id}`;
   const rawGallery = (p.gallery && p.gallery.length > 0) ? p.gallery : [p.image].filter(Boolean) as string[];
 
   const galleryUrls: string[] = [];
@@ -151,7 +151,7 @@ const ImageMigration: React.FC = () => {
   useEffect(() => {
     // Testa conexão com Cloudinary enviando pixel mínimo
     const TEST = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-    cloudinaryService.uploadDataUrl(TEST, 'japanexpress/__test__')
+    cloudinaryService.uploadDataUrl(TEST, 'nikkeybox/__test__')
       .then(() => setTested('ok'))
       .catch((e) => { setTested('fail'); setTestError(e?.message || String(e)); });
   }, []);
@@ -238,7 +238,7 @@ const ImageMigration: React.FC = () => {
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 space-y-2">
           <div className="font-semibold text-red-700">Erro ao conectar no Cloudinary</div>
           <p className="text-sm text-red-600">{testError}</p>
-          <p className="text-xs text-red-500">Verifique se o upload preset "japanexpress" está como Unsigned no Cloudinary.</p>
+          <p className="text-xs text-red-500">Verifique se o upload preset "nikkeybox" está como Unsigned no Cloudinary.</p>
         </div>
       )}
 
