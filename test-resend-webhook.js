@@ -98,7 +98,7 @@ const testCases = [
       created_at: new Date().toISOString(),
       data: {
         email_id: crypto.randomUUID(),
-        from: 'contato@nikkeybox.com',
+        from: 'contato@nikkeybox.jp',
         to: ['customer@example.com'],
         subject: 'Welcome to NikkeyBox',
         created_at: new Date().toISOString(),
@@ -113,7 +113,7 @@ const testCases = [
       created_at: new Date().toISOString(),
       data: {
         email_id: crypto.randomUUID(),
-        from: 'contato@nikkeybox.com',
+        from: 'contato@nikkeybox.jp',
         to: ['customer@example.com'],
         created_at: new Date().toISOString(),
       },
@@ -127,7 +127,7 @@ const testCases = [
       created_at: new Date().toISOString(),
       data: {
         email_id: crypto.randomUUID(),
-        from: 'contato@nikkeybox.com',
+        from: 'contato@nikkeybox.jp',
         to: ['invalid@example.com'],
         bounce_type: 'permanent',
         created_at: new Date().toISOString(),
@@ -142,7 +142,7 @@ const testCases = [
       created_at: new Date().toISOString(),
       data: {
         email_id: crypto.randomUUID(),
-        from: 'contato@nikkeybox.com',
+        from: 'contato@nikkeybox.jp',
         to: ['customer@example.com'],
         opened_at: new Date().toISOString(),
       },
@@ -156,9 +156,9 @@ const testCases = [
       created_at: new Date().toISOString(),
       data: {
         email_id: crypto.randomUUID(),
-        from: 'contato@nikkeybox.com',
+        from: 'contato@nikkeybox.jp',
         to: ['customer@example.com'],
-        click_url: 'https://nikkeybox.com/products',
+        click_url: 'https://nikkeybox.jp/products',
         clicked_at: new Date().toISOString(),
       },
     },

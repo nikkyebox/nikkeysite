@@ -1,7 +1,7 @@
 # Resend Email Service Setup - NikkeyBox
 
 ## Overview
-This guide sets up Resend email service integration with webhook support for the NikkeyBox website. Emails are sent via `contato@nikkeybox.com` and tracked through Resend's webhook system.
+This guide sets up Resend email service integration with webhook support for the NikkeyBox website. Emails are sent via `contato@nikkeybox.jp` and tracked through Resend's webhook system.
 
 ## Prerequisites
 - ✅ Resend account created (https://resend.com)
@@ -31,14 +31,14 @@ This guide sets up Resend email service integration with webhook support for the
 Create `.env.local` in the project root:
 ```env
 RESEND_API_KEY=re_your_api_key_here
-RESEND_FROM_EMAIL=contato@nikkeybox.com
+RESEND_FROM_EMAIL=contato@nikkeybox.jp
 ```
 
 ### Vercel Production
 Add to Vercel Project Settings > Environment Variables:
 ```
 RESEND_API_KEY=re_your_production_key
-RESEND_FROM_EMAIL=contato@nikkeybox.com
+RESEND_FROM_EMAIL=contato@nikkeybox.jp
 RESEND_WEBHOOK_SECRET=whsec_your_webhook_secret
 ```
 
@@ -53,7 +53,7 @@ RESEND_WEBHOOK_SECRET=whsec_your_webhook_secret
    ```
    or if using custom domain:
    ```
-   https://nikkeybox.com/api/webhook-resend
+   https://nikkeybox.jp/api/webhook-resend
    ```
 4. Select webhook events:
    - ✅ Email sent
@@ -77,7 +77,7 @@ RESEND_WEBHOOK_SECRET=whsec_your_webhook_secret
 ```bash
 # In Vercel CLI or project settings, verify:
 echo $RESEND_API_KEY      # Should show re_...
-echo $RESEND_FROM_EMAIL   # Should show contato@nikkeybox.com
+echo $RESEND_FROM_EMAIL   # Should show contato@nikkeybox.jp
 ```
 
 ### Test Webhook Locally (Optional)

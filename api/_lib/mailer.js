@@ -2,16 +2,41 @@ import { Resend } from 'resend';
 import { encodeEmail, unsubscribeToken } from './email-optout.js';
 import { escapeHtml, HttpError } from './http.js';
 
-export const MAIL_FROM = 'contato@nikkeybox.com';
-export const MAIL_REPLY_TO = 'contato@nikkeybox.com';
+export const MAIL_FROM = 'contato@nikkeybox.jp';
+export const MAIL_REPLY_TO = 'contato@nikkeybox.jp';
 export const BRAND = 'NikkeyBox';
 
-// Instância Resend com API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient = null;
+function getResend() {
+  if (!resendClient) resendClient = new Resend(process.env.RESEND_API_KEY);
+  return resendClient;
+}
 
 export function siteOrigin() {
-  const origin = process.env.SITE_ORIGIN || 'https://nikkeybox.com';
+  const origin = process.env.SITE_ORIGIN || 'https://nikkeybox.jp';
   return origin.replace(/\/$/, '');
+}
+
+/**
+ * Link de cancelamento do proprio destinatario. Vale para sempre: e-mail e
+ * lido meses depois, e um link expirado significa cliente sem saida a nao ser
+ * marcar como spam — que e o pior desfecho possivel para o dominio.
+ */
+export function unsubscribeUrl(email) {
+  return `${siteOrigin()}/api/unsubscribe?e=${encodeEmail(email)}&t=${unsubscribeToken(email)}`;
+}
+
+/**
+ * `unsubscribeUrl` so e passado em e-mail de marketing. Confirmacao de pedido,
+ * redefinicao de senha e verificacao de conta sao transacionais: oferecer
+ * "cancelar inscricao" neles promete algo que a loja nao pode cumprir — ela
+ * precisa avisar o cliente sobre o pedido dele de qualquer forma.
+ */
+export function wrapEmail(inner, { unsubscribeUrl: unsubscribe = '' } = {}) {
+  const optOut = unsubscribe
+    ? `<p style="margin:10px 0 0">Voce recebe estas mensagens porque se cadastrou na loja. <a href="${escapeHtml(unsubscribe)}" style="color:#777;text-decoration:underline">Cancelar inscricao</a> para parar de receber.</p>`
+    : '';
+  return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden"><div style="background:linear-gradient(135deg,#a855f7,#f59e0b);padding:20px;text-align:center;color:#fff"><h1 style="margin:0;font-size:22px">${BRAND}</h1><p style="margin:4px 0 0;font-size:12px;opacity:.9">Importados do Japao</p></div><div style="padding:24px;color:#333;font-size:15px;line-height:1.6">${inner}</div><div style="padding:14px;text-align:center;font-size:11px;color:#777;border-top:1px solid #eee">${BRAND} · ${MAIL_REPLY_TO} · nikkeybox.jp${optOut}</div></div>`;
 }
 
 /**
@@ -75,7 +100,7 @@ export async function sendMail({ to, subject, html, unsubscribe = '' }) {
       throw new HttpError(503, 'email_service_not_configured');
     }
 
-    const response = await resend.emails.send(mensagem);
+    const response = await getResend().emails.send(mensagem);
 
     if (response.error) {
       console.error('[Resend] Email error:', response.error);

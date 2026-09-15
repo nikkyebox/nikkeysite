@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHmac } from 'node:crypto';
 import { promoOffer } from '../shared/promo-offer.js';
 import { requireAdmin, requireUser } from './_lib/auth.js';
 import { isOptedOut, optedOutAmong, setOptOut } from './_lib/email-optout.js';
@@ -395,13 +395,74 @@ async function handleEmailPreference(req, res) {
   }
 }
 
+/**
+ * Resend webhook - eventos de entrega/bounce/complaint dos e-mails enviados.
+ * Endpoint: POST /api/webhook-resend -> /api/notify?action=webhook-resend
+ * Autenticacao: assinatura svix (RESEND_WEBHOOK_SECRET, formato whsec_xxxxx).
+ */
+function verifyResendSignature(req, rawBody) {
+  const signature = req.headers['svix-signature'];
+  const timestamp = req.headers['svix-timestamp'];
+  const id = req.headers['svix-id'];
+  if (!signature || !timestamp || !id) return false;
+
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error('RESEND_WEBHOOK_SECRET not configured');
+    return false;
+  }
+
+  try {
+    const secretKey = Buffer.from(secret.replace(/^whsec_/, ''), 'base64');
+    const signedContent = `${id}.${timestamp}.${rawBody}`;
+    const expected = createHmac('sha256', secretKey).update(signedContent).digest('base64');
+    return signature.split(' ').some((part) => part.split(',')[1] === expected);
+  } catch (error) {
+    console.error('Resend signature verification error:', error);
+    return false;
+  }
+}
+
+async function handleWebhookResend(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
+
+  const rawBody = JSON.stringify(req.body || {});
+  if (process.env.NODE_ENV === 'production' && !verifyResendSignature(req, rawBody)) {
+    console.error('Resend webhook signature verification failed');
+    return res.status(401).json({ error: 'invalid_signature' });
+  }
+
+  const event = req.body;
+  if (!event || !event.type) {
+    return res.status(400).json({ error: 'invalid_payload' });
+  }
+
+  try {
+    console.log(`[resend webhook] ${event.type}`, {
+      messageId: event.data?.email_id,
+      to: event.data?.to,
+    });
+
+    if (event.type === 'email.bounced' || event.type === 'email.complained') {
+      const to = Array.isArray(event.data?.to) ? event.data.to[0] : event.data?.to;
+      if (to) await setOptOut(normalizeEmail(to), true);
+    }
+  } catch (error) {
+    console.error('[resend webhook] processing error', error);
+  }
+
+  // Sempre 200 para o Resend nao reenviar o evento.
+  return res.status(200).json({ received: true, eventType: event.type });
+}
+
 export default async function handler(req, res) {
   const { action } = req.query;
   if (action === 'email') return handleEmail(req, res);
   if (action === 'push') return handlePush(req, res);
   if (action === 'promo-campaign') return handlePromoCampaign(req, res);
   if (action === 'email-preference') return handleEmailPreference(req, res);
+  if (action === 'webhook-resend') return handleWebhookResend(req, res);
   return res.status(400).json({ error: 'invalid_action' });
 }
 
-export { handleEmail, handlePush, handlePromoCampaign, handleEmailPreference };
+export { handleEmail, handlePush, handlePromoCampaign, handleEmailPreference, handleWebhookResend };
