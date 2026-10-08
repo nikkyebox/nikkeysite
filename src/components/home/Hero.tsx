@@ -7,11 +7,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getLenis } from '@/lib/smoothScroll';
 
 /**
- * Hero simples: um único vídeo de fundo, tocado uma vez (sem loop, sem
- * carrossel/pin de produtos). Ocupa a tela cheia e, ao rolar, o resto da
- * página aparece normalmente (sem scroll-jacking) — substitui o antigo
- * CinematicHeroShelf, que continua no repositório (não usado) caso queira
- * voltar a ele depois.
+ * Hero: vídeo de fundo de reprodução única (sem `loop`), em tela cheia. Traz o
+ * CTA para /produtos e um botão que rola até a próxima seção (via Lenis, se ativo).
  */
 const Hero: React.FC = () => {
   const { t } = useLanguage();
@@ -59,7 +56,6 @@ const Hero: React.FC = () => {
           fundo só na borda inferior, para a transição de scroll ficar limpa. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/65" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
-
 
       {/* CTA e dica de scroll ficam juntos perto do rodapé da tela — fora do
           centro, que é onde o círculo do logo está, para não cobrir a logo. */}

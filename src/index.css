@@ -296,13 +296,6 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-.hero-title-gradient {
-  color: transparent;
-  background: linear-gradient(110deg, hsl(270 85% 48%), hsl(280 90% 48%) 55%, hsl(350 88% 58%));
-  background-clip: text;
-  -webkit-background-clip: text;
-}
-
 .hero-media-card {
   transform: perspective(1200px) rotateY(-8deg) rotateX(3deg);
   transform-style: preserve-3d;
@@ -383,72 +376,7 @@
     animation: none !important;
   }
 }
-/* ============================================================
-   Cinematic Hero Shelf — GSAP + Lenis scroll-driven showcase
-   ============================================================ */
 @layer components {
-  /* Tipografia japonesa decorativa (fontes do sistema — sem webfont extra). */
-  .font-jp {
-    font-family: "Shippori Mincho", "Noto Serif JP", "Yu Mincho",
-      "Hiragino Mincho ProN", "STKaiti", "Kozuka Mincho Pr6 N", "Georgia",
-      serif;
-    font-feature-settings: "palt";
-  }
-
-  /* Linha-superfície da prateleira: persiste no centro-inferior enquanto
-     os produtos deslizam horizontalmente — metáfora "passando pela prateleira". */
-  .cinematic-shelf-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 22%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(270 30% 70% / 0.35) 18%,
-      hsl(270 30% 70% / 0.45) 50%,
-      hsl(270 30% 70% / 0.35) 82%,
-      transparent 100%
-    );
-    pointer-events: none;
-    z-index: 1;
-  }
-  .cinematic-shelf-glow {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 24%;
-    background: linear-gradient(
-      to top,
-      hsl(270 35% 88% / 0.6) 0%,
-      hsl(270 35% 92% / 0.28) 38%,
-      transparent 100%
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Kanji gigante de fundo — cor definida inline por painel (accent + alpha). */
-  .cinematic-kanji {
-    position: absolute;
-    font-weight: 400;
-    line-height: 0.85;
-    color: hsl(270 40% 50% / 0.06);
-    user-select: none;
-    pointer-events: none;
-    z-index: 0;
-    white-space: nowrap;
-  }
-
-  /* Imagem do produto "assentada" com sombra suave (drop-shadow). */
-  .cinematic-product-img {
-    filter: drop-shadow(0 30px 40px hsl(270 40% 20% / 0.18))
-      drop-shadow(0 8px 12px hsl(270 40% 20% / 0.12));
-    will-change: transform;
-  }
-
   /* Sutil "bob" na seta de dica de scroll. */
   @keyframes cinematic-bob {
     0%,
