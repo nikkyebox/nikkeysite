@@ -222,7 +222,7 @@ const FullApp: React.FC = () => (
 // Tela leve exibida na primeira visita ever (sem cache).
 // Zero Firebase, zero providers pesados — apenas logo + fundo enquanto o fetch REST (~1.5s) confirma o estado.
 const CheckingScreen: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-b from-pink-100 via-pink-50 to-white flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-primary/25 via-primary/10 to-white flex items-center justify-center">
     <div className="flex flex-col items-center gap-4">
       <AnimatedPlaneLogo size={80} className="shadow-lg" imageClassName="scale-[0.64] rounded-full" />
       <div className="flex gap-1.5">

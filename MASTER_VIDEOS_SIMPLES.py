@@ -11,7 +11,7 @@ from datetime import datetime
 print("""
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║        🎥 MASTER AUTOMAÇÃO DE VÍDEOS - JAPAN EXPRESS                      ║
+║        🎥 MASTER AUTOMAÇÃO DE VÍDEOS - NIKKEYBOX                          ║
 ║                                                                            ║
 ║        ✅ Gera roteiros                                                   ║
 ║        ✅ Cria plano de vídeos                                            ║
@@ -44,7 +44,7 @@ for produto in PRODUTOS:
             "produto": produto['nome'],
             "preco": produto['preco'],
             "tipo": tipo,
-            "hashtags": ["#JapanExpress", f"#{tipo}", "#Shopping"],
+            "hashtags": ["#NikkeyBox", f"#{tipo}", "#Shopping"],
         })
 
 print(f"✅ {len(roteiros)} roteiros gerados!")

@@ -1,7 +1,7 @@
 // Lançador do Vitest com a raiz do projeto em forma canônica.
 //
 // Por que isto existe (Windows):
-//   Chamado de `c:\japanexpress\temu_shop` (drive minúsculo), o worker do
+//   Chamado de um caminho com drive minúsculo (ex.: `c:\projeto`), o worker do
 //   Vitest carrega `@vitest/runner` como `file:///C:/...` enquanto o module
 //   runner do Vite carrega o MESMO arquivo como `file:///c:/...`. Para o ESM
 //   são dois módulos diferentes, então o `runner` que o worker inicializa não é

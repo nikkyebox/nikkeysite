@@ -933,23 +933,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       ].some(code => authCode.includes(code));
 
       if (isCredentialError) {
-        // Check if user exists in Firestore to give proper error message
-        try {
-          const existingUser = await firebaseSyncService.getUserByEmail(normalizedEmail);
-          if (existingUser) {
-            // User registered but password is wrong
-            return { 
-              success: false, 
-              error: 'Senha incorreta. Tente novamente ou use "Esqueceu a senha?" para redefinir.' 
-            };
-          }
-        } catch (e) {
-          // Firestore check failed, fall through to generic message
-        }
-        // User not found in Firestore - not registered
-        return { 
-          success: false, 
-          error: 'Usuário não cadastrado. Crie uma conta primeiro.' 
+        // Firebase Auth (enumeration protection) devolve invalid-credential tanto para
+        // senha errada quanto para e-mail inexistente; não dá para distinguir no cliente.
+        return {
+          success: false,
+          error: 'E-mail ou senha incorretos. Se ainda não tem conta, crie uma na página de cadastro.'
         };
       }
     }

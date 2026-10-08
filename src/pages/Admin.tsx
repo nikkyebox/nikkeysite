@@ -690,7 +690,7 @@ _This is an automated test message_
         
         <div class="label">
           <div class="header">
-            <h1>🌸 JAPAN EXPRESS</h1>
+            <h1>🌸 NIKKEYBOX</h1>
             <h2>Importação Direta Japão-Brasil</h2>
             <p class="strong">Pedido: ${order.orderNumber || 'N/A'}</p>
             <p>Data: ${new Date(order.orderDate || order.date).toLocaleDateString('pt-BR')}</p>

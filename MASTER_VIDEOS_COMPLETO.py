@@ -10,7 +10,7 @@ import sys
 print("""
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║        🚀 MASTER AUTOMAÇÃO DE VÍDEOS - JAPAN EXPRESS                      ║
+║        🚀 MASTER AUTOMAÇÃO DE VÍDEOS - NIKKEYBOX                          ║
 ║                                                                            ║
 ║        UM ÚNICO COMANDO = TUDO AUTOMÁTICO!                                ║
 ║                                                                            ║

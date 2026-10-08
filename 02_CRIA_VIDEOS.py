@@ -11,7 +11,7 @@ from datetime import datetime
 print("""
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║           🎥 CRIADOR DE VÍDEOS AUTOMÁTICO - JAPAN EXPRESS                 ║
+║           🎥 CRIADOR DE VÍDEOS AUTOMÁTICO - NIKKEYBOX                     ║
 ║                                                                            ║
 ║           ✅ Cria vídeos a partir de roteiros                             ║
 ║           ✅ Adiciona texto/captions                                      ║

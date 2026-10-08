@@ -15,6 +15,7 @@ import {
 import { MAIL_REPLY_TO, sendMail, siteOrigin, unsubscribeUrl, wrapEmail } from './_lib/mailer.js';
 import { enforceRateLimit } from './_lib/rate-limit.js';
 import { sendPush } from './_lib/push.js';
+import { triageCustomRequest } from './_lib/triage.js';
 
 const SOURCES = new Set(['exit_intent', 'newsletter_footer', 'guide', 'cart_reminder']);
 const SHIPPING = new Set(['aereo', 'maritimo', 'container', 'combinar']);
@@ -141,6 +142,7 @@ export async function notifyStoreCustomRequest(data) {
     + linha('Contato', data.contact)
     + linha('País', data.country)
     + linha('Quantidade', data.quantity)
+    + linha('Triagem (Jev)', data.triage ? `${data.triage.category} · urgência ${data.triage.urgency}` : '')
     + linha('Link de referência', data.referenceLink)
     + `<p style="margin:12px 0 6px"><strong>Descrição do produto:</strong></p>`
     + `<p style="margin:0;white-space:pre-wrap">${escapeHtml(data.productDesc || '—')}</p>`
@@ -175,6 +177,15 @@ async function handleSubmission(req, res) {
       limit: submission.type === 'newsletter' ? 10 : 5,
       windowMs: 60 * 60 * 1000,
     });
+    if (submission.type === 'custom_request') {
+      // A triagem é consultiva: falha do Jev não pode impedir o pedido do cliente.
+      try {
+        submission.data.triage = await triageCustomRequest(submission.data);
+      } catch (error) {
+        console.error('[public-submission] triagem Jev falhou:', error instanceof Error ? error.message : error);
+        submission.data.triage = null;
+      }
+    }
     await persistSubmission(submission.type, submission.data);
     if (submission.type === 'custom_request') {
       // O pedido já está gravado: problema de SMTP não pode transformar um

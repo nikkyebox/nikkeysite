@@ -8,8 +8,8 @@ interface AnimatedPlaneLogoProps {
 }
 
 /**
- * Recorte leve da vinheta do hero transition. O ícone nativo instalado continua
- * estático por limitação do Android/iOS; a experiência web/PWA usa a animação real.
+ * Logo NikkeyBox estático. A animação antiga (vídeo de avião do site japanexpress)
+ * foi removida: o arquivo pwa-logo-transition.mp4 nem existe mais no projeto.
  */
 const AnimatedPlaneLogo: React.FC<AnimatedPlaneLogoProps> = ({
   size = 48,
@@ -20,7 +20,7 @@ const AnimatedPlaneLogo: React.FC<AnimatedPlaneLogoProps> = ({
   <div
     role="img"
     aria-label={alt}
-    className={`relative inline-flex shrink-0 overflow-hidden rounded-full bg-pink-500 ${className}`}
+    className={`relative inline-flex shrink-0 overflow-hidden rounded-full bg-primary ${className}`}
     style={{ width: size, height: size }}
   >
     <img
@@ -30,17 +30,6 @@ const AnimatedPlaneLogo: React.FC<AnimatedPlaneLogoProps> = ({
       height={size}
       aria-hidden="true"
       className={`h-full w-full object-cover ${imageClassName}`}
-    />
-    <video
-      src="/videos/pwa-logo-transition.mp4"
-      poster="/icons/logo-complete-384x384.png?v=9"
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="none"
-      aria-hidden="true"
-      className={`absolute inset-0 h-full w-full object-cover motion-reduce:hidden ${imageClassName}`}
     />
   </div>
 );

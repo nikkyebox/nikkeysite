@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { ArrowRight, ArrowDown, PlaneTakeoff, ShoppingBag } from 'lucide-react';
+import { ArrowRight, ArrowDown, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getLenis } from '@/lib/smoothScroll';
 import { useLanguage } from '@/context/LanguageContext';
@@ -420,7 +420,6 @@ const CinematicHeroShelf: React.FC<CinematicHeroShelfProps> = ({
         aria-hidden
       >
         <div className="relative flex flex-col items-center">
-          <PlaneTakeoff className="cinematic-plane absolute -top-16 h-9 w-9 text-white drop-shadow-lg md:h-11 md:w-11" />
           <div className="flex flex-col items-center leading-none">
             <span className="font-brand text-4xl font-black tracking-tight text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.45)] md:text-6xl">
               Nikkey

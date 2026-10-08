@@ -126,7 +126,7 @@ function printOrder(order) {
           .align('ct')
           .style('bu')
           .size(1, 1)
-          .text('JAPAN EXPRESS')
+          .text('NIKKEYBOX')
           .style('normal')
           .size(0, 0)
           .text('Importacao Direta Japao-Brasil')

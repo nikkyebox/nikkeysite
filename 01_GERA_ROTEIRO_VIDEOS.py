@@ -10,7 +10,7 @@ from datetime import datetime
 print("""
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║        🎬 GERADOR DE ROTEIRO PARA VÍDEOS - JAPAN EXPRESS                  ║
+║        🎬 GERADOR DE ROTEIRO PARA VÍDEOS - NIKKEYBOX                      ║
 ║                                                                            ║
 ║        Cria roteiros automáticos para:                                    ║
 ║        ✅ Unboxing (TikTok/YouTube)                                       ║
@@ -22,7 +22,7 @@ print("""
 """)
 
 # ============================================================================
-# CATÁLOGO JAPAN EXPRESS
+# CATÁLOGO NIKKEYBOX
 # ============================================================================
 
 PRODUTOS = [
@@ -71,7 +71,7 @@ ROTEIROS = {
         "audio": "Música energética (upbeat)",
         "hashtags": [
             "#Unboxing",
-            "#JapanExpress",
+            "#NikkeyBox",
             "#ShoppingHaul",
             "#Skincare" if "Cream" in "{produto}" else "#Snacks",
         ],
@@ -91,11 +91,11 @@ ROTEIROS = {
             "#Tutorial",
             "#DIY",
             "#BeautyTips",
-            "#JapanExpress",
+            "#NikkeyBox",
         ],
     },
     "HAUL": {
-        "titulo": "🛍️ HAUL JAPAN EXPRESS: {valor}",
+        "titulo": "🛍️ HAUL NIKKEYBOX: {valor}",
         "duracao": "60-120 segundos",
         "cenas": [
             "Montagem de vários produtos",
@@ -109,7 +109,7 @@ ROTEIROS = {
             "#Haul",
             "#ShoppingOnline",
             "#ImportadosJapão",
-            "#JapanExpress",
+            "#NikkeyBox",
         ],
     },
 }
