@@ -26,7 +26,7 @@ print("""
 SFTP_HOST = "partnerupload.google.com"
 SFTP_PORT = 19321
 SFTP_USER = "mc-sftp-5814734944"
-SFTP_PASSWORD = "-Xt2H8K?VU"  # NOVA SENHA
+SFTP_PASSWORD = os.environ.get("SFTP_PASSWORD", "")
 SFTP_PATH = "/"
 
 FEED_FILE = "nikkey_box_real_sample_UPDATED.xml"
