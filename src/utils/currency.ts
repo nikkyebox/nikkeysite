@@ -41,11 +41,10 @@ export const formatPrice = (price: number, currency: 'BRL' | 'JPY' | 'EUR' | 'US
     if (noConvert) return mainStr;
     return `${mainStr} (¥ ${roundYen(yenRefFromUsd(price)).toLocaleString()})`;
   }
-  // BRL — arredonda para inteiro (sem centavos quebrados)
+  // BRL — arredonda para inteiro (sem centavos quebrados). Sem referência em ¥:
+  // a loja é fixa em Brasil e o preço em iene não deve aparecer ao cliente.
   const rounded = Math.round(price);
-  const mainStr = `R$ ${rounded.toLocaleString('pt-BR')}`;
-  if (noConvert) return mainStr;
-  return `${mainStr} (¥ ${roundYen(yenRefFromBrl(price)).toLocaleString()})`;
+  return `R$ ${rounded.toLocaleString('pt-BR')}`;
 };
 
 /**

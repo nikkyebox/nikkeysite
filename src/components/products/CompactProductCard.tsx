@@ -189,11 +189,6 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
             <p className={cn('text-base font-black leading-none tracking-tight', promoActive ? 'text-red-600' : 'text-pink-600')}>
               {formatPrice(price, currency)}
             </p>
-            {currency !== 'JPY' && (
-              <p className="text-[11px] font-semibold text-muted-foreground leading-none mt-1">
-                (¥{priceYen.toLocaleString('ja-JP')})
-              </p>
-            )}
             {promoActive && (
               <p className="text-[10px] text-gray-400 line-through leading-none mt-1">
                 {formatPrice(originalPrice, currency)}

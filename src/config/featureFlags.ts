@@ -3,6 +3,9 @@
 export const PWA_INSTALL_ENABLED = false; // InstallPrompt (App.tsx) + AppDownloadSection (Index.tsx)
 export const KIMICLAW_ENABLED = false; // ver src/components/layout/Layout.tsx
 export const LANGUAGE_SWITCH_ENABLED = false; // ver src/context/LanguageContext.tsx
+// País fixo em Brasil: preço em R$ e frete BR. false = ignora detecção por IP e
+// país salvo (ver src/context/LanguageContext.tsx).
+export const COUNTRY_SWITCH_ENABLED = false;
 
 // Cupons: input/aplicar cupom visível no Cart/Checkout/OrderReview. Cálculo
 // de desconto (computeCouponDiscount, couponService) fica ativo no código.

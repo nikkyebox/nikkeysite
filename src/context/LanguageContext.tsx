@@ -3,7 +3,7 @@ import { translations, Language } from '@/data/translations';
 import { safeStorage } from '@/utils/storage';
 import { loadFxRates, getRates } from '@/services/fxService';
 import { WORLD_COUNTRIES } from '@/data/worldCountries';
-import { LANGUAGE_SWITCH_ENABLED } from '@/config/featureFlags';
+import { LANGUAGE_SWITCH_ENABLED, COUNTRY_SWITCH_ENABLED } from '@/config/featureFlags';
 
 // Nome do país (ver lista completa em src/data/worldCountries.ts).
 // String aberta porque agora há 40+ países — a config vem da tabela central.
@@ -40,6 +40,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   });
 
   const [selectedCountry, setSelectedCountryState] = useState<CountryType>(() => {
+    if (!COUNTRY_SWITCH_ENABLED) return 'Brasil';
     const stored = safeStorage.getItem('sakura_selected_country');
     return (stored as CountryType) || 'Brasil';
   });
@@ -57,6 +58,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // frete (¥ no Japão, R$ no Brasil), que é geografia de verdade, não de
   // leitura. Quem quiser japonês troca no seletor, e a escolha fica salva.
   useEffect(() => {
+    if (!COUNTRY_SWITCH_ENABLED) return; // país fixo em Brasil — sem detecção por IP
     const hasCountry = safeStorage.getItem('sakura_selected_country');
     if (hasCountry) return; // já tem país salvo
 
@@ -98,6 +100,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         const next = (event.newValue as Language) || 'pt';
         setLanguageState(next);
       } else if (event.key === 'sakura_selected_country') {
+        if (!COUNTRY_SWITCH_ENABLED) return;
         const next = event.newValue || 'Brasil';
         setSelectedCountryState(next);
       }
@@ -117,6 +120,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   }, []);
 
   const setSelectedCountry = useCallback((country: CountryType) => {
+    if (!COUNTRY_SWITCH_ENABLED) return; // país fixo em Brasil
     setSelectedCountryState(country);
     safeStorage.setItem('sakura_selected_country', country);
   }, []);

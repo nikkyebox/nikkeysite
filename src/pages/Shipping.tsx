@@ -10,6 +10,7 @@ import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { getELightRate, getAirParcelRate, getEmsRate, countryToZone, MAX_DIM_SUM_CM, MAX_WEIGHT_G, type JapanPostZone } from '@/utils/japanPostRates';
 import { convertYen as fxConvert } from '@/services/fxService';
 import { cn } from '@/lib/utils';
+import { COUNTRY_SWITCH_ENABLED } from '@/config/featureFlags';
 
 const Shipping: React.FC = () => {
   const { t, selectedCountry, language } = useLanguage();
@@ -334,6 +335,7 @@ const Shipping: React.FC = () => {
               <select
                 id="country-selector"
                 value={country}
+                disabled={!COUNTRY_SWITCH_ENABLED}
                 onChange={(e) => setCountry(e.target.value as CountryType)}
                 className="w-full p-3 rounded-xl border border-border bg-background text-foreground font-semibold focus:ring-2 focus:ring-primary transition-all text-sm cursor-pointer"
               >
