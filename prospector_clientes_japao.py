@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ====================================================================
-PROSPECTOR DE CLIENTES B2B & ATACADO - NIKKEYBOX / JAPAN EXPRESS
+PROSPECTOR DE CLIENTES B2B & ATACADO - NIKKEYBOX
 Inspirado na arquitetura do plugin ArrecheNeto/PROSPECTOR-DE-SITES
 ====================================================================
 Funcionalidades:
@@ -44,7 +44,7 @@ NICHOS_ALVO = {
         "dor_principal": "Snacks e temperos raros com alta saída e rápida reposição sem pedido mínimo abusivo.",
         "pitch_wa": (
             "Olá! Tudo bem com a equipe da {nome}? 🇯🇵\n\n"
-            "Somos a NikkeyBox / Japan Express, com base de envio direto do Japão para o Brasil.\n\n"
+            "Somos a NikkeyBox, com base de envio direto do Japão para o Brasil.\n\n"
             "Temos um canal especial para empórios e mercearias com os doces e temperos japoneses mais procurados (KitKats raros de Matcha/Sakura, Meiji Meltykiss, molhos Kewpie e curries japoneses) com envio aéreo expresso ou marítimo consolidado.\n\n"
             "Gostariam de receber nossa tabela de atacado para reposição da loja?"
         )
@@ -262,7 +262,7 @@ def salvar_pipeline(leads, filename_md="leads_prospector.md", filename_json="lea
     # Salvar Markdown estruturado
     with open(filename_md, "w", encoding="utf-8") as f:
         f.write("# 🎯 PIPELINE DE PROSPECÇÃO DE CLIENTES B2B & ATACADO\n")
-        f.write("### NikkeyBox / Japan Express — Envios Diretos de Tóquio para o Brasil\n\n")
+        f.write("### NikkeyBox — Envios Diretos de Tóquio para o Brasil\n\n")
         f.write(f"*Data da Prospecção:* **{datetime.now().strftime('%d/%m/%Y às %H:%M')}**\n")
         f.write(f"*Total de Leads Qualificados:* **{len(leads)} empresas mapeadas**\n")
         f.write(f"*Potencial Total Estimado:* **¥ 2.500.000 ~ ¥ 5.500.000 / mês em compras**\n\n")
@@ -302,7 +302,7 @@ def salvar_pipeline(leads, filename_md="leads_prospector.md", filename_json="lea
             f.write("---\n\n")
             
     print("=" * 65)
-    print("  🚀 PROSPECTOR B2B NIKKEYBOX / JAPAN EXPRESS EXECUTADO COM SUCESSO!")
+    print("  🚀 PROSPECTOR B2B NIKKEYBOX EXECUTADO COM SUCESSO!")
     print("=" * 65)
     print(f"✅ Total de leads qualificados: {len(leads)}")
     print(f"📄 Arquivo Markdown gerado: {filename_md}")

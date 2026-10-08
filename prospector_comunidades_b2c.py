@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ====================================================================
-PROSPECTOR DE LEADS B2C & REDES SOCIAIS - NIKKEYBOX / JAPAN EXPRESS
+PROSPECTOR DE LEADS B2C & REDES SOCIAIS - NIKKEYBOX
 Mapeamento de Reddit, Grupos de Facebook, Instagram e TikTok
 ====================================================================
 """
@@ -30,7 +30,7 @@ COMUNIDADES_SOCIAIS = [
         "gatilho_busca": "Buscas por 'protetor japonês', 'onde comprar Hada Labo original', 'falsificação shopee'",
         "copy_comentario": (
             "Oi! Para cosméticos japoneses (Hada Labo, Bioré, Melano CC), tomar muito cuidado com marketplace porque tem muito lote falso da China circulando.\n\n"
-            "Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox / Japan Express). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!"
+            "Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!"
         ),
         "copy_dm": (
             "Oi! Vi seu post no r/SkincareBR sobre {produto}. Moramos aqui no Japão e temos um serviço de envio direto de produtos 100% originais de farmácias de Tóquio para o Brasil com código de rastreio.\n\n"
@@ -88,7 +88,7 @@ COMUNIDADES_SOCIAIS = [
             "Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.nikkeybox-store.com 🇯🇵📦"
         ),
         "copy_dm": (
-            "Olá {nome}! Tudo bem? Vi sua mensagem no grupo sobre trazer encomendas do Japão. Nós temos a NikkeyBox / Japan Express, com base aqui no Japão e enviamos qualquer encomenda para o Brasil com segurança e suporte completo em português.\n\n"
+            "Olá {nome}! Tudo bem? Vi sua mensagem no grupo sobre trazer encomendas do Japão. Nós temos a NikkeyBox, com base aqui no Japão e enviamos qualquer encomenda para o Brasil com segurança e suporte completo em português.\n\n"
             "Qual produto você está precisando? Consigo verificar a disponibilidade e te passar o valor certinho!"
         )
     },

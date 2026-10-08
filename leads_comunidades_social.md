@@ -25,7 +25,7 @@
 ```text
 Oi! Para cosméticos japoneses (Hada Labo, Bioré, Melano CC), tomar muito cuidado com marketplace porque tem muito lote falso da China circulando.
 
-Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox / Japan Express). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!
+Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!
 ```
 
 📩 **Abordagem Privada no Direct / Mensagem Direta (DM):**
@@ -96,7 +96,7 @@ Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.
 
 📩 **Abordagem Privada no Direct / Mensagem Direta (DM):**
 ```text
-Olá {nome}! Tudo bem? Vi sua mensagem no grupo sobre trazer encomendas do Japão. Nós temos a NikkeyBox / Japan Express, com base aqui no Japão e enviamos qualquer encomenda para o Brasil com segurança e suporte completo em português.
+Olá {nome}! Tudo bem? Vi sua mensagem no grupo sobre trazer encomendas do Japão. Nós temos a NikkeyBox, com base aqui no Japão e enviamos qualquer encomenda para o Brasil com segurança e suporte completo em português.
 
 Qual produto você está precisando? Consigo verificar a disponibilidade e te passar o valor certinho!
 ```

@@ -1,5 +1,5 @@
 # 🎯 PIPELINE DE PROSPECÇÃO DE CLIENTES B2B & ATACADO
-### NikkeyBox / Japan Express — Envios Diretos de Tóquio para o Brasil
+### NikkeyBox — Envios Diretos de Tóquio para o Brasil
 
 *Data da Prospecção:* **20/08/2026 às 12:28**
 *Total de Leads Qualificados:* **12 empresas mapeadas**
@@ -183,7 +183,7 @@ Estamos finalizando o lote de envio desta semana direto de Tóquio. Se quiser ve
 ```text
 Olá! Tudo bem com a equipe da Empório Towa & Marukai Liberdade? 🇯🇵
 
-Somos a NikkeyBox / Japan Express, com base de envio direto do Japão para o Brasil.
+Somos a NikkeyBox, com base de envio direto do Japão para o Brasil.
 
 Temos um canal especial para empórios e mercearias com os doces e temperos japoneses mais procurados (KitKats raros de Matcha/Sakura, Meiji Meltykiss, molhos Kewpie e curries japoneses) com envio aéreo expresso ou marítimo consolidado.
 
@@ -213,7 +213,7 @@ Estamos finalizando o lote de envio desta semana direto de Tóquio. Se quiser ve
 ```text
 Olá! Tudo bem com a equipe da Empório & Mercearia Tomodachi Curitiba? 🇯🇵
 
-Somos a NikkeyBox / Japan Express, com base de envio direto do Japão para o Brasil.
+Somos a NikkeyBox, com base de envio direto do Japão para o Brasil.
 
 Temos um canal especial para empórios e mercearias com os doces e temperos japoneses mais procurados (KitKats raros de Matcha/Sakura, Meiji Meltykiss, molhos Kewpie e curries japoneses) com envio aéreo expresso ou marítimo consolidado.
 
@@ -243,7 +243,7 @@ Estamos finalizando o lote de envio desta semana direto de Tóquio. Se quiser ve
 ```text
 Olá! Tudo bem com a equipe da Mercearia & Mercado Suhai São Paulo? 🇯🇵
 
-Somos a NikkeyBox / Japan Express, com base de envio direto do Japão para o Brasil.
+Somos a NikkeyBox, com base de envio direto do Japão para o Brasil.
 
 Temos um canal especial para empórios e mercearias com os doces e temperos japoneses mais procurados (KitKats raros de Matcha/Sakura, Meiji Meltykiss, molhos Kewpie e curries japoneses) com envio aéreo expresso ou marítimo consolidado.
 
@@ -273,7 +273,7 @@ Estamos finalizando o lote de envio desta semana direto de Tóquio. Se quiser ve
 ```text
 Olá! Tudo bem com a equipe da Empório Oriental Londrina / Maringá? 🇯🇵
 
-Somos a NikkeyBox / Japan Express, com base de envio direto do Japão para o Brasil.
+Somos a NikkeyBox, com base de envio direto do Japão para o Brasil.
 
 Temos um canal especial para empórios e mercearias com os doces e temperos japoneses mais procurados (KitKats raros de Matcha/Sakura, Meiji Meltykiss, molhos Kewpie e curries japoneses) com envio aéreo expresso ou marítimo consolidado.
 
