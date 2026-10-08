@@ -345,22 +345,12 @@ const ProductDetail: React.FC = () => {
                           {`-${product.discountPercent}% OFF`}
                         </span>
                       </div>
-                      {currency !== 'JPY' && (
-                        <p className="text-sm font-bold text-muted-foreground mt-1">
-                          ≈ ¥{effectiveYen(product, selectedSize).toLocaleString('ja-JP')}
-                        </p>
-                      )}
                     </div>
                   ) : (
                     <div>
                       <div className="text-3xl font-black text-primary">
                         {formatPrice(currentPrice, currency)}
                       </div>
-                      {currency !== 'JPY' && (
-                        <p className="text-sm font-bold text-muted-foreground mt-1">
-                          ≈ ¥{effectiveYen(product, selectedSize).toLocaleString('ja-JP')}
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>

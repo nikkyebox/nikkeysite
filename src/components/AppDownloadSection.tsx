@@ -293,7 +293,7 @@ const AppDownloadSection: React.FC = () => {
                 <div className="absolute -bottom-4 left-1/2 h-6 w-40 -translate-x-1/2 rounded-full bg-black/20 blur-xl" />
                 <div className="absolute -right-6 -top-4 rounded-2xl border border-pink-100 bg-white p-2 shadow-xl">
                   <AnimatedPlaneLogo size={48} />
-                  <p className="mt-1 text-center text-[8px] font-medium leading-none text-gray-600">Japan<br/>Express</p>
+                  <p className="mt-1 text-center text-[8px] font-medium leading-none text-gray-600">Nikkey<br/>Box</p>
                 </div>
               </div>
             </div>

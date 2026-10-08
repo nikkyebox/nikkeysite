@@ -576,7 +576,7 @@ _This is an automated test message_
 
   <div class="header">
     <div>
-      <div class="logo">🌸 Japan <span>Express</span></div>
+      <div class="logo">🌸 Nikkey <span>Box</span></div>
       <div style="font-size:11px;color:#888;margin-top:2px;">Importação Direta Japão-Brasil</div>
     </div>
     <div style="text-align:right;">

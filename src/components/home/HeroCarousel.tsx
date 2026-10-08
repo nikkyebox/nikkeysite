@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ArrowRight, PlaneTakeoff, ShieldCheck, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface CarouselSlide {
@@ -14,16 +14,10 @@ export interface CarouselSlide {
   ctaLink: string;
   secondaryCtaLabel?: string;
   secondaryCtaLink?: string;
-  titleParts?: {
-    before: string;
-    highlight: string;
-    after: string;
-  };
-  highlights?: string[];
   priceOriginal?: string;
   pricePromo?: string;
-  /** 'split' = produto/promoção em destaque.
-   *  'center' = apresentação institucional imersiva. */
+  /** 'split' = produto ou promoção em destaque (preço abaixo do título, imagem à direita).
+   *  'center' = cartão de destaque do hero (produto marcado no admin). */
   layout?: 'split' | 'center';
 }
 
@@ -73,10 +67,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     setUserInteracted(true);
     goToNext();
   };
-  const highlightIcons = [Sparkles, ShieldCheck, PlaneTakeoff];
-
-
-
   return (
     <div
       className="hero-future group/hero relative isolate w-full overflow-hidden rounded-[2rem] border border-purple-100/80 bg-white h-[660px] sm:h-[680px] lg:h-[520px] xl:h-[560px] shadow-elevated"
@@ -121,13 +111,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           const isActive = index === currentIndex;
           const layout = slide.layout ?? 'split';
           const TitleTag = index === 0 ? 'h1' : 'h2';
-          const titleContent = slide.titleParts ? (
-            <>
-              {slide.titleParts.before}{' '}
-              <span className="hero-title-gradient">{slide.titleParts.highlight}</span>{' '}
-              {slide.titleParts.after}
-            </>
-          ) : slide.title;
 
           return (
             <article
@@ -153,14 +136,21 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                       </span>
                     )}
 
-                    <TitleTag className="max-w-3xl text-3xl font-black leading-[0.98] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-5xl xl:text-6xl">
-                      {titleContent}
+                    <TitleTag className="max-w-3xl text-3xl font-black leading-[0.98] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-5xl xl:text-6xl line-clamp-3">
+                      {slide.title}
                     </TitleTag>
 
                     {slide.subtitle && (
                       <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base lg:text-lg lg:leading-relaxed line-clamp-3">
                         {slide.subtitle}
                       </p>
+                    )}
+
+                    {(slide.priceOriginal || slide.pricePromo) && (
+                      <div className="mt-5 flex flex-wrap items-end gap-3">
+                        {slide.pricePromo && <span className="text-2xl font-black tracking-tight text-purple-600 sm:text-3xl">{slide.pricePromo}</span>}
+                        {slide.priceOriginal && <span className="pb-1 text-sm text-slate-400 line-through">{slide.priceOriginal}</span>}
+                      </div>
                     )}
 
                     <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -183,53 +173,16 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                         </Link>
                       )}
                     </div>
-
-                    {slide.highlights && slide.highlights.length > 0 && (
-                      <div className="mt-5 hidden flex-wrap gap-2 sm:flex" aria-label="Diferenciais">
-                        {slide.highlights.map((highlight, highlightIndex) => {
-                          const HighlightIcon = highlightIcons[highlightIndex % highlightIcons.length];
-                          return (
-                            <span key={highlight} className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-purple-500 shadow-sm ring-1 ring-purple-100">
-                                <HighlightIcon className="h-3.5 w-3.5" />
-                              </span>
-                              {highlight}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
                   </div>
 
                   <div className="relative flex min-h-[245px] items-center justify-center sm:min-h-[285px] lg:min-h-0">
-                    <div className="hero-orbit absolute h-[88%] max-h-[430px] aspect-square rounded-full border border-purple-300/50" aria-hidden="true" />
-                    <div className="hero-orbit hero-orbit-reverse absolute h-[66%] max-h-[330px] aspect-square rounded-full border border-violet-300/40" aria-hidden="true" />
                     <div className="hero-media-card relative z-[2] h-[82%] max-h-[390px] w-[84%] max-w-[500px] overflow-hidden rounded-[1.75rem] border border-white/90 bg-white/80 p-2 shadow-2xl shadow-purple-900/15 backdrop-blur-xl">
                       <div className="relative h-full w-full overflow-hidden rounded-[1.35rem] bg-gradient-to-br from-purple-100 via-white to-violet-100">
-                        {isActive && slide.videoSrc ? (
-                          <video
-                            src={slide.videoSrc}
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            preload="auto"
-                            poster={slide.image}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : slide.image ? (
-                          <img src={slide.image} alt={slide.title} className="h-full w-full object-cover" />
+                        {slide.image ? (
+                          <img src={slide.image} alt={slide.title} className="h-full w-full object-contain p-4" />
                         ) : null}
                         <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-white/25 pointer-events-none" />
                       </div>
-                    </div>
-                    <div className="hero-glass hero-float-chip absolute left-0 top-5 z-[3] hidden items-center gap-2 rounded-2xl px-3 py-2 text-xs font-extrabold text-slate-800 sm:flex lg:-left-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500 text-white">JP</span>
-                      Hiroshima, Japan
-                    </div>
-                    <div className="hero-glass hero-float-chip hero-float-chip-delayed absolute bottom-4 right-0 z-[3] hidden items-center gap-2 rounded-2xl px-3 py-2 text-xs font-extrabold text-slate-800 sm:flex lg:-right-2">
-                      <ShieldCheck className="h-5 w-5 text-purple-500" />
-                      {slide.highlights?.[1] || slide.badge}
                     </div>
                   </div>
                 </div>
@@ -243,7 +196,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                       </span>
                     )}
                     <TitleTag className="text-3xl font-black leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-5xl line-clamp-3">
-                      {titleContent}
+                      {slide.title}
                     </TitleTag>
                     {slide.subtitle && (
                       <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600 md:text-base line-clamp-2">
@@ -267,7 +220,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                   </div>
 
                   <div className="relative flex min-h-[270px] items-center justify-center md:min-h-0">
-                    <div className="hero-orbit absolute h-[92%] max-h-[440px] aspect-square rounded-full border border-purple-300/45" aria-hidden="true" />
                     <div className="hero-product-card relative z-[2] flex h-[88%] w-[88%] max-w-[580px] items-center justify-center overflow-hidden rounded-[2rem] border border-white bg-white/80 p-5 shadow-2xl shadow-purple-900/15 backdrop-blur-xl sm:p-8">
                       {isActive && slide.videoSrc ? (
                         <video

@@ -330,43 +330,12 @@
   transform: translateZ(34px);
 }
 
-.hero-orbit {
-  animation: heroOrbit 18s linear infinite;
-  box-shadow: 0 0 55px hsl(270 85% 65% / 0.14);
-}
-
-.hero-orbit::before,
-.hero-orbit::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: hsl(var(--primary));
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.7);
-}
-
-.hero-orbit::before { left: 12%; top: 12%; }
-.hero-orbit::after { bottom: 8%; right: 18%; width: 6px; height: 6px; }
-.hero-orbit-reverse { animation-direction: reverse; animation-duration: 13s; }
 .hero-glow { animation: heroGlow 7s ease-in-out infinite; }
 .hero-glow-delayed { animation-delay: -3.5s; }
-.hero-float-chip { animation: heroChipFloat 5s ease-in-out infinite; }
-.hero-float-chip-delayed { animation-delay: -2.4s; }
-
-@keyframes heroOrbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
 @keyframes heroGlow {
   0%, 100% { opacity: .55; transform: scale(.95); }
   50% { opacity: 1; transform: scale(1.08); }
-}
-
-@keyframes heroChipFloat {
-  0%, 100% { transform: translate3d(0, 0, 20px); }
-  50% { transform: translate3d(0, -8px, 20px); }
 }
 
 @keyframes heroProductFloat {
@@ -408,9 +377,7 @@
   .animate-bounce,
   .animate-pulse,
   .animate-ping,
-  .hero-orbit,
   .hero-glow,
-  .hero-float-chip,
   .hero-product-media,
   .animate-nikkeybox-pulse {
     animation: none !important;

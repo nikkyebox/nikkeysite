@@ -3,7 +3,7 @@ import { roundYen } from '@/utils/pricing';
 import { getCountryConfig } from '@/data/worldCountries';
 
 
-// Desfaz o RATE_CUSHION aplicado em convertYen para mostrar o ¥ real do produto.
+// Desfaz o RATE_CUSHION de convertYen: ¥ equivalente ao valor exibido (aproximado, arredondado).
 const yenRefFromBrl = (brl: number): number => yenFromConverted(brl, 'BRL');
 const yenRefFromEur = (eur: number): number => yenFromConverted(eur, 'EUR');
 const yenRefFromUsd = (usd: number): number => yenFromConverted(usd, 'USD');
@@ -41,10 +41,11 @@ export const formatPrice = (price: number, currency: 'BRL' | 'JPY' | 'EUR' | 'US
     if (noConvert) return mainStr;
     return `${mainStr} (¥ ${roundYen(yenRefFromUsd(price)).toLocaleString()})`;
   }
-  // BRL — arredonda para inteiro (sem centavos quebrados). Sem referência em ¥:
-  // a loja é fixa em Brasil e o preço em iene não deve aparecer ao cliente.
+  // BRL — arredonda para inteiro (sem centavos quebrados)
   const rounded = Math.round(price);
-  return `R$ ${rounded.toLocaleString('pt-BR')}`;
+  const mainStr = `R$ ${rounded.toLocaleString('pt-BR')}`;
+  if (noConvert) return mainStr;
+  return `${mainStr} (¥ ${roundYen(yenRefFromBrl(price)).toLocaleString()})`;
 };
 
 /**

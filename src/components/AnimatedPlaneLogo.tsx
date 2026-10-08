@@ -7,10 +7,7 @@ interface AnimatedPlaneLogoProps {
   alt?: string;
 }
 
-/**
- * Logo NikkeyBox estático. A animação antiga (vídeo de avião do site japanexpress)
- * foi removida: o arquivo pwa-logo-transition.mp4 nem existe mais no projeto.
- */
+/** Logo NikkeyBox estático. */
 const AnimatedPlaneLogo: React.FC<AnimatedPlaneLogoProps> = ({
   size = 48,
   className = '',
