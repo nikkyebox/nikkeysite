@@ -3,6 +3,7 @@
 🚀 AUTOMAÇÃO COMPLETA - ALL-IN-ONE
 Processa XML + Upload SFTP + Tudo automático
 Um único comando = Tudo feito!
+Requer a variável de ambiente SFTP_PASSWORD.
 """
 
 import sys
@@ -34,7 +35,8 @@ print("""
 SFTP_HOST = "partnerupload.google.com"
 SFTP_PORT = 19321
 SFTP_USER = "mc-sftp-5814734944"
-SFTP_PASSWORD = "_::y1!ZO,j"
+# Senha vem do ambiente (SFTP_PASSWORD). Nunca gravar credencial no código.
+SFTP_PASSWORD = os.environ["SFTP_PASSWORD"]
 SFTP_PATH = "/"
 FEED_LABEL = "NIKKEYBOX-FRETES"
 
