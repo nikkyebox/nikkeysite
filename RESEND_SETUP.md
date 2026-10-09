@@ -1,219 +1,152 @@
 # Resend Email Service Setup - NikkeyBox
 
 ## Overview
-This guide sets up Resend email service integration with webhook support for the NikkeyBox website. Emails are sent via `contato@nikkeybox.jp` and tracked through Resend's webhook system.
+
+NikkeyBox sends transactional email (order confirmations, account verification, password reset, cart recovery, payment review) through [Resend](https://resend.com), and receives delivery events back through a webhook. This guide documents the current code integration and how to finish wiring it up.
+
+**Current state**: `RESEND_API_KEY` and `RESEND_WEBHOOK_SECRET` are not set in any Vercel environment (checked with `vercel env ls`). Until they are added, `sendMail()` fails with `email_service_not_configured` and the webhook has nothing to verify signatures against.
+
+All outgoing email goes through one helper, `sendMail()` in `api/_lib/mailer.js`. The sender address is a hardcoded constant there, not an environment variable.
 
 ## Prerequisites
+
 - ✅ Resend account created (https://resend.com)
 - ✅ Domain verified in Resend dashboard
 - ✅ NikkeyBox deployed on Vercel
 - ✅ `resend` package installed (`npm install resend`)
 
-## Step 1: Get Your Resend API Key
+## Environment Variables
+
+| Variable | Used by | Status in Vercel | Notes |
+|---|---|---|---|
+| `RESEND_API_KEY` | `api/_lib/mailer.js` (`new Resend(...)`) | Not set | Without it, `sendMail()` throws `email_service_not_configured`. |
+| `RESEND_WEBHOOK_SECRET` | `api/notify.js` (`verifyResendSignature`) | Not set | Needed in production to validate incoming webhook calls. |
+| `SITE_ORIGIN` | `api/_lib/mailer.js` (`siteOrigin()`) | Not set, has a default | Defaults to `https://nikkeybox.jp`. Used to build the unsubscribe link. |
+
+`.env.example` also lists `RESEND_FROM_EMAIL`, `RESEND_FROM_NAME` and `RESEND_REPLY_TO`, but no code in the project reads them. The sender address, reply-to and brand name are hardcoded constants (`MAIL_FROM`, `MAIL_REPLY_TO`, `BRAND`) at the top of `api/_lib/mailer.js` — edit that file, not an environment variable, to change them.
+
+## Get a Resend API Key
 
 ### Via Vercel Marketplace (Recommended)
 1. Go to https://vercel.com/marketplace/resend
 2. Click "Add Integration"
-3. Select your Vercel team and NikkeyBox project
+3. Select your Vercel team and the NikkeyBox project
 4. Authorize the integration
-5. The `RESEND_API_KEY` will be automatically added to your environment variables
+5. `RESEND_API_KEY` is added to your Vercel environment variables automatically
 
 ### Manual Setup
 1. Log in to https://resend.com/api-keys
 2. Click "Create API Key"
-3. Name it: `nikkeybox-production` (or similar)
-4. Copy the key (format: `re_xxxxxxxxxxxxx`)
-5. **DO NOT share or commit this key**
+3. Name it (e.g. `nikkeybox-production`)
+4. Copy the key (format: `re_xxxxxxxxxxxxx`) — do not share or commit it
+5. Add it to the Vercel project: Project Settings → Environment Variables → `RESEND_API_KEY` (at least for Production)
 
-## Step 2: Configure Environment Variables
+## Configure Locally
 
-### Local Development
 Create `.env.local` in the project root:
 ```env
 RESEND_API_KEY=re_your_api_key_here
-RESEND_FROM_EMAIL=contato@nikkeybox.jp
 ```
 
-### Vercel Production
-Add to Vercel Project Settings > Environment Variables:
-```
-RESEND_API_KEY=re_your_production_key
-RESEND_FROM_EMAIL=contato@nikkeybox.jp
-RESEND_WEBHOOK_SECRET=whsec_your_webhook_secret
+## Webhook Setup
+
+Resend posts delivery events to `/api/webhook-resend`. There is no standalone file for that route — `vercel.json` rewrites it to `/api/notify?action=webhook-resend`, handled by `handleWebhookResend` in `api/notify.js`.
+
+```mermaid
+sequenceDiagram
+    participant Resend as "Resend"
+    participant Vercel as "Vercel (vercel.json rewrite)"
+    participant Notify as "api/notify.js (action=webhook-resend)"
+    participant Store as "Opt-out store"
+
+    Resend->>Vercel: "POST /api/webhook-resend"
+    Vercel->>Notify: "rewrite to /api/notify?action=webhook-resend"
+    alt "NODE_ENV=production"
+        Notify->>Notify: "verify svix-signature with RESEND_WEBHOOK_SECRET"
+        opt "signature invalid"
+            Notify-->>Resend: "401 invalid_signature"
+        end
+    else "outside production"
+        Notify->>Notify: "signature check is skipped"
+    end
+    alt "event.type is email.bounced or email.complained"
+        Notify->>Store: "mark recipient as opted out"
+    else "any other event"
+        Notify->>Notify: "logged only, no action"
+    end
+    Notify-->>Resend: "200 { received: true }"
 ```
 
-## Step 3: Setup Webhook for Email Events
-
-### Create Webhook in Resend Dashboard
+### Create the webhook in the Resend dashboard
 1. Go to https://resend.com/webhooks
 2. Click "Create Webhook"
-3. Set the endpoint URL to:
-   ```
-   https://your-nikkeybox-domain.vercel.app/api/webhook-resend
-   ```
-   or if using custom domain:
-   ```
-   https://nikkeybox.jp/api/webhook-resend
-   ```
-4. Select webhook events:
-   - ✅ Email sent
-   - ✅ Email delivered
-   - ✅ Email bounced
-   - ✅ Email opened
-   - ✅ Email clicked
-
+3. Endpoint URL: `https://nikkeybox.jp/api/webhook-resend` (default `SITE_ORIGIN`; use the actual deployment domain if different)
+4. Select events:
+- ✅ Email bounced
+- ✅ Email complained
+- Any other event (sent, delivered, opened, clicked...) is accepted and logged, but only bounced and complained trigger an action (automatic opt-out)
 5. Copy the **Signing Secret** (format: `whsec_xxxxxxxxxxxxx`)
 
-### Add Webhook Secret to Vercel
-1. Go to your Vercel project settings
-2. Add environment variable:
-   - Key: `RESEND_WEBHOOK_SECRET`
-   - Value: `whsec_your_signing_secret`
-3. Redeploy the project
+### Add the webhook secret to Vercel
+1. Go to the Vercel project settings → Environment Variables
+2. Add `RESEND_WEBHOOK_SECRET` with the signing secret from the step above
+3. Redeploy
 
-## Step 4: Verify Installation
+## How Signature Verification Works
 
-### Check Environment Variables
-```bash
-# In Vercel CLI or project settings, verify:
-echo $RESEND_API_KEY      # Should show re_...
-echo $RESEND_FROM_EMAIL   # Should show contato@nikkeybox.jp
-```
+`verifyResendSignature` (`api/notify.js`) reads the `svix-signature`, `svix-timestamp` and `svix-id` headers Resend sends (Resend delivers webhooks through Svix) and compares them against an HMAC computed with `RESEND_WEBHOOK_SECRET`.
 
-### Test Webhook Locally (Optional)
-```bash
-# Run the test script
-node test-resend-webhook.js
-```
+Two details worth knowing:
+- The check only runs when `NODE_ENV === 'production'`. Outside that (local dev, a preview deploy without that exact value), any payload is accepted.
+- The HMAC is computed over `JSON.stringify(req.body)` — the body after Vercel's JSON parser — not the original request bytes.
 
-Output should show:
-```
-🧪 Resend Webhook Test Suite
-📍 Target: http://localhost:3000/api/webhook-resend
-✓ Email Sent
-✓ Email Delivered
-✓ Email Bounced
-✓ Email Opened
-✓ Email Clicked
-```
+## Sending Emails
 
-## Step 5: Deploy to Vercel
+`sendMail({ to, subject, html, unsubscribe })` (`api/_lib/mailer.js`) is the only way the project sends email. It is server-only — never import it from `src/` (the `@/` alias only resolves inside `src/`, and doing so would ship the Resend API key to the browser bundle).
 
-```bash
-# Ensure all changes are committed
-git add .
-git commit -m "Add Resend email integration with webhooks"
+```js
+// from another file inside api/
+import { sendMail, unsubscribeUrl } from './_lib/mailer.js';
 
-# Push to main branch (auto-deploys to Vercel)
-git push origin main
-```
-
-## Usage Examples
-
-### Sending Order Confirmation Email
-```typescript
-import { sendMail } from '@/api/_lib/mailer';
-
-const emailData = {
+await sendMail({
   to: 'customer@example.com',
-  subject: 'Order Confirmation #12345',
-  html: `<h1>Order Confirmed</h1><p>Thank you for your purchase!</p>`,
-};
-
-const result = await sendMail(emailData);
-console.log('Email sent:', result);
+  subject: 'Order confirmed',
+  html: '<p>Your order has been confirmed.</p>',
+  unsubscribe: unsubscribeUrl('customer@example.com'), // marketing email only
+});
 ```
 
-### Webhook Event Handling
-The `/api/webhook-resend` endpoint automatically handles:
-- `email.sent` - Log email sent
-- `email.delivered` - Update delivery status
-- `email.bounced` - Handle bounce/invalid email
-- `email.opened` - Track engagement
-- `email.clicked` - Track link clicks
+`sendMail` throws an error with a `code` and `statusCode` on failure: `email_service_not_configured` (503, missing `RESEND_API_KEY`), `email_validation_failed` (400), `email_send_failed` (503).
+
+Real call sites: order confirmation (`api/stripe-webhook.js`, `api/orders.js`), payment-review notices (`api/_lib/fulfillment.js`), cart recovery (`api/cart-recovery.js`), account emails — verify/reset (`api/notify.js`), and custom-order notifications to the store (`api/public-forms.js`).
 
 ## Troubleshooting
 
-### "API Key not found" Error
-**Problem**: Environment variables not loaded
-**Solution**:
-1. Verify `.env.local` exists with correct key
-2. Restart development server: `npm run dev`
-3. Check Vercel project settings for variable spelling
+### "API Key not found" / emails not sending
+1. Verify `RESEND_API_KEY` is set (`.env.local` locally, Vercel env variable in production)
+2. Restart the dev server after changing `.env.local`
+3. Check the Resend dashboard logs for the actual error
 
-### "Invalid signature" on Webhook
-**Problem**: Webhook signature verification failed
-**Solution**:
-1. Verify `RESEND_WEBHOOK_SECRET` is correct in Vercel
-2. Check raw request body is used (not JSON-parsed)
-3. Redeploy after updating environment variables
+### "invalid_signature" from the webhook
+1. Confirm `RESEND_WEBHOOK_SECRET` in Vercel matches the signing secret shown in the Resend webhook settings
+2. Remember the check is skipped outside `NODE_ENV=production` — a 401 only happens in production
 
-### Emails Not Sending
-**Problem**: `sendMail()` returns error
-**Solution**:
-1. Check `RESEND_API_KEY` is valid: `re_...`
-2. Verify sender domain is authenticated in Resend
-3. Check recipient email is valid (not bounced before)
-4. View Resend dashboard logs for error details
+### Webhook not receiving events
+1. Confirm the endpoint URL in Resend matches the deployment exactly (`https://<domain>/api/webhook-resend`)
+2. Check Vercel function logs for `[resend webhook]` entries
+3. Resend can resend a specific past event from its dashboard for debugging
 
-### Webhook Not Triggering
-**Problem**: `/api/webhook-resend` not receiving events
-**Solution**:
-1. Check webhook URL is publicly accessible (HTTPS)
-2. Verify URL matches exactly in Resend > Webhooks settings
-3. Check endpoint returns HTTP 200 status
-4. Test with `node test-resend-webhook.js`
-5. Check Vercel function logs for errors
+## Files
 
-## Security Checklist
-
-- ✅ API key stored in `.env.local` (not committed)
-- ✅ Webhook secret stored in Vercel environment variables
-- ✅ Webhook signature verified on every request
-- ✅ Raw request body used for signature verification
-- ✅ HTTP 200 returned immediately (async processing)
-- ✅ Sensitive data not logged
-- ✅ Rate limiting respected (Resend free tier: 100/day)
-
-## Files Created
-
-| File | Purpose |
-|------|---------|
-| `.env.example` | Template for environment variables |
-| `api/webhook-resend.js` | Webhook endpoint for Resend events |
-| `test-resend-webhook.js` | Local testing script |
-| `vercel.json` | Vercel routing configuration (already exists) |
-
-## API Limits & Quotas
-
-### Free Tier
-- **100 emails/day** (25/day during first 30 days)
-- **5 verified recipients**
-- **Email sending only** (no marketing features)
-- **Webhooks**: Included
-
-### Upgrade to Production
-1. Add payment method in Resend dashboard
-2. Increase domain quota
-3. Add team members
-4. Access priority support
+| File | Role |
+|---|---|
+| `api/_lib/mailer.js` | `sendMail()`, hardcoded sender (`MAIL_FROM`/`MAIL_REPLY_TO`/`BRAND`), `siteOrigin()`, `unsubscribeUrl()` |
+| `api/notify.js` (`handleWebhookResend`) | Webhook handler: signature check, bounce/complaint opt-out |
+| `vercel.json` | Rewrites `/api/webhook-resend` to `/api/notify?action=webhook-resend` |
+| `.env.example` | Template for environment variables (includes a few that are unused — see above) |
 
 ## References
 
-- Resend Docs: https://resend.com/docs
-- Resend Webhooks: https://resend.com/docs/webhooks
-- Vercel Integration: https://vercel.com/marketplace/resend
-- GitHub Issues: Report bugs in nikkeybox repo
-
-## Support
-
-For issues:
-1. Check this guide's troubleshooting section
-2. Review Resend dashboard logs
-3. Check Vercel function logs
-4. Contact Resend support: https://resend.com/support
-
----
-
-**Last Updated**: September 2026  
-**Maintained By**: NikkeyBox Development Team
+- Resend docs: https://resend.com/docs
+- Resend webhooks: https://resend.com/docs/webhooks
+- Vercel integration: https://vercel.com/marketplace/resend
