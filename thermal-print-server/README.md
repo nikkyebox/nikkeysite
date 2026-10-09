@@ -15,7 +15,7 @@ Edite `config.js`:
 printerIp:    '192.168.11.100', // IP fixo da impressora
 printerPort:  9100,              // porta padrão da maioria das térmicas
 paperColumns: 48,                // 32 para papel 58mm · 48 para papel 80mm
-authToken:    'troque-por-token-secreto',
+authToken:    'TROQUE_POR_TOKEN_LONGO_E_ALEATORIO',
 ```
 
 O mesmo `authToken` deve ser configurado no painel admin do site em **Ferramentas → Impressora Térmica**.
@@ -58,7 +58,7 @@ sudo systemctl restart nikkey-box-print
 ```bash
 curl -X POST http://localhost:3210/print \
   -H "Content-Type: application/json" \
-  -H "x-print-token: nikkey-box-print-token-2024" \
+  -H "x-print-token: MESMO_TOKEN_DO_CONFIG_JS" \
   -d '{
     "orderNumber": "SE-BR-999",
     "status": "pending",
