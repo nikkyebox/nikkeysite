@@ -80,7 +80,7 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
   <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
     <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="h-1.5 bg-gradient-to-r from-pink-400 to-pink-500" />
+      <div className="h-1.5 bg-gradient-to-r from-purple-400 to-primary" />
       <div className="p-5">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             },
             {
               step: 2,
-              icon: <Plus className="w-4 h-4 text-pink-500" />,
+              icon: <Plus className="w-4 h-4 text-primary" />,
               title: t('app.guide.ios.s2.title'),
               desc: t('app.guide.ios.s2.desc'),
             },
@@ -134,7 +134,7 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         <button
           onClick={onClose}
-          className="w-full mt-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm transition-colors"
+          className="w-full mt-4 py-2.5 rounded-xl bg-primary hover:bg-purple-600 text-white font-bold text-sm transition-colors"
         >
           {t('app.guide.gotIt')}
         </button>
@@ -164,9 +164,9 @@ const AppDownloadSection: React.FC = () => {
   // Já instalado: mostra confirmação
   if (isInstalled || justInstalled) {
     return (
-      <section className="bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 py-12">
+      <section className="bg-gradient-to-br from-purple-50 via-white to-purple-50 py-12">
         <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-3 bg-white rounded-2xl px-8 py-5 shadow-md border border-pink-100">
+          <div className="inline-flex items-center gap-3 bg-white rounded-2xl px-8 py-5 shadow-md border border-purple-100">
             <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
               <Check className="w-6 h-6 text-green-600" />
             </div>
@@ -188,8 +188,8 @@ const AppDownloadSection: React.FC = () => {
       <section className="py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
         {/* Decoração de fundo */}
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
-          <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-pink-400 blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-pink-400 blur-3xl" />
+          <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-purple-400 blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-purple-400 blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative">
@@ -197,13 +197,13 @@ const AppDownloadSection: React.FC = () => {
 
             {/* Texto */}
             <div className="text-white">
-              <div className="inline-flex items-center gap-2 bg-pink-500/20 border border-pink-500/30 text-pink-300 text-xs font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-purple-300 text-xs font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
                 <Smartphone className="w-3.5 h-3.5" /> {t('appdl.badge')}
               </div>
 
               <h2 className="font-display text-3xl lg:text-4xl font-black text-white leading-tight mb-4">
                 {t('appdl.title1')}<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-400">
                   {t('appdl.title2')}
                 </span>
               </h2>
@@ -278,7 +278,7 @@ const AppDownloadSection: React.FC = () => {
                   {/* Notch */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-gray-900 rounded-b-xl z-10" />
                   {/* Mesma vinheta cinematográfica usada pelo hero transition */}
-                  <div className="absolute inset-0 bg-pink-500">
+                  <div className="absolute inset-0 bg-primary">
                     <video
                       src="/videos/hero-store-transition.mp4"
                       poster="/videos/hero-intro-poster.jpg"
@@ -298,7 +298,7 @@ const AppDownloadSection: React.FC = () => {
                   </div>
                 </div>
                 <div className="absolute -bottom-4 left-1/2 h-6 w-40 -translate-x-1/2 rounded-full bg-black/20 blur-xl" />
-                <div className="absolute -right-6 -top-4 rounded-2xl border border-pink-100 bg-white p-2 shadow-xl">
+                <div className="absolute -right-6 -top-4 rounded-2xl border border-purple-100 bg-white p-2 shadow-xl">
                   <AnimatedPlaneLogo size={48} />
                   <p className="mt-1 text-center text-[8px] font-medium leading-none text-gray-600">Nikkey<br/>Box</p>
                 </div>

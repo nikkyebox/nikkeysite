@@ -245,7 +245,7 @@ const Promotion: React.FC = () => {
 
             {/* Countdown */}
             {promo.expiresAt && countdown && (
-              <div className={`flex items-center gap-2 text-sm font-semibold ${isExpired || countdown === t('promo.endedShort') ? 'text-red-600' : 'text-pink-600'}`}>
+              <div className={`flex items-center gap-2 text-sm font-semibold ${isExpired || countdown === t('promo.endedShort') ? 'text-red-600' : 'text-purple-600'}`}>
                 <Clock className="w-4 h-4 shrink-0" />
                 {countdown === t('promo.endedShort') ? t('promo.ended') : `${t('promo.endsIn')} ${countdown}`}
               </div>
@@ -308,11 +308,11 @@ const Promotion: React.FC = () => {
 
             {/* Preview do pedido quando excede limite */}
             {overflowQty > 0 && !isExpired && (
-              <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 text-sm space-y-1">
-                <div className="flex items-center gap-1.5 font-semibold text-pink-700"><Info className="w-4 h-4" /> {t('promo.orderSummary')}</div>
-                {promoQty > 0 && <div className="text-pink-700">{promoQty}x {t('promo.at')} {formatPrice(promoPriceLocal, currency, true)} <span className="text-xs">{t('promo.promoPriceTag')}</span></div>}
-                <div className="text-pink-700">{overflowQty}x {t('promo.at')} {formatPrice(originalPriceLocal, currency, true)} <span className="text-xs">{t('promo.originalPriceTag')}</span></div>
-                <div className="font-bold text-orange-800 border-t border-pink-200 pt-1">{t('cart.total')}: {formatPrice(totalLocal, currency, true)}</div>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm space-y-1">
+                <div className="flex items-center gap-1.5 font-semibold text-purple-700"><Info className="w-4 h-4" /> {t('promo.orderSummary')}</div>
+                {promoQty > 0 && <div className="text-purple-700">{promoQty}x {t('promo.at')} {formatPrice(promoPriceLocal, currency, true)} <span className="text-xs">{t('promo.promoPriceTag')}</span></div>}
+                <div className="text-purple-700">{overflowQty}x {t('promo.at')} {formatPrice(originalPriceLocal, currency, true)} <span className="text-xs">{t('promo.originalPriceTag')}</span></div>
+                <div className="font-bold text-orange-800 border-t border-purple-200 pt-1">{t('cart.total')}: {formatPrice(totalLocal, currency, true)}</div>
               </div>
             )}
 

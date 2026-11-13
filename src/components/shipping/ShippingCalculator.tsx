@@ -148,8 +148,8 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
 
       {/* International shipping note */}
       {!isJapan && items.length > 0 && (
-        <div className="bg-pink-50 dark:bg-pink-950/20 rounded-xl p-4 mb-6 border border-pink-200">
-          <p className="text-xs text-pink-700 dark:text-pink-300 font-semibold leading-relaxed">
+        <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl p-4 mb-6 border border-purple-200">
+          <p className="text-xs text-purple-700 dark:text-purple-300 font-semibold leading-relaxed">
             {t('calc.intlNote').replace('{country}', destinationCountry || '')}
           </p>
         </div>
@@ -345,7 +345,7 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
       {/* Empty cart */}
       {items.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          <Package className="w-12 h-12 mx-auto mb-3 opacity-50 text-pink-500" />
+          <Package className="w-12 h-12 mx-auto mb-3 opacity-50 text-primary" />
           <p>{t('calc.emptyCart')}</p>
         </div>
       )}

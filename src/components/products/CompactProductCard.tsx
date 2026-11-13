@@ -90,10 +90,10 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
       role="link"
       tabIndex={0}
       aria-label={`${name} — ${formatPrice(price, currency)}`}
-      className="product-depth-card group cursor-pointer overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 hover:-translate-y-1.5 hover:border-pink-200 hover:shadow-2xl hover:shadow-pink-200/40 flex flex-col"
+      className="product-depth-card group cursor-pointer overflow-hidden rounded-2xl border border-purple-100/80 bg-white shadow-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-2xl hover:shadow-purple-200/40 flex flex-col"
     >
       <div
-        className="aspect-square bg-gradient-to-br from-white via-pink-50/35 to-fuchsia-50/50 relative overflow-hidden"
+        className="aspect-square bg-gradient-to-br from-white via-purple-50/35 to-purple-50/50 relative overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -145,7 +145,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true" />
         {promoActive && (
-          <span className="absolute left-2 top-2 rounded-lg bg-gradient-to-r from-red-500 to-pink-500 px-2 py-1 text-[10px] font-black text-white shadow-md">
+          <span className="absolute left-2 top-2 rounded-lg bg-gradient-to-r from-red-500 to-primary px-2 py-1 text-[10px] font-black text-white shadow-md">
             -{product.discountPercent}%
           </span>
         )}
@@ -154,8 +154,8 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
           className={cn(
             'absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-xl backdrop-blur-md transition-all duration-300',
             isFavorite
-              ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25'
-              : 'bg-white/85 text-slate-500 shadow-sm ring-1 ring-white/80 hover:scale-105 hover:text-pink-500'
+              ? 'bg-primary text-white shadow-lg shadow-primary/25'
+              : 'bg-white/85 text-slate-500 shadow-sm ring-1 ring-white/80 hover:scale-105 hover:text-primary'
           )}
           aria-label={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
         >
@@ -186,7 +186,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
         )}
         <div className="mt-auto flex items-end justify-between gap-1">
           <div>
-            <p className={cn('text-base font-black leading-none tracking-tight', promoActive ? 'text-red-600' : 'text-pink-600')}>
+            <p className={cn('text-base font-black leading-none tracking-tight', promoActive ? 'text-red-600' : 'text-purple-600')}>
               {formatPrice(price, currency)}
             </p>
             {promoActive && (
@@ -198,7 +198,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
           {!isSoldOut && (
             <button
               onClick={handleAddToCart}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-500 text-white shadow-md shadow-pink-500/20 transition-all duration-300 hover:scale-105 hover:rotate-3 hover:shadow-lg"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary text-white shadow-md shadow-primary/20 transition-all duration-300 hover:scale-105 hover:rotate-3 hover:shadow-lg"
               aria-label={t('product.addToCart')}
             >
               <Plus className="w-4 h-4" />

@@ -379,9 +379,9 @@ const Dashboard: React.FC = () => {
 
           {/* Breakdown: Produto vs PS vs Frete */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-pink-50 dark:bg-pink-950/20 rounded-xl border border-pink-200 dark:border-pink-800 p-4">
-              <p className="text-xs font-semibold text-pink-700 dark:text-pink-400 mb-1">🛒 Receita Produto</p>
-              <p className="text-xl font-bold text-pink-700 dark:text-pink-300">¥{finance.receitaProduto.toLocaleString()}</p>
+            <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl border border-purple-200 dark:border-purple-800 p-4">
+              <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-1">🛒 Receita Produto</p>
+              <p className="text-xl font-bold text-purple-700 dark:text-purple-300">¥{finance.receitaProduto.toLocaleString()}</p>
               <p className="text-[11px] text-muted-foreground mt-1">S/ frete e s/ PS</p>
             </div>
             <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-800 p-4">
@@ -501,7 +501,7 @@ const Dashboard: React.FC = () => {
                 <YAxis tickFormatter={(v) => `¥${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => (typeof value === 'number' ? `¥${value.toLocaleString()}` : value)} />
                 <Legend />
-                <Bar dataKey="receitaComFrete" name="Receita c/ frete" fill="#fbcfe8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="receitaComFrete" name="Receita c/ frete" fill="#e9d5ff" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="receitaSemFrete" name="Receita s/ frete" fill="#a855f7" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="custo" name="Custo" fill="#9ca3af" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="lucro" name="Lucro" fill="#22c55e" radius={[4, 4, 0, 0]} />

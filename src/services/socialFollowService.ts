@@ -8,7 +8,7 @@ export const SOCIAL_POINTS = 500;
 
 // Facebook e X seguem em "teste" — trocar quando os perfis existirem.
 export const SOCIAL_CONFIG: Record<SocialNetwork, { label: string; url: string; color: string }> = {
-  instagram: { label: 'Instagram', url: 'https://www.instagram.com/nikkeybox/', color: 'bg-pink-500' },
+  instagram: { label: 'Instagram', url: 'https://www.instagram.com/nikkeybox/', color: 'bg-gradient-to-tr from-purple-600 via-primary to-orange-400' },
   facebook:  { label: 'Facebook',  url: 'https://www.facebook.com/teste',       color: 'bg-blue-600' },
   tiktok:    { label: 'TikTok',    url: 'https://www.tiktok.com/@nikkeybox',    color: 'bg-gray-900' },
   x:         { label: 'X (Twitter)', url: 'https://x.com/teste',               color: 'bg-black' },

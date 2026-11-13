@@ -540,15 +540,15 @@ const Shipping: React.FC = () => {
 
                 {/* Simulated Tax Result */}
                 {country !== 'Japão' && simTax.total > 0 && (
-                  <div className="bg-pink-50/50 dark:bg-pink-950/20 border border-pink-200 rounded-xl p-4 space-y-2">
-                    <div className="flex justify-between items-center text-sm font-bold text-orange-850 dark:text-pink-300">
+                  <div className="bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 rounded-xl p-4 space-y-2">
+                    <div className="flex justify-between items-center text-sm font-bold text-orange-850 dark:text-purple-300">
                       <span className="flex items-center gap-1.5">
                         <Percent className="w-4 h-4" />
                         {t('shippingPage.customsEst')} ({simTax.label})
                       </span>
                       <span>{formatPrice(simTax.total, currency)}</span>
                     </div>
-                    <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
+                    <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                       ⚠️ {t('shippingPage.notaFiscal')}
                     </p>
                   </div>
@@ -684,7 +684,7 @@ const Shipping: React.FC = () => {
                       </div>
 
                       <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                        <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                         {t('shippingPage.estDeadline')} <span className="font-semibold text-foreground">{carrier.time}</span>
                       </div>
                     </div>

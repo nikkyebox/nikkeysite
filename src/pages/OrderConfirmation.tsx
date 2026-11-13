@@ -144,9 +144,9 @@ const OrderConfirmation: React.FC = () => {
             {/* Referral CTA — só para cliente logado (não-guest); guest não tem
                 userId estável para gerar link de indicação. */}
             {!isGuest && user?.id && (
-              <div className="mb-8 print:hidden bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                  <Gift className="w-6 h-6 text-pink-600" />
+              <div className="mb-8 print:hidden bg-gradient-to-r from-purple-50 to-amber-50 border border-purple-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                  <Gift className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <p className="font-display font-bold text-gray-900">{t('orderConfirmation.referral.title')}</p>
@@ -168,8 +168,8 @@ const OrderConfirmation: React.FC = () => {
 
             {/* PIX SCREEN — pagamento manual com confirmação por comprovante */}
             {order.paymentMethod === 'pix' && (
-              <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
+              <div className="bg-white rounded-3xl border-2 border-primary p-6 mb-8 shadow-md print:hidden text-center space-y-4">
+                <div className="flex items-center justify-center gap-2 text-purple-600 font-extrabold text-lg">
                   <Smartphone className="w-6 h-6" />
                   <span>{t('order.payViaPix')}</span>
                 </div>
@@ -196,7 +196,7 @@ const OrderConfirmation: React.FC = () => {
                         />
                         <button
                           onClick={copyToClipboard}
-                          className="bg-pink-500 hover:bg-pink-600 text-white px-4 flex items-center justify-center gap-1.5 transition-all text-xs font-bold"
+                          className="bg-primary hover:bg-purple-600 text-white px-4 flex items-center justify-center gap-1.5 transition-all text-xs font-bold"
                         >
                           <Copy className="w-4 h-4" />
                           {copied ? t('order.copied') : t('order.copy')}
@@ -204,12 +204,12 @@ const OrderConfirmation: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="bg-pink-50 border border-pink-200 rounded-2xl p-4 max-w-md mx-auto space-y-3 text-left">
-                      <p className="text-sm font-bold text-pink-700 flex items-center gap-2">
+                    <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 max-w-md mx-auto space-y-3 text-left">
+                      <p className="text-sm font-bold text-purple-700 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         {t('order.importantProof')}
                       </p>
-                      <p className="text-xs text-pink-700 leading-relaxed">
+                      <p className="text-xs text-purple-700 leading-relaxed">
                         {t('order.pixProof1')} <strong>{t('order.pixProof2')}</strong> {t('order.pixProof3')}
                         {t('order.pixStatus1')} <strong>{t('order.pixStatus2')}</strong> {t('order.pixStatus3')}
                       </p>
@@ -239,8 +239,8 @@ const OrderConfirmation: React.FC = () => {
 
             {/* CREDIT CARD — pagamento já confirmado pelo Stripe antes de chegar nesta tela */}
             {order.paymentMethod === 'card' && (
-              <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden space-y-4">
-                <div className="flex items-center gap-2 text-pink-600 font-extrabold text-lg justify-center">
+              <div className="bg-white rounded-3xl border-2 border-primary p-6 mb-8 shadow-md print:hidden space-y-4">
+                <div className="flex items-center gap-2 text-purple-600 font-extrabold text-lg justify-center">
                   <CreditCard className="w-6 h-6" />
                   <span>{t('order.payViaCard')}</span>
                 </div>
@@ -264,8 +264,8 @@ const OrderConfirmation: React.FC = () => {
 
             {/* BOLETO SCREEN */}
             {order.paymentMethod === 'boleto' && (
-              <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
+              <div className="bg-white rounded-3xl border-2 border-primary p-6 mb-8 shadow-md print:hidden text-center space-y-4">
+                <div className="flex items-center justify-center gap-2 text-purple-600 font-extrabold text-lg">
                   <FileText className="w-6 h-6" />
                   <span>{t('order.boletoTitle')}</span>
                 </div>
@@ -334,7 +334,7 @@ const OrderConfirmation: React.FC = () => {
 
                 {/* Tracking Details — só aparece quando há código de rastreio */}
                 {order.trackingCode && (
-                <div className="bg-pink-50 border border-pink-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs md:text-sm">
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs md:text-sm">
                   <div>
                     <span className="text-muted-foreground block">
                       {order.currency === 'JPY'
@@ -345,14 +345,14 @@ const OrderConfirmation: React.FC = () => {
                     </span>
                     <button
                       onClick={() => navigate('/rastrear')}
-                      className="font-bold text-pink-700 underline hover:no-underline text-base"
+                      className="font-bold text-purple-700 underline hover:no-underline text-base"
                     >
                       {t('order.trackOrder')}
                     </button>
                   </div>
                   <div className="text-right">
                     <span className="text-muted-foreground block">{t('order.logisticStatus')}</span>
-                    <span className="bg-pink-600 text-white font-extrabold px-2 py-0.5 rounded text-xs uppercase inline-block mt-1">
+                    <span className="bg-purple-600 text-white font-extrabold px-2 py-0.5 rounded text-xs uppercase inline-block mt-1">
                       {order.status === 'Pago'
                         ? (order.currency === 'JPY' ? t('order.status.preparingDomestic') : t('order.status.waitingDispatch'))
                         : t('order.status.waiting')
@@ -453,12 +453,12 @@ const OrderConfirmation: React.FC = () => {
                     </div>
                   )}
                   {order.currency !== 'JPY' && order.taxAmount > 0 && (
-                    <div className="bg-pink-50/50 dark:bg-pink-950/10 border border-pink-200/60 rounded-xl p-3 space-y-2 mt-2">
-                      <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-pink-300">
+                    <div className="bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/60 rounded-xl p-3 space-y-2 mt-2">
+                      <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-purple-300">
                         <span>{t('order.tax.estimate')}</span>
                         <span>{formatPrice(order.taxAmount, order.currency)}</span>
                       </div>
-                      <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                         {t('order.tax.note')}
                       </p>
                     </div>
@@ -516,7 +516,7 @@ const OrderConfirmation: React.FC = () => {
 
                   <div className="flex justify-between pt-3 border-t font-black text-base md:text-lg">
                     <span>{t('order.total')}</span>
-                    <span className="text-xl text-pink-600">
+                    <span className="text-xl text-purple-600">
                       {formatPrice(order.total, order.currency || 'BRL')}
                     </span>
                   </div>
@@ -541,7 +541,7 @@ const OrderConfirmation: React.FC = () => {
               <h3 className="font-bold text-sm text-gray-800 uppercase tracking-wider">
                 {order.currency === 'JPY' ? t('order.followTitle.domestic') : t('order.followTitle.intl')}
               </h3>
-              <div className="relative pl-6 border-l border-pink-300 space-y-4 text-xs text-muted-foreground">
+              <div className="relative pl-6 border-l border-purple-300 space-y-4 text-xs text-muted-foreground">
 
                 {order.currency === 'JPY' ? (
                   <>
@@ -552,7 +552,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.jp4.title'), desc: t('order.steps.jp4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-pink-500' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>
@@ -567,7 +567,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.br4.title'), desc: t('order.steps.br4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-pink-500' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>
@@ -582,7 +582,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.intl4.title'), desc: t('order.steps.intl4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-pink-500' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>

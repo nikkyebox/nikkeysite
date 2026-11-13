@@ -444,7 +444,7 @@ const Profile: React.FC = () => {
 
             {/* Pontos de Fidelidade — desativado (ver featureFlags.ts), saldo continua salvo */}
             {LOYALTY_POINTS_ENABLED && (
-            <div className="bg-gradient-to-r from-amber-400 to-pink-500 rounded-2xl p-6 lg:p-8 text-white shadow-elevated">
+            <div className="bg-gradient-to-r from-amber-400 to-primary rounded-2xl p-6 lg:p-8 text-white shadow-elevated">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-wide text-white/90">{t('profile.points.title')}</p>
@@ -1116,8 +1116,8 @@ const Profile: React.FC = () => {
                           <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                             order.status === 'delivered' ? 'bg-green-100 text-green-800' :
                             order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                            (order.status as string) === 'packing' ? 'bg-pink-100 text-orange-800' :
-                            (order.status as string) === 'processing' ? 'bg-pink-100 text-orange-800' :
+                            (order.status as string) === 'packing' ? 'bg-purple-100 text-orange-800' :
+                            (order.status as string) === 'processing' ? 'bg-purple-100 text-orange-800' :
                             order.status === 'confirmed' ? 'bg-yellow-100 text-yellow-800' :
                             order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                             'bg-gray-100 text-gray-800'
@@ -1424,7 +1424,7 @@ const Profile: React.FC = () => {
                                 {t('profile.orders.paid')}
                               </span>
                             ) : (
-                              <span className="text-xs font-bold text-pink-600 flex items-center gap-1">
+                              <span className="text-xs font-bold text-purple-600 flex items-center gap-1">
                                 {t('profile.orders.unpaid')}
                               </span>
                             )}
@@ -1528,7 +1528,7 @@ const Profile: React.FC = () => {
                     const isRejected = neg.status === 'rejected';
                     const isExpired = neg.status === 'expired' || isExpiredClient;
                     const borderClass = isPending
-                      ? 'border-pink-200 bg-pink-50/30 dark:bg-pink-950/10'
+                      ? 'border-purple-200 bg-purple-50/30 dark:bg-purple-950/10'
                       : isApproved
                       ? 'border-green-200 bg-green-50/30 dark:bg-green-950/10'
                       : isUsed
@@ -1545,7 +1545,7 @@ const Profile: React.FC = () => {
                                 {neg.type === 'ps_fee' ? t('profile.neg.psFee') : t('profile.neg.shipping')}
                               </span>
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${
-                                isPending ? 'bg-pink-100 text-pink-700 border-pink-300'
+                                isPending ? 'bg-purple-100 text-purple-700 border-purple-300'
                                 : isApproved ? 'bg-green-100 text-green-700 border-green-300'
                                 : isUsed ? 'bg-blue-100 text-blue-700 border-blue-300'
                                 : 'bg-red-100 text-red-700 border-red-300'

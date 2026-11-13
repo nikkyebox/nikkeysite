@@ -19,20 +19,20 @@ export const PersonalShopperBanner: React.FC = () => {
   return (
     <section className="relative overflow-hidden py-12 sm:py-16 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white border-y border-purple-800/40">
       {/* Decorative background glow */}
-      <div className="pointer-events-none absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-pink-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-primary/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-purple-500/20 blur-3xl" />
 
       <div className="container relative mx-auto px-4">
         <div className="max-w-4xl mx-auto rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="space-y-4 max-w-xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-pink-500/20 px-3.5 py-1 text-xs font-bold text-pink-300 border border-pink-500/30">
-                <Sparkles className="w-3.5 h-3.5 text-pink-400" /> {t('ui.ps.badge')}
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3.5 py-1 text-xs font-bold text-purple-300 border border-primary/30">
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" /> {t('ui.ps.badge')}
               </div>
 
               <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
                 {t('ui.ps.title1')} <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-pink-400 via-purple-300 to-amber-300 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-amber-300 bg-clip-text text-transparent">
                   {t('ui.ps.title2')}
                 </span>
               </h2>
@@ -49,7 +49,7 @@ export const PersonalShopperBanner: React.FC = () => {
                   <Clock className="w-4 h-4 text-amber-400" /> {t('ui.ps.quote')}
                 </span>
                 <span className="flex items-center gap-1.5 font-medium">
-                  <PackageSearch className="w-4 h-4 text-pink-400" /> {t('ui.ps.consolidate')}
+                  <PackageSearch className="w-4 h-4 text-purple-400" /> {t('ui.ps.consolidate')}
                 </span>
               </div>
             </div>

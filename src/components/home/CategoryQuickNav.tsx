@@ -24,12 +24,12 @@ const CategoryQuickNav: React.FC = () => {
   if (!loading && visibleCategories.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden border-y border-pink-100/70 bg-gradient-to-b from-white via-pink-50/35 to-white py-6 sm:py-8">
-      <div className="pointer-events-none absolute -right-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-pink-200/25 blur-3xl" />
+    <section className="relative overflow-hidden border-y border-purple-100/70 bg-gradient-to-b from-white via-purple-50/35 to-white py-6 sm:py-8">
+      <div className="pointer-events-none absolute -right-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-purple-200/25 blur-3xl" />
       <div className="container relative mx-auto px-4">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-500">{t('featured.badge')}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{t('featured.badge')}</p>
             <h2 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl">{t('nav.products')}</h2>
           </div>
           <span className="hidden text-xs font-semibold text-slate-400 sm:block">{t('featured.subtitle')}</span>
@@ -38,21 +38,21 @@ const CategoryQuickNav: React.FC = () => {
         <div className="flex gap-3 overflow-x-auto px-1 pb-3 pt-1 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-[76px] w-36 shrink-0 animate-pulse rounded-2xl bg-pink-50" />
+                <div key={i} className="h-[76px] w-36 shrink-0 animate-pulse rounded-2xl bg-purple-50" />
               ))
             : visibleCategories.map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/produtos/${cat.id}`}
-                  className="category-depth-card group relative flex min-w-[148px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border border-pink-100 bg-white/85 px-3.5 py-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-pink-200 hover:shadow-xl hover:shadow-pink-200/35"
+                  className="category-depth-card group relative flex min-w-[148px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border border-purple-100 bg-white/85 px-3.5 py-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-200/35"
                 >
-                  <span className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-pink-100/60 transition-transform duration-500 group-hover:scale-150" aria-hidden="true" />
-                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-50 to-fuchsia-100 text-2xl shadow-inner ring-1 ring-white transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                  <span className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-purple-100/60 transition-transform duration-500 group-hover:scale-150" aria-hidden="true" />
+                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 text-2xl shadow-inner ring-1 ring-white transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                     {cat.icon}
                   </span>
                   <span className="relative min-w-0">
                     <span className="block truncate text-xs font-extrabold text-slate-800">{cat.label}</span>
-                    <span className="mt-1 block text-[10px] font-bold text-pink-500">{t('ui.itemCount').replace('{n}', String(counts[cat.id]))}</span>
+                    <span className="mt-1 block text-[10px] font-bold text-primary">{t('ui.itemCount').replace('{n}', String(counts[cat.id]))}</span>
                   </span>
                 </Link>
               ))}

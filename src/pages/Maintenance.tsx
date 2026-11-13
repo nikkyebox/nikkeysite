@@ -7,7 +7,7 @@ const MaintenancePage: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-pink-100 via-pink-50 to-white flex items-center justify-center px-4">
+    <div className="relative min-h-screen bg-gradient-to-b from-primary/15 via-primary/5 to-white flex items-center justify-center px-4">
       {/* Main content */}
       <div className="text-center max-w-md space-y-6 relative z-10">
         <div className="flex justify-center">
@@ -51,7 +51,7 @@ const MaintenancePage: React.FC = () => {
             id="route"
             d="M468,118 C428,14 92,14 52,118"
             fill="none"
-            stroke="#e879f9"
+            className="stroke-primary"
             strokeWidth="1.5"
             strokeDasharray="5 4"
           />
@@ -99,7 +99,7 @@ const MaintenancePage: React.FC = () => {
 
           {/* Animated airplane — scaled up 2× so it's clearly visible */}
           <g>
-            <g fill="#a78bfa" transform="scale(2)">
+            <g className="fill-primary" transform="scale(2)">
               {/* fuselage */}
               <path d="M10,0 L-5,-3 L-8,-1 L-3,0 L-8,1 L-5,3 Z" />
               {/* top wing */}

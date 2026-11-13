@@ -50,7 +50,7 @@ const SocialFollowRewards: React.FC = () => {
           <p className="text-sm text-muted-foreground">{t('social.desc').replace('{pts}', String(SOCIAL_POINTS))}</p>
         </div>
         {totalEarnable > 0 && (
-          <span className="text-xs font-bold bg-pink-100 text-pink-700 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full">
             {t('social.available').replace('{pts}', String(totalEarnable))}
           </span>
         )}

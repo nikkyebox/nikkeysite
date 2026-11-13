@@ -712,7 +712,7 @@ const Checkout: React.FC = () => {
                 </p>
               )}
               {negModalType === 'shipping' && (
-                <p className="text-xs text-pink-500 font-medium">
+                <p className="text-xs text-primary font-medium">
                   {t('checkout.shipNeedsApproval')}
                 </p>
               )}
@@ -1085,12 +1085,12 @@ const Checkout: React.FC = () => {
 
                   <div className="pt-4 border-t border-border">
                     {negIsPending ? (
-                      <div className="w-full rounded-xl border-2 border-dashed border-pink-300 bg-pink-50 dark:bg-pink-950/20 p-4 text-center space-y-1">
-                        <div className="flex items-center justify-center gap-2 text-pink-600 font-bold">
+                      <div className="w-full rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 dark:bg-purple-950/20 p-4 text-center space-y-1">
+                        <div className="flex items-center justify-center gap-2 text-purple-600 font-bold">
                           <Hourglass className="w-4 h-4 animate-pulse" />
                           {t('checkout.awaiting')}
                         </div>
-                        <p className="text-xs text-pink-500">
+                        <p className="text-xs text-primary">
                           {t('checkout.expires24')}
                         </p>
                       </div>
@@ -1245,12 +1245,12 @@ const Checkout: React.FC = () => {
 
                     {/* Tax displays only as estimated warnings in sidebar */}
                     {formData.country !== 'Japão' && estimatedTax > 0 && (
-                      <div className="bg-pink-50/50 dark:bg-pink-950/10 border border-pink-200/60 rounded-xl p-3 space-y-2 mt-2">
-                        <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-pink-300">
+                      <div className="bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/60 rounded-xl p-3 space-y-2 mt-2">
+                        <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-purple-300">
                           <span>{taxLabel}</span>
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
-                        <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
+                        <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                           ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('checkout.taxReminder')}
                         </p>
                       </div>
@@ -1312,7 +1312,7 @@ const Checkout: React.FC = () => {
                             </span>
                           )}
                           {negIsPending && activeNeg?.type === 'ps_fee' && (
-                            <span className="text-[10px] text-pink-500 font-bold flex items-center gap-0.5">
+                            <span className="text-[10px] text-primary font-bold flex items-center gap-0.5">
                               <Hourglass className="w-3 h-3" /> {t('checkout.waiting')}
                             </span>
                           )}
@@ -1336,7 +1336,7 @@ const Checkout: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setNegModalType('ps_fee')}
-                              className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-primary bg-pink-50 dark:bg-pink-950/20 text-sm font-bold text-pink-700 dark:text-pink-300 transition-colors hover:bg-pink-700 hover:text-white dark:hover:bg-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 animate-pulse-zoom hover:animate-none motion-reduce:animate-none"
+                              className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-primary bg-purple-50 dark:bg-purple-950/20 text-sm font-bold text-purple-700 dark:text-purple-300 transition-colors hover:bg-purple-700 hover:text-white dark:hover:bg-purple-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 animate-pulse-zoom hover:animate-none motion-reduce:animate-none"
                             >
                               <Handshake className="w-5 h-5 shrink-0" /> {t('checkout.askDiscount')}
                             </button>
@@ -1398,7 +1398,7 @@ const Checkout: React.FC = () => {
                             {formatPrice(totalsWithoutDiscounts.total, currency)}
                           </p>
                         )}
-                        <span className="text-base text-pink-600">
+                        <span className="text-base text-purple-600">
                           {formatPrice(grandTotal, currency)}
                         </span>
                         {totalSavings > 0 && (

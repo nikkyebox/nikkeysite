@@ -400,7 +400,7 @@ const SorteioManager: React.FC = () => {
                         <p className="text-xs text-muted-foreground truncate">{p.email}</p>
                       </div>
                       <div className="flex gap-1 flex-shrink-0 ml-2">
-                        {p.followsInstagram && <Badge variant="outline" className="text-pink-600">IG</Badge>}
+                        {p.followsInstagram && <Badge variant="outline" className="text-purple-600">IG</Badge>}
                         {p.followsTiktok && <Badge variant="outline" className="text-gray-700">TT</Badge>}
                       </div>
                     </div>

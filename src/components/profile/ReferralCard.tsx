@@ -24,9 +24,9 @@ const ReferralCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-pink-50 border border-pink-100 rounded-2xl p-5">
+    <div className="bg-gradient-to-br from-orange-50 to-purple-50 border border-purple-100 rounded-2xl p-5">
       <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
           <Users className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -35,7 +35,7 @@ const ReferralCard: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white border border-pink-100 rounded-xl p-3 mb-3">
+      <div className="bg-white border border-purple-100 rounded-xl p-3 mb-3">
         <p className="text-xs text-muted-foreground mb-1 font-medium">{t('referral.yourLink')}</p>
         <div className="flex items-center gap-2">
           <p className="text-xs font-mono text-foreground flex-1 truncate">{link}</p>
@@ -47,7 +47,7 @@ const ReferralCard: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/60 rounded-lg px-3 py-2">
-        <Gift className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+        <Gift className="w-3.5 h-3.5 text-purple-400 shrink-0" />
         <span dangerouslySetInnerHTML={{ __html: t('referral.friendGets') }} />
       </div>
     </div>

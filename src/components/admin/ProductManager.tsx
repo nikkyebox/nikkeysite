@@ -1038,12 +1038,12 @@ const ProductManager: React.FC = () => {
                     }}
                     className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-sm font-semibold transition-colors ${
                       editing.heroCarousel
-                        ? 'bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300'
+                        ? 'bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-300'
                     }`}
                   >
                     <span>{editing.heroCarousel ? '🎬 No hero' : '☆ Fora do hero'}</span>
-                    <span className={`w-9 h-5 rounded-full relative transition-colors ${editing.heroCarousel ? 'bg-rose-500' : 'bg-gray-400'}`}>
+                    <span className={`w-9 h-5 rounded-full relative transition-colors ${editing.heroCarousel ? 'bg-primary' : 'bg-gray-400'}`}>
                       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${editing.heroCarousel ? 'left-4' : 'left-0.5'}`} />
                     </span>
                   </button>

@@ -207,7 +207,7 @@ const PromoNotificationModal: React.FC<Props> = ({ onClose }) => {
   <style>
     body{margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif}
     .wrap{max-width:600px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1)}
-    .header{background:linear-gradient(135deg,#e11d48,#9333ea);padding:28px 32px;text-align:center}
+    .header{background:linear-gradient(135deg,#a15fe3,#9333ea);padding:28px 32px;text-align:center}
     .header h1{color:#fff;margin:0;font-size:24px}
     .header p{color:rgba(255,255,255,.85);margin:6px 0 0;font-size:14px}
     .body{padding:32px}
@@ -217,14 +217,14 @@ const PromoNotificationModal: React.FC<Props> = ({ onClose }) => {
     .product-name{font-size:18px;font-weight:700;color:#111;margin:0 0 6px}
     .product-flavor{font-size:13px;color:#6b7280;margin:0 0 14px}
     .price-row{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
-    .price-promo{font-size:26px;font-weight:800;color:#e11d48}
+    .price-promo{font-size:26px;font-weight:800;color:#9333ea}
     .price-original{font-size:16px;color:#9ca3af;text-decoration:line-through}
     .price-normal{font-size:26px;font-weight:800;color:#111}
-    .badge-off{background:#fef2f2;color:#e11d48;border:1px solid #fecaca;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;display:inline-block}
+    .badge-off{background:#faf5ff;color:#9333ea;border:1px solid #e9d5ff;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;display:inline-block}
     .extra{font-size:14px;color:#4b5563;line-height:1.6;margin:0 0 24px}
-    .cta{display:block;background:linear-gradient(135deg,#e11d48,#9333ea);color:#fff;text-decoration:none;text-align:center;padding:14px 24px;border-radius:10px;font-size:16px;font-weight:700}
+    .cta{display:block;background:linear-gradient(135deg,#a15fe3,#9333ea);color:#fff;text-decoration:none;text-align:center;padding:14px 24px;border-radius:10px;font-size:16px;font-weight:700}
     .footer{background:#f9fafb;padding:20px 32px;text-align:center;font-size:12px;color:#9ca3af;border-top:1px solid #f3f4f6}
-    .footer a{color:#e11d48;text-decoration:none}
+    .footer a{color:#9333ea;text-decoration:none}
   </style>
 </head>
 <body>

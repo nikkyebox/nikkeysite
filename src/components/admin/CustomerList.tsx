@@ -648,7 +648,7 @@ const CustomerList: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className={`text-xs flex-1 ${customer.socialFollows?.instagram ? 'bg-pink-50 text-pink-700 border-pink-300' : 'text-pink-600 border-pink-200 hover:bg-pink-50'}`}
+                      className={`text-xs flex-1 ${customer.socialFollows?.instagram ? 'bg-purple-50 text-purple-700 border-purple-300' : 'text-purple-600 border-purple-200 hover:bg-purple-50'}`}
                       onClick={() => handleToggleSocialFollow(customer.email, customer.name, 'instagram', Boolean(customer.socialFollows?.instagram))}
                     >
                       <Instagram className="w-3 h-3 mr-1" />

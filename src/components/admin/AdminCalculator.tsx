@@ -286,8 +286,8 @@ const AdminCalculator: React.FC = () => {
       )}
 
       {/* ── Imposto de importação (destino) ── */}
-      <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-5">
-        <p className="text-[11px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wide mb-3">🏛️ Imposto de importação (destino)</p>
+      <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-2xl p-5">
+        <p className="text-[11px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">🏛️ Imposto de importação (destino)</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {([
@@ -299,7 +299,7 @@ const AdminCalculator: React.FC = () => {
             <button
               key={d}
               onClick={() => setTaxDest(d)}
-              className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${taxDest === d ? 'bg-rose-600 text-white border-rose-600' : 'border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/30'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${taxDest === d ? 'bg-purple-600 text-white border-purple-600' : 'border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'}`}
             >
               {label}
             </button>
@@ -309,15 +309,15 @@ const AdminCalculator: React.FC = () => {
         {/* Incluir frete na base do imposto (valor CIF) */}
         {taxDest !== 'none' && shippingOptions.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
-            <label className="inline-flex items-center gap-2 font-medium text-rose-700 dark:text-rose-300">
-              <input type="checkbox" checked={includeFreight} onChange={e => setIncludeFreight(e.target.checked)} className="accent-rose-600" />
+            <label className="inline-flex items-center gap-2 font-medium text-purple-700 dark:text-purple-300">
+              <input type="checkbox" checked={includeFreight} onChange={e => setIncludeFreight(e.target.checked)} className="accent-purple-600" />
               Incluir frete na base (CIF)
             </label>
             {includeFreight && (
               <select
                 value={freightIdx}
                 onChange={e => setFreightIdx(Number(e.target.value))}
-                className="border border-rose-300 dark:border-rose-700 rounded-lg px-2 py-1.5 text-xs bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="border border-purple-300 dark:border-purple-700 rounded-lg px-2 py-1.5 text-xs bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               >
                 {shippingOptions.map((opt, i) => (
                   <option key={opt.label} value={i}>{opt.label} — {yenFmt(opt.yen)}</option>
@@ -331,16 +331,16 @@ const AdminCalculator: React.FC = () => {
         {taxDest === 'BR' && (
           <div className="space-y-3">
             <div className="flex flex-col gap-1 max-w-xs">
-              <label className="text-xs text-rose-600 dark:text-rose-400 font-medium">CEP de destino (define o ICMS do estado)</label>
+              <label className="text-xs text-purple-600 dark:text-purple-400 font-medium">CEP de destino (define o ICMS do estado)</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={cep}
                 onChange={e => setCep(e.target.value)}
                 placeholder="01000-000"
-                className="w-40 border border-rose-300 dark:border-rose-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="w-40 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
-              <span className="text-[11px] text-rose-600 dark:text-rose-400">
+              <span className="text-[11px] text-purple-600 dark:text-purple-400">
                 {uf ? `Estado: ${uf} · ICMS ${(icmsRate * 100).toFixed(1)}%` : `CEP incompleto — usando ICMS médio ${(icmsRate * 100).toFixed(1)}%`}
               </span>
             </div>
@@ -349,7 +349,7 @@ const AdminCalculator: React.FC = () => {
                 <div className="flex justify-between max-w-md"><span className="text-muted-foreground">Base (produtos + PS{includeFreight ? ' + frete' : ''})</span><span className="font-semibold">{formatPrice(taxBaseBrl, 'BRL', true)}</span></div>
                 <div className="flex justify-between max-w-md"><span className="text-muted-foreground">Imposto federal (60%)</span><span className="font-semibold">{formatPrice(brTax.federal, 'BRL', true)}</span></div>
                 <div className="flex justify-between max-w-md"><span className="text-muted-foreground">ICMS {uf ? `(${uf})` : ''} {(icmsRate * 100).toFixed(1)}%</span><span className="font-semibold">{formatPrice(brTax.icms, 'BRL', true)}</span></div>
-                <div className="flex justify-between max-w-md border-t border-rose-200 dark:border-rose-800 pt-1"><span className="font-bold text-rose-700 dark:text-rose-300">Total impostos</span><span className="font-black text-rose-700 dark:text-rose-300">{formatPrice(brTax.total, 'BRL', true)}</span></div>
+                <div className="flex justify-between max-w-md border-t border-purple-200 dark:border-purple-800 pt-1"><span className="font-bold text-purple-700 dark:text-purple-300">Total impostos</span><span className="font-black text-purple-700 dark:text-purple-300">{formatPrice(brTax.total, 'BRL', true)}</span></div>
               </div>
             )}
           </div>
@@ -359,11 +359,11 @@ const AdminCalculator: React.FC = () => {
         {taxDest === 'EU' && (
           <div className="space-y-3">
             <div className="flex flex-col gap-1 max-w-xs">
-              <label className="text-xs text-rose-600 dark:text-rose-400 font-medium">País (define a alíquota do IVA)</label>
+              <label className="text-xs text-purple-600 dark:text-purple-400 font-medium">País (define a alíquota do IVA)</label>
               <select
                 value={euCountry}
                 onChange={e => setEuCountry(e.target.value as keyof typeof EU_VAT_RATES)}
-                className="w-48 border border-rose-300 dark:border-rose-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="w-48 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               >
                 {Object.entries(EU_VAT_RATES).map(([c, r]) => (
                   <option key={c} value={c}>{c} — IVA {(r * 100).toFixed(0)}%</option>
@@ -373,7 +373,7 @@ const AdminCalculator: React.FC = () => {
             {taxBaseEur > 0 && (
               <div className="text-sm space-y-1">
                 <div className="flex justify-between max-w-md"><span className="text-muted-foreground">Base (produtos + PS{includeFreight ? ' + frete' : ''})</span><span className="font-semibold">{formatPrice(taxBaseEur, 'EUR', true)}</span></div>
-                <div className="flex justify-between max-w-md border-t border-rose-200 dark:border-rose-800 pt-1"><span className="font-bold text-rose-700 dark:text-rose-300">IVA {euCountry} ({(euRate * 100).toFixed(0)}%)</span><span className="font-black text-rose-700 dark:text-rose-300">{formatPrice(euTax, 'EUR', true)}</span></div>
+                <div className="flex justify-between max-w-md border-t border-purple-200 dark:border-purple-800 pt-1"><span className="font-bold text-purple-700 dark:text-purple-300">IVA {euCountry} ({(euRate * 100).toFixed(0)}%)</span><span className="font-black text-purple-700 dark:text-purple-300">{formatPrice(euTax, 'EUR', true)}</span></div>
               </div>
             )}
           </div>
@@ -383,11 +383,11 @@ const AdminCalculator: React.FC = () => {
         {taxDest === 'US' && (
           <div className="space-y-3">
             <div className="flex flex-col gap-1 max-w-xs">
-              <label className="text-xs text-rose-600 dark:text-rose-400 font-medium">Estado (define o sales tax)</label>
+              <label className="text-xs text-purple-600 dark:text-purple-400 font-medium">Estado (define o sales tax)</label>
               <select
                 value={usState}
                 onChange={e => setUsState(e.target.value)}
-                className="w-48 border border-rose-300 dark:border-rose-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="w-48 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               >
                 {Object.entries(US_SALES_TAX).map(([st, r]) => (
                   <option key={st} value={st}>{st} — {(r * 100).toFixed(2)}%</option>
@@ -397,7 +397,7 @@ const AdminCalculator: React.FC = () => {
             {taxBaseUsd > 0 && (
               <div className="text-sm space-y-1">
                 <div className="flex justify-between max-w-md"><span className="text-muted-foreground">Base (produtos + PS{includeFreight ? ' + frete' : ''})</span><span className="font-semibold">{formatPrice(taxBaseUsd, 'USD', true)}</span></div>
-                <div className="flex justify-between max-w-md border-t border-rose-200 dark:border-rose-800 pt-1"><span className="font-bold text-rose-700 dark:text-rose-300">Sales Tax {usState} ({(usRate * 100).toFixed(2)}%)</span><span className="font-black text-rose-700 dark:text-rose-300">{formatPrice(usTax, 'USD', true)}</span></div>
+                <div className="flex justify-between max-w-md border-t border-purple-200 dark:border-purple-800 pt-1"><span className="font-bold text-purple-700 dark:text-purple-300">Sales Tax {usState} ({(usRate * 100).toFixed(2)}%)</span><span className="font-black text-purple-700 dark:text-purple-300">{formatPrice(usTax, 'USD', true)}</span></div>
               </div>
             )}
           </div>
@@ -405,23 +405,23 @@ const AdminCalculator: React.FC = () => {
 
         {/* Total com imposto */}
         {taxDest !== 'none' && grandTotalYen > 0 && (
-          <div className="mt-4 pt-3 border-t border-rose-200 dark:border-rose-800 flex flex-wrap gap-6">
+          <div className="mt-4 pt-3 border-t border-purple-200 dark:border-purple-800 flex flex-wrap gap-6">
             {taxDest === 'BR' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-rose-600 dark:text-rose-400">Total c/ imposto (R$)</p>
-                <p className="text-2xl font-black text-rose-800 dark:text-rose-200">{formatPrice(totalWithTaxBrl, 'BRL', true)}</p>
+                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (R$)</p>
+                <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxBrl, 'BRL', true)}</p>
               </div>
             )}
             {taxDest === 'EU' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-rose-600 dark:text-rose-400">Total c/ imposto (€)</p>
-                <p className="text-2xl font-black text-rose-800 dark:text-rose-200">{formatPrice(totalWithTaxEur, 'EUR', true)}</p>
+                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (€)</p>
+                <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxEur, 'EUR', true)}</p>
               </div>
             )}
             {taxDest === 'US' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-rose-600 dark:text-rose-400">Total c/ imposto ($)</p>
-                <p className="text-2xl font-black text-rose-800 dark:text-rose-200">{formatPrice(totalWithTaxUsd, 'USD', true)}</p>
+                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto ($)</p>
+                <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxUsd, 'USD', true)}</p>
               </div>
             )}
           </div>
@@ -595,11 +595,11 @@ const AdminCalculator: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-gray-500 uppercase font-bold text-[10px]">{taxLine.label}</p>
-                        <p className="font-bold text-rose-400">+ {formatPrice(taxLine.tax, taxLine.cur, true)}</p>
+                        <p className="font-bold text-purple-400">+ {formatPrice(taxLine.tax, taxLine.cur, true)}</p>
                       </div>
                       <div>
                         <p className="text-gray-500 uppercase font-bold text-[10px]">Total c/ imposto</p>
-                        <p className="font-black text-rose-300 text-sm">{formatPrice(taxLine.withTax, taxLine.cur, true)}</p>
+                        <p className="font-black text-purple-300 text-sm">{formatPrice(taxLine.withTax, taxLine.cur, true)}</p>
                       </div>
                     </div>
                   )}

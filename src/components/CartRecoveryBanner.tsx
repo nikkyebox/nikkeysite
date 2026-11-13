@@ -51,7 +51,7 @@ const CartRecoveryBanner: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:bottom-4 sm:w-96 z-50 animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border-2 border-pink-400 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border-2 border-purple-400 overflow-hidden">
         <button
           onClick={dismiss}
           aria-label={t('cartRecovery.close')}
@@ -59,7 +59,7 @@ const CartRecoveryBanner: React.FC = () => {
         >
           <X className="w-4 h-4" />
         </button>
-        <div className="bg-gradient-to-r from-pink-600 to-amber-500 px-4 py-3 text-white flex items-center gap-2">
+        <div className="bg-gradient-to-r from-purple-600 to-amber-500 px-4 py-3 text-white flex items-center gap-2">
           <ShoppingCart className="w-5 h-5" />
           <p className="font-bold text-sm">
             {t('cartRecovery.title')
@@ -80,7 +80,7 @@ const CartRecoveryBanner: React.FC = () => {
           </div>
           <button
             onClick={goToCart}
-            className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm"
+            className="w-full bg-gradient-to-r from-purple-600 to-amber-500 text-white font-bold py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm"
           >
             {t('cartRecovery.cta')} <ArrowRight className="w-4 h-4" />
           </button>

@@ -278,7 +278,7 @@ const ExitIntentPopup: React.FC = () => {
   if (variant === 'retention') {
     return (
       <Shell label={t('exit.retention.label')} onClose={close}>
-        <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-amber-500 p-6 text-center text-white">
           <ShoppingBag className="w-10 h-10 mx-auto mb-2" />
           <h2 className="text-xl font-black leading-tight">{t('exit.retention.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
@@ -288,7 +288,7 @@ const ExitIntentPopup: React.FC = () => {
         <div className="p-6 space-y-3">
           <button
             onClick={close}
-            className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
+            className="w-full bg-gradient-to-r from-purple-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
           >
             {t('exit.retention.back')}
           </button>
@@ -302,7 +302,7 @@ const ExitIntentPopup: React.FC = () => {
   if (variant === 'waiver_warning') {
     return (
       <Shell label={t('exit.warn.label')} onClose={close}>
-        <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-amber-500 p-6 text-center text-white">
           <Gift className="w-10 h-10 mx-auto mb-2" />
           <h2 className="text-xl font-black leading-tight">{t('exit.warn.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
@@ -312,7 +312,7 @@ const ExitIntentPopup: React.FC = () => {
         <div className="p-6 space-y-3">
           <button
             onClick={close}
-            className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
+            className="w-full bg-gradient-to-r from-purple-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
           >
             {t('exit.warn.back')}
           </button>
@@ -326,7 +326,7 @@ const ExitIntentPopup: React.FC = () => {
   if (variant === 'ps_offer') {
     return (
       <Shell label={t('exit.ps.label')} onClose={close}>
-        <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-amber-500 p-6 text-center text-white">
           <Gift className="w-10 h-10 mx-auto mb-2" />
           <h2 className="text-xl font-black leading-tight">{t('exit.ps.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
@@ -337,7 +337,7 @@ const ExitIntentPopup: React.FC = () => {
           <button
             onClick={acceptPsOffer}
             disabled={waiverLoading}
-            className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-gradient-to-r from-purple-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {waiverLoading
               ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('exit.ps.loading')}</>
@@ -367,7 +367,7 @@ const ExitIntentPopup: React.FC = () => {
 
   return (
     <Shell label={t('exit.guide.label')} onClose={close}>
-      <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
+      <div className="bg-gradient-to-br from-purple-600 to-amber-500 p-6 text-center text-white">
         <Gift className="w-10 h-10 mx-auto mb-2" />
         <h2 className="text-xl font-black leading-tight">
           {t('exit.guide.title')}
@@ -379,7 +379,7 @@ const ExitIntentPopup: React.FC = () => {
       <div className="p-6 space-y-3">
         <button
           onClick={handleCadastro}
-          className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-purple-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
           {t('exit.guide.cta')}
         </button>

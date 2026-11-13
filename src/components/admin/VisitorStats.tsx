@@ -59,14 +59,14 @@ export default function VisitorStats() {
       {/* Cabeçalho */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-pink-500" />
+          <Users className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold">Visitantes do Site</h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {([7, 30, 90] as const).map(d => (
             <button key={d} onClick={() => setPeriod(d)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                period === d ? 'bg-pink-500 text-white' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                period === d ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
               }`}>{d} dias</button>
           ))}
           <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-1.5">
@@ -85,7 +85,7 @@ export default function VisitorStats() {
         ] as { id: TabId; label: string; icon: React.ElementType }[]).map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setTab(id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              tab === id ? 'bg-pink-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              tab === id ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}>
             <Icon className="w-3.5 h-3.5" />{label}
           </button>
@@ -94,7 +94,7 @@ export default function VisitorStats() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-purple-200 border-t-primary rounded-full animate-spin" />
         </div>
       ) : summary ? (
         <>
@@ -126,7 +126,7 @@ export default function VisitorStats() {
           {tab === 'overview' && chartDays.length > 0 && (
             <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-4 h-4 text-pink-500" />
+                <TrendingUp className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Visitas — últimos {Math.min(14, chartDays.length)} dias</h3>
               </div>
               <div className="flex items-end gap-1 h-32">
@@ -139,7 +139,7 @@ export default function VisitorStats() {
                         {d.total}
                       </span>
                       <div
-                        className="w-full rounded-t-sm bg-pink-500 hover:bg-pink-400 transition-colors cursor-default"
+                        className="w-full rounded-t-sm bg-primary hover:bg-purple-400 transition-colors cursor-default"
                         style={{ height: `${pct}%` }}
                         title={`${label}: ${d.total} visitas`}
                       />
@@ -157,7 +157,7 @@ export default function VisitorStats() {
             {/* Top Países */}
             <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Globe className="w-4 h-4 text-pink-500" />
+                <Globe className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Países (top {summary.topCountries.length})</h3>
               </div>
               {summary.topCountries.length === 0 ? (
@@ -174,11 +174,11 @@ export default function VisitorStats() {
                             {COUNTRY_NAME[code] ?? code}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {count} <span className="text-pink-500 font-semibold">({pct}%)</span>
+                            {count} <span className="text-primary font-semibold">({pct}%)</span>
                           </span>
                         </div>
                         <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div className="h-full bg-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -188,9 +188,9 @@ export default function VisitorStats() {
 
               {/* Dica Instagram */}
               {summary.topCountries.length > 0 && (
-                <div className="mt-4 p-3 bg-pink-50 dark:bg-pink-950/20 rounded-xl border border-pink-100 dark:border-pink-900">
-                  <p className="text-xs font-semibold text-pink-700 dark:text-pink-300 mb-1">📸 Dica para o Instagram</p>
-                  <p className="text-xs text-pink-600 dark:text-pink-400 leading-relaxed">
+                <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-xl border border-purple-100 dark:border-purple-900">
+                  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">📸 Dica para o Instagram</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
                     {summary.topCountries[0]
                       ? `${pct_fmt(summary.topCountries[0], summary.totalVisits)} dos seus visitantes são do ${COUNTRY_NAME[summary.topCountries[0].code] ?? summary.topCountries[0].code}. Publique entre 19h–21h (horário local) para alcançar mais esse público.`
                       : 'Acumule mais dados para receber dicas personalizadas.'}
@@ -202,7 +202,7 @@ export default function VisitorStats() {
             {/* Top Cidades */}
             <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-4 h-4 text-pink-500" />
+                <MapPin className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Cidades (top {summary.topCities.length})</h3>
               </div>
               {summary.topCities.length === 0 ? (
@@ -214,7 +214,7 @@ export default function VisitorStats() {
                     return (
                       <div key={city} className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{city}</span>
-                        <span className="font-mono text-xs text-pink-600 font-semibold">{count} ({pct}%)</span>
+                        <span className="font-mono text-xs text-purple-600 font-semibold">{count} ({pct}%)</span>
                       </div>
                     );
                   })}
@@ -227,7 +227,7 @@ export default function VisitorStats() {
           {tab === 'pages' && (
             <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-4 h-4 text-pink-500" />
+                <FileText className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Páginas mais visitadas</h3>
               </div>
               {topPages.length === 0 ? (
@@ -245,10 +245,10 @@ export default function VisitorStats() {
                             <span className="truncate font-medium">{p.label}</span>
                             <span className="text-[10px] text-muted-foreground font-mono shrink-0 hidden sm:inline">{p.slug}</span>
                           </span>
-                          <span className="font-mono text-xs text-pink-600 font-semibold shrink-0 ml-2">{p.views.toLocaleString()}</span>
+                          <span className="font-mono text-xs text-purple-600 font-semibold shrink-0 ml-2">{p.views.toLocaleString()}</span>
                         </div>
                         <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div className="h-full bg-pink-400 rounded-full" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-purple-400 rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -262,7 +262,7 @@ export default function VisitorStats() {
           {tab === 'products' && (
             <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <ShoppingBag className="w-4 h-4 text-pink-500" />
+                <ShoppingBag className="w-4 h-4 text-primary" />
                 <h3 className="font-semibold text-sm">Produtos mais visualizados</h3>
               </div>
               {topProducts.length === 0 ? (
@@ -281,17 +281,17 @@ export default function VisitorStats() {
                               href={`/produto/${p.productId}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="truncate font-medium hover:text-pink-500 hover:underline transition-colors"
+                              className="truncate font-medium hover:text-primary hover:underline transition-colors"
                             >
                               {p.productName}
                             </a>
                           </span>
-                          <span className="font-mono text-xs text-pink-600 font-semibold shrink-0 ml-2">
+                          <span className="font-mono text-xs text-purple-600 font-semibold shrink-0 ml-2">
                             {p.views.toLocaleString()} views
                           </span>
                         </div>
                         <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div className="h-full bg-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -299,9 +299,9 @@ export default function VisitorStats() {
                 </div>
               )}
               {topProducts.length > 0 && (
-                <div className="mt-4 p-3 bg-pink-50 dark:bg-pink-950/20 rounded-xl border border-pink-100 dark:border-pink-900">
-                  <p className="text-xs font-semibold text-pink-700 dark:text-pink-300 mb-1">📸 Dica para o Instagram</p>
-                  <p className="text-xs text-pink-600 dark:text-pink-400 leading-relaxed">
+                <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-xl border border-purple-100 dark:border-purple-900">
+                  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">📸 Dica para o Instagram</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
                     <strong>{topProducts[0]?.productName}</strong> é o produto mais procurado. Publique stories e reels sobre ele para converter mais visitantes!
                   </p>
                 </div>
@@ -318,7 +318,7 @@ export default function VisitorStats() {
               </p>
             </div>
             <a href={GA4_URL} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-500 text-white text-sm font-semibold hover:bg-pink-600 transition-colors shrink-0">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-purple-600 transition-colors shrink-0">
               <ExternalLink className="w-4 h-4" />
               Abrir GA4
             </a>

@@ -7,7 +7,7 @@ export const TrustHighlights: React.FC = () => {
 
   const highlights = [
     {
-      icon: <ShieldCheck className="w-6 h-6 text-pink-600" />,
+      icon: <ShieldCheck className="w-6 h-6 text-purple-600" />,
       title: t('ui.home.trust1.title'),
       desc: t('ui.home.trust1.desc'),
     },
@@ -29,15 +29,15 @@ export const TrustHighlights: React.FC = () => {
   ];
 
   return (
-    <section className="py-8 bg-gradient-to-b from-pink-50/40 via-white to-white border-b border-pink-100/60">
+    <section className="py-8 bg-gradient-to-b from-purple-50/40 via-white to-white border-b border-purple-100/60">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {highlights.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-start gap-3.5 p-4 rounded-2xl border border-pink-100/80 bg-white/90 shadow-sm hover:shadow-md hover:border-pink-200 transition-all duration-300"
+              className="flex items-start gap-3.5 p-4 rounded-2xl border border-purple-100/80 bg-white/90 shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-300"
             >
-              <div className="shrink-0 p-2.5 rounded-xl bg-pink-50 ring-1 ring-pink-100">
+              <div className="shrink-0 p-2.5 rounded-xl bg-purple-50 ring-1 ring-purple-100">
                 {item.icon}
               </div>
               <div>

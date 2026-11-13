@@ -18,12 +18,12 @@ const CookieBanner: React.FC = () => {
       className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-20 sm:p-6 sm:pb-6 animate-in slide-in-from-bottom duration-300"
     >
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-pink-400 to-pink-400" />
+        <div className="h-1 bg-primary" />
 
         <div className="p-5 sm:p-6">
           <div className="flex items-start gap-4">
-            <div className="shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
-              <Cookie className="w-5 h-5 text-pink-500" />
+            <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Cookie className="w-5 h-5 text-primary" />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -48,7 +48,7 @@ const CookieBanner: React.FC = () => {
 
               <button
                 onClick={() => setExpanded(v => !v)}
-                className="flex items-center gap-1 text-xs text-pink-500 hover:text-pink-600 mt-2 font-medium transition-colors"
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 mt-2 font-medium transition-colors"
               >
                 {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 {expanded ? t('cookieBanner.hideDetails') : t('cookieBanner.showDetails')}
@@ -77,7 +77,7 @@ const CookieBanner: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-2 mt-4">
                 <button
                   onClick={accept}
-                  className="flex-1 bg-pink-500 hover:bg-pink-600 active:scale-95 text-white font-bold text-sm py-2.5 px-5 rounded-xl transition-all duration-200 shadow-sm"
+                  className="flex-1 bg-primary hover:bg-primary/90 active:scale-95 text-white font-bold text-sm py-2.5 px-5 rounded-xl transition-all duration-200 shadow-sm"
                 >
                   {t('cookieBanner.acceptAll')}
                 </button>

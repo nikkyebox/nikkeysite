@@ -88,7 +88,7 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <Link to={productUrl} className="hover:underline hover:text-pink-600 transition-colors">
+            <Link to={productUrl} className="hover:underline hover:text-purple-600 transition-colors">
               <h3 className="font-display font-semibold text-foreground truncate">
                 {productName}
               </h3>
@@ -143,7 +143,7 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
               </button>
             </div>
             {atPromoLimit && (
-              <p className="text-[10px] text-pink-600 font-semibold leading-tight">
+              <p className="text-[10px] text-purple-600 font-semibold leading-tight">
                 {t('cartItem.promoLimit').replace('{max}', String(promoMax))}
               </p>
             )}

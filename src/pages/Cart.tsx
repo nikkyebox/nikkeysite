@@ -536,7 +536,7 @@ const Cart: React.FC = () => {
                           </p>
                         )}
                         {hasPromoItems && regularSubtotal === 0 && (
-                          <p className="text-[11px] text-pink-600 font-semibold bg-pink-50 border border-pink-200 rounded-lg px-2 py-1.5 leading-snug">
+                          <p className="text-[11px] text-purple-600 font-semibold bg-purple-50 border border-purple-200 rounded-lg px-2 py-1.5 leading-snug">
                             ⚠️ {t('cart.allPromoItems')}
                           </p>
                         )}
@@ -550,12 +550,12 @@ const Cart: React.FC = () => {
 
                     {/* Tax displays only as estimated warnings for international destinations */}
                     {selectedCountry !== 'Japão' && estimatedTax > 0 && (
-                      <div className="bg-pink-50/50 dark:bg-pink-950/10 border border-pink-200/60 rounded-xl p-3 space-y-2 mt-2">
-                        <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-pink-300">
+                      <div className="bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/60 rounded-xl p-3 space-y-2 mt-2">
+                        <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-purple-300">
                           <span>{taxLabel}</span>
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
-                        <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
+                        <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                           ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('cart.taxReminder')}
                         </p>
                       </div>
@@ -574,7 +574,7 @@ const Cart: React.FC = () => {
                             {formatPrice(summaryBase, currency)}
                           </p>
                         )}
-                        <span className="font-black text-2xl text-pink-600">
+                        <span className="font-black text-2xl text-purple-600">
                           {formatPrice(grandTotal, currency)}
                         </span>
                         {discountAmount > 0 && (

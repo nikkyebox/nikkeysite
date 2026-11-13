@@ -61,25 +61,25 @@ const FeaturedProducts: React.FC = () => {
   const items = activeTab.items;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-pink-50/25 to-white py-10 sm:py-14">
-      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-fuchsia-200/20 blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-purple-50/25 to-white py-10 sm:py-14">
+      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-purple-200/20 blur-3xl" />
       <div className="container relative mx-auto px-4">
         <div className="mb-7 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-pink-500">{t('featured.badge')}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">{t('featured.badge')}</p>
             <h2 className="mt-1.5 text-3xl font-black tracking-[-0.035em] text-slate-950 md:text-4xl">{t('featured.title')}</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-500 md:text-base">{t('featured.subtitle')}</p>
           </div>
           <Link
             to="/produtos"
-            className="group inline-flex w-fit items-center gap-2 rounded-2xl border border-pink-100 bg-white px-4 py-2.5 text-sm font-extrabold text-pink-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md"
+            className="group inline-flex w-fit items-center gap-2 rounded-2xl border border-purple-100 bg-white px-4 py-2.5 text-sm font-extrabold text-purple-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-purple-200 hover:shadow-md"
           >
             {t('featured.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
 
-        <div className="mb-7 flex gap-2 overflow-x-auto rounded-2xl border border-pink-100/80 bg-white/75 p-2 shadow-sm backdrop-blur-xl scrollbar-hide md:w-fit">
+        <div className="mb-7 flex gap-2 overflow-x-auto rounded-2xl border border-purple-100/80 bg-white/75 p-2 shadow-sm backdrop-blur-xl scrollbar-hide md:w-fit">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
               type="button"
@@ -88,8 +88,8 @@ const FeaturedProducts: React.FC = () => {
               className={cn(
                 'shrink-0 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold transition-all duration-300',
                 tab === id
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white shadow-lg shadow-pink-500/20'
-                  : 'text-slate-500 hover:bg-pink-50 hover:text-pink-600'
+                  ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/20'
+                  : 'text-slate-500 hover:bg-purple-50 hover:text-purple-600'
               )}
               aria-pressed={tab === id}
             >
@@ -102,11 +102,11 @@ const FeaturedProducts: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
           {loading
             ? Array.from({ length: 10 }).map((_, idx) => (
-                <div key={idx} className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm animate-pulse">
-                  <div className="aspect-square bg-pink-50" />
+                <div key={idx} className="overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm animate-pulse">
+                  <div className="aspect-square bg-purple-50" />
                   <div className="space-y-2 p-3">
-                    <div className="h-3 w-4/5 rounded bg-pink-50" />
-                    <div className="h-4 w-2/3 rounded bg-pink-50" />
+                    <div className="h-3 w-4/5 rounded bg-purple-50" />
+                    <div className="h-4 w-2/3 rounded bg-purple-50" />
                   </div>
                 </div>
               ))
