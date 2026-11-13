@@ -2476,8 +2476,6 @@ elif menu == "🎂 Aniversários":
                 
                 validity_days = st.number_input("Validade (dias)", min_value=1, value=30, step=7)
             
-            free_shipping = st.checkbox("🚚 Incluir frete grátis?", value=False)
-            
             # Auto-generate code
             first_name = selected_client['name'].split()[0].upper()[:6]
             auto_code = f"NIVER{first_name}{today.strftime('%m')}"
@@ -2498,7 +2496,6 @@ elif menu == "🎂 Aniversários":
                     'description': f"Cupom de aniversário para {selected_client['name']}",
                     'targetType': 'specific',
                     'targetEmails': [selected_client['email']],
-                    'freeShipping': free_shipping,
                 }
                 
                 if create_coupon(db, coupon_data):

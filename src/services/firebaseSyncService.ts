@@ -163,7 +163,6 @@ const welcomeCoupons = (value: unknown): DataRecord[] => {
         'id',
         'description',
         'expiresAt',
-        'freeShipping',
         'affiliateCode',
         'affiliateProductId',
         'minOrderValue',

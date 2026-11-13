@@ -1349,7 +1349,7 @@ const Profile: React.FC = () => {
                                   <Truck className="w-3 h-3" />
                                   {t('profile.orders.shipping')} {carrierName && <span className="text-xs">({carrierName})</span>}
                                 </span>
-                                <span>{shippingCost === 0 ? <span className="text-green-600">{t('profile.orders.free')}</span> : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCost, oc), oc)}</span>
+                                <span>{formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCost, oc), oc)}</span>
                               </div>
                             )}
                             <div className="flex justify-between font-semibold pt-1 border-t border-border">

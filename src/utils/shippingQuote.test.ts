@@ -90,7 +90,7 @@ describe('quoteShipping — Japão', () => {
     }
   });
 
-  it('acima de ¥6.000 continua pagando o frete da zona (não existe frete grátis)', () => {
+  it('acima de ¥6.000 continua pagando o frete da zona', () => {
     const tokyo = japanPrefectures.find((p) => p.name === 'Tokyo')!;
     const zone = tokyo.zone as 1 | 2 | 3 | 4;
     const q = quoteShipping([item(product({ prices: { small: 7000, large: 8000 } }))], 'Japão', { prefecture: 'Tokyo' });

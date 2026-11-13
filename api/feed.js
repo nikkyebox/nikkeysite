@@ -16,7 +16,12 @@ import { emsRateYen } from './_lib/commerce.js';
 import { minEffectiveYen, variantPrices } from '../shared/pricing.js';
 import { taxDisclosure } from '../shared/tax-disclosure.js';
 import { fetchProducts, escapeXml, isVisibleInternationally } from './_lib/firestore-products.js';
-import { convertYen as convertYenFx, getFxRates } from './_lib/fx.js';
+import { yenToDisplay, getFxRates } from './_lib/fx.js';
+
+// Mesma conversão da vitrine e do checkout (`shared/money.js`): valor inteiro
+// na moeda do destino. O feed publicava centavos (R$ 50,43) para um produto que
+// a página mostra como R$ 50, e o Google compara os dois preços.
+const convertYenFx = (yen, currency, rates) => yenToDisplay(yen, currency, rates);
 
 const SITE_URL = 'https://www.nikkeybox.jp';
 
@@ -37,8 +42,8 @@ export function merchantDescription(description, region) {
   return `${source} ${disclosure}`.trim();
 }
 
-// A conversão é a MESMA de `_lib/fx.js`, que também serve o checkout: Wise →
-// open-er-api → taxa fixa, cushion de 4% fora da Wise, buffer de ¥5.
+// A conversão é a MESMA de `_lib/fx.js`/`shared/money.js`, que também servem o
+// checkout: open-er-api → taxa fixa, cushion de 4% fora da Wise, buffer de ¥5.
 //
 // O feed tinha uma tabela própria, fixa em 1/28 com cushion de 6% e sem consulta
 // à taxa viva. Isso publicava a maionese Kewpie por R$45,62 enquanto o site
@@ -272,7 +277,7 @@ function buildCatalog(products, region, rates) {
         totalYen,
         priceLocal: convertYenFx(productYen, currency, rates),
         shippingLocal: convertYenFx(shipYen, currency, rates),
-        totalLocal: convertYenFx(totalYen, currency, rates),
+        totalLocal: convertYenFx(productYen, currency, rates) + convertYenFx(shipYen, currency, rates),
         shippingByCountry,
         currency,
       };

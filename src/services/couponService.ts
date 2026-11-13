@@ -67,7 +67,6 @@ const loadCouponsFromFirestore = async (): Promise<Coupon[]> => {
         targetType: data.targetType || 'all',
         targetEmails: data.targetEmails || undefined,
         minOrders: data.minOrders || undefined,
-        freeShipping: data.freeShipping || false,
       });
     });
     

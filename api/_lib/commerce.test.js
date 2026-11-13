@@ -34,7 +34,8 @@ describe('authoritative checkout quote', () => {
     const result = quote({ requestedItems: [{ productId: 'p1', variantId: 'small', quantity: 2, price: 1, total: 1 }] });
     expect(result.items[0].unitYen).toBe(1000);
     expect(result.productSubtotalYen).toBe(2000);
-    expect(result.netProductsYen).toBe(1900);
+    // Sem o antigo desconto de 5% do cartão: a mercadoria é o que o cliente vê.
+    expect(result.netProductsYen).toBe(2000);
     expect(result.currency).toBe('BRL');
     expect(result.total).toBeGreaterThan(1);
   });
@@ -145,31 +146,132 @@ describe('authoritative checkout quote', () => {
   });
 
   // Regressão do BAIXO 1 do AUDITORIA.md: produtos, frete e subtotal eram
-  // convertidos cada um por conta própria, com cushion de 4% mais ¥5 de buffer
-  // por linha, enquanto cupom, pontos e taxa PS iam pela taxa exata. O cushion
-  // nunca alcançava os descontos, então a conta da tela ficava 4% dos descontos
-  // acima do total cobrado — cerca de R$2 num pedido com ¥1.500 de cupom.
-  // A prova é que a soma das linhas exibidas agora fecha com o total.
-  it('a soma das linhas exibidas (sem imposto) fecha com o total', () => {
+  // convertidos cada um por conta própria. Agora cada linha é um valor inteiro
+  // (shared/money.js) e o total cobrado é a soma exata das linhas exibidas.
+  it('a soma das linhas exibidas fecha com o total, em valores inteiros', () => {
     const result = quote({
       requestedItems: [{ productId: 'p1', variantId: 'small', quantity: 3 }],
       coupon: { code: 'GLOBAL10', discountType: 'percentage', discount: 10 },
       redeemPoints: 500,
     });
-    const { products, shipping, psFee, tax } = result.display;
+    const { subtotal, couponDiscount, pointsDiscount, products, shipping, psFee, importDuty, paymentFee } = result.display;
 
     // Sem estas parcelas o teste passaria por vacuidade.
     expect(shipping).toBeGreaterThan(0);
     expect(psFee).toBeGreaterThan(0);
-    expect(tax).toBeGreaterThan(0);
+    expect(couponDiscount).toBeGreaterThan(0);
+    expect(pointsDiscount).toBeGreaterThan(0);
 
-    // A invariante essencial: as linhas cobradas (produtos+frete+taxaPS) devem
-    // somar exatamente o total, em centavos inteiros (para evitar ruído de
-    // float). O imposto é só estimativa exibida — cobrado pela alfândega na
-    // entrega, nunca somado ao total cobrado pela loja.
-    const centavos = (valor) => Math.round(valor * 100);
-    expect(centavos(products) + centavos(shipping) + centavos(psFee))
-      .toBe(centavos(result.total));
+    for (const valor of [subtotal, couponDiscount, pointsDiscount, products, shipping, psFee, result.total]) {
+      expect(Number.isInteger(valor)).toBe(true);
+    }
+    expect(subtotal - couponDiscount - pointsDiscount).toBe(products);
+    expect(products + shipping + psFee + importDuty + paymentFee).toBe(result.total);
+  });
+
+  it('não existe desconto de 5% no cartão nem no PIX', () => {
+    const card = quote({ paymentMethod: 'card' });
+    const pix = quote({ paymentMethod: 'pix' });
+    // Mercadoria igual ao preço do produto (¥1.000), sem abatimento escondido.
+    expect(card.netProductsYen).toBe(1000);
+    expect(card.display.paymentDiscount).toBe(0);
+    expect(card.display.products).toBe(card.display.subtotal);
+    expect(pix.netProductsYen).toBe(1000);
+    expect(pix.display.paymentDiscount).toBe(0);
+  });
+
+  // PIX direto: IOF de 3,5% + tarifa fixa de R$ 32, somados ao total cobrado.
+  it('PIX em reais soma IOF e R$ 32 ao total; cartão não', () => {
+    const card = quote({ paymentMethod: 'card' });
+    const pix = quote({ paymentMethod: 'pix' });
+    expect(card.display.paymentFee).toBe(0);
+    expect(pix.display.pixBankFee).toBe(32);
+    expect(pix.display.pixIof).toBe(Math.round(card.total * 0.035));
+    expect(pix.display.paymentFee).toBe(pix.display.pixIof + 32);
+    expect(pix.total).toBe(card.total + pix.display.paymentFee);
+    expect(pix.display.products + pix.display.shipping + pix.display.psFee + pix.display.importDuty + pix.display.paymentFee).toBe(pix.total);
+  });
+
+  it('PIX fora do Brasil não soma taxa (a regra de país é validada em orders.js)', () => {
+    const result = quote({ country: 'Portugal', paymentMethod: 'pix' });
+    expect(result.currency).toBe('EUR');
+    expect(result.display.paymentFee).toBe(0);
+  });
+
+  // EUA: imposto de importação pré-pago (DDP) de 12,5% dos produtos + US$ 2,77.
+  it('EUA soma o imposto de importação pré-pago ao total', () => {
+    const result = quote({ country: 'Estados Unidos', prefecture: '', state: 'CA' });
+    const { products, shipping, psFee, importDuty, paymentFee } = result.display;
+    expect(result.currency).toBe('USD');
+    expect(importDuty).toBe(Math.round(products * 0.125 + 2.77));
+    expect(importDuty).toBeGreaterThan(0);
+    expect(paymentFee).toBe(0);
+    expect(products + shipping + psFee + importDuty).toBe(result.total);
+    expect(result.tax).toBe(0);
+  });
+
+  it('só os EUA pagam o imposto pré-pago', () => {
+    for (const country of ['Canadá', 'Portugal', 'Brasil']) {
+      expect(quote({ country }).display.importDuty).toBe(0);
+    }
+  });
+
+  it('EUA só aceitam EMS', () => {
+    expect(() => quote({ country: 'Estados Unidos', carrier: 'kozutsumi-air' })).toThrowError('shipping_unavailable');
+  });
+
+  it('cupom antigo com freeShipping não dá desconto nem zera o frete', () => {
+    const normal = quote();
+    const result = quote({ coupon: { code: 'FS', freeShipping: true } });
+    expect(result.couponDiscountYen).toBe(0);
+    expect(result.shippingYen).toBe(normal.shippingYen);
+    expect(result.total).toBe(normal.total);
+  });
+
+  it('percentual do cupom nunca passa de 100%', () => {
+    const result = quote({ coupon: { code: 'X', discountType: 'percentage', discount: 250 } });
+    expect(result.couponDiscountYen).toBe(1000);
+  });
+
+  it('cupom de afiliado não empilha no produto que já tem desconto', () => {
+    const emPromo = { ...product, discountPercent: 20 };
+    const afiliado = { code: 'ANA', discountType: 'percentage', discount: 10, affiliateCode: 'ANA' };
+    const result = quote({ products: new Map([['p1', emPromo]]), coupon: afiliado });
+    expect(result.items[0].unitYen).toBe(800);
+    expect(result.couponDiscountYen).toBe(0);
+    const comum = quote({ products: new Map([['p1', emPromo]]), coupon: { ...afiliado, affiliateCode: undefined } });
+    expect(comum.couponDiscountYen).toBe(80);
+  });
+
+  it('cupom com valor mínimo recusa carrinho abaixo dele', () => {
+    expect(() => quote({ coupon: { code: 'MIN', discountType: 'percentage', discount: 10, minOrderValue: 5000 } })).toThrowError('coupon_minimum_not_met');
+  });
+
+  // Negociação: manual vale o que a vendedora deu; automática (aprovada pelo
+  // servidor) é limitada a ¥300 por unidade do carrinho ATUAL.
+  it('negociação manual da taxa PS vale o que a vendedora aprovou', () => {
+    const result = quote({ negotiation: { status: 'approved', approvedBy: 'ana@loja.jp', type: 'ps_fee', approvedDiscountYen: 400 } });
+    expect(result.psFeeYen).toBe(600);
+    expect(result.psFeeDiscountYen).toBe(400);
+  });
+
+  it('negociação automática é limitada a ¥300 por unidade', () => {
+    const result = quote({ negotiation: { status: 'auto_approved', approvedBy: 'system', type: 'ps_fee', approvedDiscountYen: 5000 } });
+    expect(result.psFeeDiscountYen).toBe(300);
+    expect(result.psFeeYen).toBe(700);
+  });
+
+  it('aprovação gravada pelo navegador (approvedBy auto) segue recusada', () => {
+    const result = quote({ negotiation: { status: 'approved', approvedBy: 'auto', type: 'ps_fee', approvedDiscountYen: 300 } });
+    expect(result.psFeeDiscountYen).toBe(0);
+    expect(result.psFeeYen).toBe(1000);
+  });
+
+  it('isenção da taxa PS zera a taxa; pontos que cobrem tudo a devolvem cheia', () => {
+    expect(quote({ psFeeWaived: true }).psFeeYen).toBe(0);
+    const cobertura = quote({ psFeeWaived: true, redeemPoints: 99999 });
+    expect(cobertura.psFeeYen).toBe(1000);
+    expect(cobertura.display.products).toBe(0);
   });
 
   // Iene não tem centavo: a taxa efetiva é 1 e cada linha exibida é o próprio
@@ -179,15 +281,19 @@ describe('authoritative checkout quote', () => {
       country: 'Japão', prefecture: 'Tokyo', carrier: 'yuubin',
       coupon: { code: 'GLOBAL10', discountType: 'percentage', discount: 10 },
     });
-    const { subtotal, couponDiscount, pointsDiscount, paymentDiscount, products, shipping, psFee, tax } = result.display;
+    const { subtotal, couponDiscount, pointsDiscount, products, shipping, psFee, tax, importDuty, paymentFee } = result.display;
 
     for (const valor of [subtotal, couponDiscount, products, shipping, psFee, tax, result.total]) {
       expect(Number.isInteger(valor)).toBe(true);
     }
     expect(tax).toBe(0);
     expect(result.total).toBe(result.totalYen);
-    expect(subtotal - couponDiscount - pointsDiscount - paymentDiscount).toBe(products);
-    expect(products + shipping + psFee + tax).toBe(result.total);
+    expect(subtotal - couponDiscount - pointsDiscount).toBe(products);
+    expect(products + shipping + psFee + importDuty + paymentFee).toBe(result.total);
+  });
+
+  it('cotação ausente recusa o pedido em vez de cobrar zero', () => {
+    expect(() => quote({ rates: { source: 'open-er' } })).toThrowError('fx_unavailable');
   });
 });
 

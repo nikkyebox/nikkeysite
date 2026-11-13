@@ -32,7 +32,6 @@ function publicCoupon(code, coupon) {
     discountPercent,
     description: typeof coupon.description === 'string' ? coupon.description.slice(0, 300) : '',
     expiryDate: typeof coupon.expiryDate === 'string' ? coupon.expiryDate : '',
-    freeShipping: coupon.freeShipping === true,
     minOrderValue: Math.max(0, numberField(coupon.minOrderValue)),
   };
 }

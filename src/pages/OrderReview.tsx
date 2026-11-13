@@ -18,7 +18,7 @@ import { useProducts } from '@/context/ProductsContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen } from '@/utils/pricing';
 import { convertYen as fxConvert, loadFxRates, getRates, getRateSource } from '@/services/fxService';
-import { clientCheckoutTotals, checkoutLineFromItem, couponYenFor, type CheckoutCoupon } from '@/utils/checkoutTotals';
+import { clientCheckoutTotals, checkoutLineFromItem, couponYenFor, paymentMethodsForCountry, type CheckoutCoupon } from '@/utils/checkoutTotals';
 import { negotiationService } from '@/services/negotiationService';
 import { psFeeWaiver } from '@/utils/psFeeWaiver';
 import { productService } from '@/services/productService';
@@ -62,8 +62,8 @@ const OrderReview: React.FC = () => {
   const formData = location.state?.formData;
   const shipping = location.state?.shipping;
   const [, setCouponDiscount] = useState<number>(0);
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; freeShipping?: boolean } | null>(
-    (location.state?.coupon as { code: string; freeShipping?: boolean } | null | undefined) ?? null,
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string } | null>(
+    (location.state?.coupon as { code: string } | null | undefined) ?? null,
   );
   const psFeeYen: number = location.state?.psFeeYen || 0;
   const psFeeDiscountYen: number = location.state?.psFeeDiscountYen || 0;
@@ -108,7 +108,12 @@ const OrderReview: React.FC = () => {
       // Se o método pré-selecionado (cartão, por padrão) estiver desativado,
       // troca automaticamente para o primeiro disponível.
       setPaymentMethod((current) => {
-        const enabledByMethod: Record<string, boolean> = { pix: s.pixEnabled && formData?.country !== 'Japão', card: s.cardEnabled };
+        // PIX só no Brasil (é em R$); o resto do mundo paga no cartão. O servidor recusa o resto.
+        const allowed = paymentMethodsForCountry(formData?.country);
+        const enabledByMethod: Record<string, boolean> = {
+          pix: s.pixEnabled && allowed.includes('pix'),
+          card: s.cardEnabled && allowed.includes('card'),
+        };
         if (enabledByMethod[current]) return current;
         return (['pix', 'card'] as const).find((m) => enabledByMethod[m]) || 'card';
       });
@@ -137,6 +142,8 @@ const OrderReview: React.FC = () => {
   const isEurope = ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country);
   const isUsa = formData.country === 'Estados Unidos';
   const currency = getCurrencyByCountry(formData.country);
+  // Japão: só cartão; Brasil: PIX e cartão; demais países: só cartão.
+  const allowedMethods = paymentMethodsForCountry(formData.country);
 
   const convertYen = (yen: number) => fxConvert(yen, currency);
   const convertYenExact = (yen: number) => fxConvert(yen, currency, true);
@@ -146,7 +153,7 @@ const OrderReview: React.FC = () => {
     (sum, item) => item.freeGift ? sum : sum + effectiveYen(item.product, item.size) * item.quantity, 0
   );
 
-  // Conta do checkout: a MESMA do servidor (shared/checkout-totals.js), com os
+  // Conta do checkout: a MESMA do servidor (shared/money.js), com os
   // dados desta tela. O total exibido é o que o servidor cobra.
   // Gasto dos últimos 3 meses-calendário, para o multiplicador de pontos.
   // A conta mora em `utils/loyaltySpend` porque o perfil mostra o MESMO nível.
@@ -178,7 +185,7 @@ const OrderReview: React.FC = () => {
     : 0;
 
   const isPix = paymentMethod === 'pix';
-  // Frete em ¥: o desconto negociado sai do custo (não há frete grátis por cupom).
+  // Frete em ¥: o desconto negociado sai do custo.
   const rawShippingYen = shipping.costYen ?? 0;
   const finalShippingYen = Math.max(0, rawShippingYen - shippingDiscountYen);
   const totals = clientCheckoutTotals({
@@ -187,6 +194,7 @@ const OrderReview: React.FC = () => {
     redeemPoints,
     paymentMethod,
     currency,
+    country: formData.country,
     rates: { ...getRates(), source: getRateSource() },
     finalShippingYen,
     negotiatedPsDiscountYen: psFeeDiscountYen,
@@ -194,13 +202,14 @@ const OrderReview: React.FC = () => {
   const baseTotalPrice = totals.display.subtotal;
   const couponDiscount = totals.display.couponDiscount;
   const pointsDiscount = totals.display.pointsDiscount;
-  const paymentDiscount = totals.display.paymentDiscount;
   const finalShippingCost = totals.display.shipping;
   const psFeeDisplay = totals.display.psFee;
   const psFeeFinalYen = totals.psFeeYenCharged;
+  // Imposto de importação dos EUA (pré-pago) e taxas do PIX: linhas próprias, somadas ao total.
+  const importDutyDisplay = totals.display.importDuty;
+  const pixIofFee = totals.display.pixIof;
+  const pixBankFee = totals.display.pixBankFee;
   const finalGrandTotal = totals.total;
-  // Sem desconto por método de pagamento além do de cartão/PIX, já na conta.
-  const pixDiscount = 0;
   const priceAfterPix = totals.display.products;
 
   // Taxes (Estimated only, NOT added to grand total)
@@ -271,7 +280,6 @@ const OrderReview: React.FC = () => {
           discountType: gc.type === 'fixed' ? 'fixed' : 'percentage',
           expiresAt: gc.expiryDate,
           isUsed: false,
-          freeShipping: gc.freeShipping,
         };
         setCouponDiscount(disc);
         setAppliedCoupon(couponObj);
@@ -556,20 +564,6 @@ const OrderReview: React.FC = () => {
                     </div>
                   )}
 
-                  {paymentDiscount > 0 && (
-                    <div className="flex justify-between text-green-700 font-bold bg-green-50/60 p-2 rounded border border-dashed border-green-200">
-                      <span>{t('review.paymentDiscount')}</span>
-                      <span>-{formatPrice(paymentDiscount, currency)}</span>
-                    </div>
-                  )}
-
-                  {pixDiscount > 0 && (
-                    <div className="flex justify-between text-pink-600 font-bold bg-pink-50 p-2 rounded border border-dashed border-pink-200">
-                      <span>{t('review.pixExtra')}</span>
-                      <span>-{formatPrice(pixDiscount, 'BRL')}</span>
-                    </div>
-                  )}
-
                   {user && earnedPoints > 0 && (
                     <div className="flex justify-between text-green-700 text-xs bg-green-50/60 p-2 rounded">
                       <span className="flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" /> {t('review.willEarn')}</span>
@@ -592,7 +586,7 @@ const OrderReview: React.FC = () => {
 
                   <div className="flex justify-between text-muted-foreground">
                     <span>{isJapan ? t('review.freightLocal') : t('review.freightAir')} ({shipping.carrier})</span>
-                    <span>{finalShippingCost === 0 ? t('order.shipping.free') : formatPrice(finalShippingCost, currency)}</span>
+                    <span>{formatPrice(finalShippingCost, currency)}</span>
                   </div>
 
                   <div className="text-[10px] text-gray-400 text-right">
@@ -615,6 +609,32 @@ const OrderReview: React.FC = () => {
                     </div>
                   )}
 
+
+                  {/* EUA: imposto de importação pré-pago pela loja (DDP), dentro do total. */}
+                  {importDutyDisplay > 0 && (
+                    <div className="text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>{t('review.importDuty')}</span>
+                        <span>{formatPrice(importDutyDisplay, currency)}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{t('review.importDutyNote')}</p>
+                    </div>
+                  )}
+
+                  {/* PIX direto: IOF + tarifa do banco, somados ao total cobrado. */}
+                  {isPix && pixIofFee + pixBankFee > 0 && (
+                    <div className="space-y-1 text-muted-foreground">
+                      <p className="text-[11px] font-semibold">{t('review.pixFeesTitle')}</p>
+                      <div className="flex justify-between">
+                        <span>{t('review.iof')}</span>
+                        <span>{formatPrice(pixIofFee, currency)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>{t('review.bankFee')}</span>
+                        <span>{formatPrice(pixBankFee, currency)}</span>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex justify-between pt-3 border-t border-border font-black text-lg">
                     <span>{t('review.totalGeneral')}</span>
@@ -733,7 +753,7 @@ const OrderReview: React.FC = () => {
 
                           Não precisa de guarda contra ficar selecionado e invisível: o
                           efeito da linha ~97 já troca para o primeiro método ativo. */}
-                      {paySettings.pixEnabled && !isJapan && (
+                      {paySettings.pixEnabled && allowedMethods.includes('pix') && (
                       <div className={cn(
                         "flex items-start space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer",
                         paymentMethod === 'pix' ? "border-pink-500 bg-pink-50/50" : "border-border hover:border-gray-300"
@@ -835,7 +855,7 @@ const OrderReview: React.FC = () => {
 
                       <div className="flex justify-between text-muted-foreground">
                         <span>{t('review.shipping')}</span>
-                        <span>{finalShippingCost === 0 ? t('order.shipping.free') : formatPrice(finalShippingCost, currency)}</span>
+                        <span>{formatPrice(finalShippingCost, currency)}</span>
                       </div>
 
                       {psFeeYen > 0 && (
@@ -847,6 +867,26 @@ const OrderReview: React.FC = () => {
                         </div>
                       )}
 
+                      {importDutyDisplay > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>{t('review.importDuty')}</span>
+                          <span>{formatPrice(importDutyDisplay, currency)}</span>
+                        </div>
+                      )}
+
+                      {isPix && pixIofFee + pixBankFee > 0 && (
+                        <>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>{t('review.iof')}</span>
+                            <span>{formatPrice(pixIofFee, currency)}</span>
+                          </div>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>{t('review.bankFeeShort')}</span>
+                            <span>{formatPrice(pixBankFee, currency)}</span>
+                          </div>
+                        </>
+                      )}
+
                       {estimatedTax > 0 && (
                         <p className="text-[10px] text-pink-600 bg-pink-50 rounded px-2 py-1 leading-snug">
                           ⚠️ {taxLabel} ~{formatPrice(estimatedTax, currency)} ({t('review.taxNotIncluded')})
@@ -855,28 +895,10 @@ const OrderReview: React.FC = () => {
                     </div>
 
                     <div className="border-t border-border mt-4 pt-4">
-                      {paymentDiscount > 0 && (
-                        <div className="flex justify-between text-green-600 font-semibold">
-                          <span>{t('review.paymentDiscount')}</span>
-                          <span>-{formatPrice(paymentDiscount, currency)}</span>
-                        </div>
-                      )}
-
-                      {/* Total sem método específico */}
-                      {!isPix && (
-                        <div className="flex justify-between font-black text-xl mb-3">
-                          <span>{t('cart.total')}</span>
-                          <span className="text-pink-600">{formatPrice(finalGrandTotal, currency)}</span>
-                        </div>
-                      )}
-
-                      {/* Total geral (sempre visível abaixo do bloco PIX) */}
-                      {isPix && (
-                        <div className="flex justify-between font-black text-base text-muted-foreground mb-3">
-                          <span>{t('review.totalGeneral')}</span>
-                          <span className="text-pink-600 text-xl">{formatPrice(finalGrandTotal, currency)}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between font-black text-xl mb-3">
+                        <span>{t('cart.total')}</span>
+                        <span className="text-pink-600">{formatPrice(finalGrandTotal, currency)}</span>
+                      </div>
 
                       <Button
                         onClick={handleProceedToPayment}

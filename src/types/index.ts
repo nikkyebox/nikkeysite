@@ -133,11 +133,18 @@ export interface Order {
     subtotal: number;
     couponDiscount: number;
     pointsDiscount: number;
-    paymentDiscount: number;
+    /** Só em pedidos antigos (desconto de 5% que saiu em 2026). */
+    paymentDiscount?: number;
     products: number;
     shipping: number;
     psFee: number;
     tax: number;
+    /** Imposto de importação dos EUA pré-pago (DDP), somado ao total. */
+    importDuty?: number;
+    /** Taxa total do PIX (IOF + tarifa), somada ao total. */
+    paymentFee?: number;
+    pixIof?: number;
+    pixBankFee?: number;
   };
   shippingAddress?: OrderShippingAddress;
   trackingNumber?: string;
@@ -189,6 +196,5 @@ export interface Coupon {
   targetType?: 'all' | 'specific' | 'birthday' | 'loyalty'; // Quem pode usar
   targetEmails?: string[]; // Lista de emails específicos (quando targetType = 'specific')
   minOrders?: number; // Mínimo de pedidos no histórico (quando targetType = 'loyalty')
-  freeShipping?: boolean; // Legado: cupom de frete grátis foi desativado (não zera o frete nem dá desconto)
   minOrderValue?: number; // Valor mínimo do pedido em ¥ para usar o cupom
 }

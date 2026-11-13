@@ -27,10 +27,9 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
   const [showCoupons, setShowCoupons] = useState(false);
 
   // Apenas os cupons do PERFIL que estão válidos (não usados, não expirados).
-  // Cupom de "frete grátis" (freeShipping) não existe mais: não é oferecido.
   const now = new Date();
   const availableCoupons = coupons.filter(
-    (c) => !c.isUsed && new Date(c.expiresAt) > now && !c.freeShipping
+    (c) => !c.isUsed && new Date(c.expiresAt) > now
   );
 
   const handleSelectCoupon = (coupon: Coupon) => {

@@ -104,13 +104,13 @@ export function calcImportTax(price: number, country: string, stateCode?: string
     return { tax: 0, label: '' };
   }
   if (country === 'Estados Unidos') {
-    const tax = calcUsSalesTax(price, stateCode);
-    const stRate = US_SALES_TAX[(stateCode || '').toUpperCase()];
-    if (stRate != null) {
-      const pct = (stRate * 100).toFixed(1);
-      return { tax, label: `Sales Tax Est. (${stateCode} ${pct}%)`, labelKey: 'util.tax.usState', labelVars: { uf: String(stateCode), pct } };
-    }
-    return { tax, label: 'Sales Tax Estimado (US)', labelKey: 'util.tax.usAvg' };
+    // Desde 15/10/2026 o Japan Post só aceita mercadoria para os EUA com o
+    // imposto pré-pago (DDP). A loja paga antes de postar e o valor já entra no
+    // total como linha própria (`importDuty`, `shared/money.js`); o cliente não
+    // paga nada na entrega. Mostrar aqui um "sales tax a pagar na alfândega"
+    // seria cobrar a mesma coisa duas vezes na cabeça do cliente.
+    void stateCode;
+    return { tax: 0, label: '' };
   }
   const cfg = getCountryConfig(country);
   const rate = cfg ? cfg.vat : 0.10;

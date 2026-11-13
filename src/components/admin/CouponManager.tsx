@@ -1,6 +1,6 @@
 import { errorMessage } from '@/utils/errors';
 import React, { useState, useEffect } from 'react';
-import { Tag, Plus, Trash2, Edit2, Calendar, Percent, DollarSign, Check, X, Gift, Star, Users, Truck } from 'lucide-react';
+import { Tag, Plus, Trash2, Edit2, Calendar, Percent, DollarSign, Check, X, Gift, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +29,6 @@ const CouponManager: React.FC = () => {
     targetType: 'all' as 'all' | 'specific' | 'birthday' | 'loyalty',
     targetEmails: '',
     minOrders: 0,
-    freeShipping: false,
   });
 
   useEffect(() => {
@@ -104,7 +103,6 @@ const CouponManager: React.FC = () => {
         targetType: formData.targetType,
         targetEmails: emails.length ? emails : undefined,
         minOrders: formData.targetType === 'loyalty' ? formData.minOrders : undefined,
-        freeShipping: formData.freeShipping,
         minOrderValue: formData.minOrderValue || undefined,
       });
 
@@ -117,7 +115,6 @@ const CouponManager: React.FC = () => {
         discountType: formData.type === 'fixed' ? ('fixed' as const) : ('percentage' as const),
         expiresAt: new Date(expiry).toISOString(),
         isUsed: false,
-        freeShipping: formData.freeShipping,
       };
 
       await ensureAdminAuth();
@@ -152,7 +149,6 @@ const CouponManager: React.FC = () => {
         targetType: 'all',
         targetEmails: '',
         minOrders: 0,
-        freeShipping: false,
       });
       setIsCreating(false);
       loadCoupons();
@@ -407,20 +403,6 @@ const CouponManager: React.FC = () => {
                 </div>
               )}
 
-              {/* Free Shipping option */}
-              <div className="space-y-2 md:col-span-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="freeShipping"
-                    checked={formData.freeShipping}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <Truck className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Frete Grátis (cupom dá frete grátis ao invés de desconto no valor)</span>
-                </label>
-              </div>
             </div>
 
             <div className="flex gap-2 justify-end">
@@ -484,7 +466,7 @@ const CouponManager: React.FC = () => {
                       <div>
                         <p className="text-muted-foreground text-xs mb-1">Desconto</p>
                         <p className="font-semibold">
-                          {coupon.freeShipping ? '🚚 Frete Grátis' : coupon.type === 'percent'
+                          {coupon.type === 'percent'
                             ? `${coupon.discountPercent}%`
                             : `¥${coupon.discount.toLocaleString()}`}
                         </p>

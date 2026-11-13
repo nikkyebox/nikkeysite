@@ -54,11 +54,18 @@ export interface AuthoritativeCheckoutOrder {
     subtotal: number;
     couponDiscount: number;
     pointsDiscount: number;
-    paymentDiscount: number;
+    /** Só em pedidos antigos (desconto de 5% que saiu em 2026). */
+    paymentDiscount?: number;
     products: number;
     shipping: number;
     psFee: number;
     tax: number;
+    /** Imposto de importação dos EUA pré-pago (DDP), somado ao total. */
+    importDuty?: number;
+    /** Taxa total do PIX (IOF + tarifa), somada ao total. */
+    paymentFee?: number;
+    pixIof?: number;
+    pixBankFee?: number;
   };
   items: Array<{
     productId: string;

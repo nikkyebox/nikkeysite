@@ -81,6 +81,8 @@ service cloud.firestore {
     }
 
     function validWelcomeCoupons(data) {
+      // 'freeShipping' é campo legado (frete grátis foi removido). Continua aceito só
+      // para não rejeitar perfis antigos; o app não lê nem grava mais esse campo.
       return !data.keys().hasAny(['coupons'])
         || (data.coupons is list && (
           data.coupons.size() == 0

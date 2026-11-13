@@ -44,7 +44,8 @@ function pedido({ country, cpf }) {
       prefecture: '',
       state: country === 'Brasil' ? 'SP' : '',
       shippingCarrier: 'ems',
-      paymentMethod: 'pix',
+      // PIX só no Brasil; fora dele o único método é o cartão.
+      paymentMethod: country === 'Brasil' ? 'pix' : 'card',
       couponCode: '',
       redeemPoints: 0,
       negotiationId: '',

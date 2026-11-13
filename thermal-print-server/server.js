@@ -110,9 +110,7 @@ function printOrder(order) {
     const YEN_PER_BRL_FALLBACK = 28 / 1.04;
     const shippingCostDisplay = shippingCost == null
       ? null
-      : shippingCost === 0
-        ? 'GRATIS'
-        : orderCurrency === 'JPY'
+      : orderCurrency === 'JPY'
           ? `\u00a5${Math.round(shippingCost).toLocaleString()}`
           : `R$${(shippingCost / YEN_PER_BRL_FALLBACK).toFixed(2)}`;
 

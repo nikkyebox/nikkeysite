@@ -24,11 +24,17 @@ import { useLanguage, CountryType } from '@/context/LanguageContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen } from '@/utils/pricing';
 import { convertYen as fxConvert, yenFromConverted, getRates, getRateSource, loadFxRates } from '@/services/fxService';
-import { clientCheckoutTotals, checkoutLineFromItem, couponYenFor, type CheckoutCoupon } from '@/utils/checkoutTotals';
+import {
+  clientCheckoutTotals,
+  checkoutLineFromItem,
+  couponYenFor,
+  PS_FEE_PER_UNIT_YEN,
+  PS_FEE_AUTO_DISCOUNT_PER_UNIT_YEN,
+  type CheckoutCoupon,
+} from '@/utils/checkoutTotals';
 import { POINTS } from '@/services/pointsService';
 import { safeStorage } from '@/utils/storage';
 import { checkoutPointsCoverage, psFeeWaiver, PS_FEE_WAIVER_EVENT } from '@/utils/psFeeWaiver';
-import { psFeeSettingsService, DEFAULT_PS_FEE_UNIT_YEN } from '@/services/psFeeSettingsService';
 import { COUPONS_ENABLED } from '@/config/featureFlags';
 import { productEnglishName } from '@/utils/productName';
 import { isValidEmail, isValidCPF, isValidPhone, isNonEmpty, maskPhone, runValidations, FieldErrors } from '@/utils/validation';
@@ -114,7 +120,6 @@ const Checkout: React.FC = () => {
   const canRedeem = availablePoints >= POINTS.minRedeem;
   const [pointsToUse, setPointsToUse] = useState(0);
   const productSubtotalYen = items.reduce((s, i) => i.freeGift ? s : s + effectiveYen(i.product, i.size) * i.quantity, 0);
-  const convertYen = (yen: number) => fxConvert(yen, currency);
   // Sem buffer para taxas fixas em ¥ (ex.: taxa PS): evita exibir ¥2.050 em vez de ¥2.000
   const convertYenExact = (yen: number) => fxConvert(yen, currency, true);
   const maxRedeemable = canRedeem ? Math.min(availablePoints, Math.floor(productSubtotalYen / POINTS.yenPerPoint)) : 0;
@@ -137,13 +142,10 @@ const Checkout: React.FC = () => {
   // Erros de validação do formulário
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  // PS fee — ¥/unidade comprada (exceto produtos isentos: noPsFee). Valor
-  // configurável pelo admin (ver src/services/psFeeSettingsService.ts) —
-  // 1000 aqui é só o fallback antes da leitura do Firestore terminar.
-  const [psFeeUnitYen, setPsFeeUnitYen] = useState(DEFAULT_PS_FEE_UNIT_YEN);
-  useEffect(() => {
-    psFeeSettingsService.get().then((s) => setPsFeeUnitYen(s.psFeeUnitYen));
-  }, []);
+  // PS fee — ¥/unidade comprada (exceto produtos isentos: noPsFee). Fixa em
+  // ¥1.000: é o valor que o servidor cobra (`shared/money.js`). Um valor
+  // diferente configurado no painel nunca chegou à cobrança, só à tela.
+  const psFeeUnitYen = PS_FEE_PER_UNIT_YEN;
 
   // Mesma cotação pode estar minutos/horas desatualizada (carregada no boot
   // do app) — busca de novo ao entrar no checkout pra reduzir a divergência
@@ -155,8 +157,8 @@ const Checkout: React.FC = () => {
   const totalQty = items.reduce((s, i) => i.freeGift ? s : s + i.quantity, 0);
   const psFeeQty = items.reduce((s, i) => (i.freeGift || i.product.noPsFee) ? s : s + i.quantity, 0);
   const psFeeYen = psFeeQty * psFeeUnitYen;
-  // Desconto automático segue a mesma proporção de antes (300 de 1000 = 30%).
-  const psFeeAutoApprovableUnitYen = Math.round(psFeeUnitYen * 0.3);
+  // Desconto automático: ¥300 por unidade (o mesmo teto que o servidor aceita).
+  const psFeeAutoApprovableUnitYen = PS_FEE_AUTO_DISCOUNT_PER_UNIT_YEN;
 
   // Isenção da taxa PS pela oferta de saída (exit-intent). Lida uma vez ao montar:
   // se ativa, a taxa de Personal Shopper é zerada nesta visita (ponto 2 do checkout).
@@ -601,8 +603,6 @@ const Checkout: React.FC = () => {
     });
   };
 
-  const rawShippingCost = selectedShipping?.cost || 0;
-  const shippingDiscountDisplay = convertYen(shippingDiscountYen);
 
   // PS fee final — para auto-aprovação, cap impede manipulação de carrinho.
   // Para aprovação manual pelo admin, respeita o valor aprovado (apenas cap no valor real da taxa).
@@ -617,18 +617,38 @@ const Checkout: React.FC = () => {
   const psFeeFinalYen = Math.max(0, psFeeYen - effectivePsFeeDiscountYen);
   const psFeeOriginalDisplay = convertYenExact(psFeeYen);
 
-  // Conta do checkout: a MESMA do servidor (shared/checkout-totals.js). A forma de
-  // pagamento ainda não foi escolhida aqui: o desconto de 5% (cartão/PIX) entra na revisão.
+  // Conta do checkout: a MESMA do servidor (shared/money.js). A forma de
+  // pagamento ainda não foi escolhida aqui: as taxas do PIX (IOF + tarifa) entram
+  // na revisão, que é onde o cliente escolhe PIX ou cartão.
+  const checkoutLines = items.map((i) => checkoutLineFromItem({ product: i.product, size: i.size, quantity: i.quantity, freeGift: i.freeGift }));
+  const checkoutRates = { ...getRates(), source: getRateSource() };
   const totals = clientCheckoutTotals({
-    lines: items.map((i) => checkoutLineFromItem({ product: i.product, size: i.size, quantity: i.quantity, freeGift: i.freeGift })),
+    lines: checkoutLines,
     coupon: (appliedCoupon ?? null) as CheckoutCoupon | null,
     redeemPoints,
     paymentMethod: '',
     currency,
-    rates: { ...getRates(), source: getRateSource() },
+    country: formData.country,
+    rates: checkoutRates,
     finalShippingYen: Math.max(0, (selectedShipping?.costYen ?? 0) - shippingDiscountYen),
     negotiatedPsDiscountYen: effectivePsFeeDiscountYen,
   });
+  // O mesmo carrinho sem nenhum desconto (cupom, pontos, taxa PS, frete): é o
+  // total riscado e a economia que o cliente vê, pela mesma conta.
+  const totalsWithoutDiscounts = clientCheckoutTotals({
+    lines: checkoutLines,
+    coupon: null,
+    redeemPoints: 0,
+    paymentMethod: '',
+    currency,
+    country: formData.country,
+    rates: checkoutRates,
+    finalShippingYen: Math.max(0, selectedShipping?.costYen ?? 0),
+    negotiatedPsDiscountYen: 0,
+  });
+  const totalSavings = Math.max(0, totalsWithoutDiscounts.total - totals.total);
+  const shippingDiscountDisplay = Math.max(0, totalsWithoutDiscounts.display.shipping - totals.display.shipping);
+  const importDutyDisplay = totals.display.importDuty;
   const couponDiscount = totals.display.couponDiscount;
   const pointsDiscount = totals.display.pointsDiscount;
   const actualShippingCost = totals.display.shipping;
@@ -1242,7 +1262,7 @@ const Checkout: React.FC = () => {
                       </span>
                       {selectedShipping ? (
                         <span className="font-semibold text-gray-800">
-                          {actualShippingCost === 0 ? t('order.shipping.free') : formatPrice(actualShippingCost, currency)}
+                          {formatPrice(actualShippingCost, currency)}
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-[10px]">
@@ -1357,20 +1377,33 @@ const Checkout: React.FC = () => {
                       </div>
                     )}
 
+                    {/* EUA: imposto de importação pré-pago pela loja (DDP), dentro do total. */}
+                    {importDutyDisplay > 0 && (
+                      <div className="pt-2 border-t border-border/60">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{t('review.importDuty')}</span>
+                          <span className="font-semibold text-gray-800">{formatPrice(importDutyDisplay, currency)}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                          {t('review.importDutyNote')}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex justify-between pt-2 border-t border-border font-bold items-start">
                       <span className="text-sm">{t('checkout.totalToPay')}</span>
                       <div className="text-right">
-                        {(couponDiscount > 0 || pointsDiscount > 0 || psFeeDiscountYen > 0 || shippingDiscountYen > 0) && (
+                        {totalSavings > 0 && (
                           <p className="text-xs text-muted-foreground line-through font-normal">
-                            {formatPrice(totals.display.subtotal + rawShippingCost + psFeeOriginalDisplay, currency)}
+                            {formatPrice(totalsWithoutDiscounts.total, currency)}
                           </p>
                         )}
                         <span className="text-base text-pink-600">
                           {formatPrice(grandTotal, currency)}
                         </span>
-                        {(couponDiscount + pointsDiscount + convertYen(effectivePsFeeDiscountYen) + shippingDiscountDisplay) > 0 && (
+                        {totalSavings > 0 && (
                           <p className="text-[10px] text-green-600 font-bold mt-0.5">
-                            {t('cart.youSave')} {formatPrice(couponDiscount + pointsDiscount + convertYen(effectivePsFeeDiscountYen) + shippingDiscountDisplay, currency)}
+                            {t('cart.youSave')} {formatPrice(totalSavings, currency)}
                           </p>
                         )}
                       </div>

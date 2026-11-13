@@ -45,4 +45,7 @@ export function currencyForCountry(country) {
   return euroCountries.has(country) ? 'EUR' : 'USD';
 }
 
-export { convertYen } from '../../shared/checkout-totals.js';
+// A conversão ¥ → moeda do cliente mora em shared/money.js (a mesma da vitrine
+// e do checkout): valor inteiro, ¥5 de margem por unidade e cushion conforme a
+// origem da cotação (`rateCushion`: Wise 0, demais +4%).
+export { yenToDisplay, rateCushion } from '../../shared/money.js';

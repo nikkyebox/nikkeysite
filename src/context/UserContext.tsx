@@ -55,7 +55,6 @@ export interface Coupon {
   discountType: 'percentage' | 'fixed';
   expiresAt: string;
   isUsed: boolean;
-  freeShipping?: boolean;
   affiliateCode?: string;     // se preenchido, é um código de influencer (gera comissão)
   affiliateProductId?: string; // se preenchido, cupom vinculado a produto específico (permite reuso por CPF)
   minOrderValue?: number;     // valor mínimo do pedido em ¥ para usar o cupom
@@ -120,11 +119,18 @@ export interface Order {
     subtotal: number;
     couponDiscount: number;
     pointsDiscount: number;
-    paymentDiscount: number;
+    /** Só em pedidos antigos (desconto de 5% que saiu em 2026). */
+    paymentDiscount?: number;
     products: number;
     shipping: number;
     psFee: number;
     tax: number;
+    /** Imposto de importação dos EUA pré-pago (DDP), somado ao total. */
+    importDuty?: number;
+    /** Taxa total do PIX (IOF + tarifa), somada ao total. */
+    paymentFee?: number;
+    pixIof?: number;
+    pixBankFee?: number;
   };
   shippingAddress: {
     name: string;

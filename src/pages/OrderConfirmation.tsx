@@ -446,6 +446,12 @@ const OrderConfirmation: React.FC = () => {
                       </span>
                     </div>
                   )}
+                  {Number(order.priceBreakdown?.pointsDiscount) > 0 && (
+                    <div className="flex justify-between text-purple-700 font-bold">
+                      <span>{t('review.pointsDiscount')}</span>
+                      <span>-{formatPrice(Number(order.priceBreakdown?.pointsDiscount), order.currency || 'BRL')}</span>
+                    </div>
+                  )}
                   {order.currency !== 'JPY' && order.taxAmount > 0 && (
                     <div className="bg-pink-50/50 dark:bg-pink-950/10 border border-pink-200/60 rounded-xl p-3 space-y-2 mt-2">
                       <div className="flex justify-between text-xs font-bold text-orange-850 dark:text-pink-300">
@@ -475,14 +481,38 @@ const OrderConfirmation: React.FC = () => {
                       {order.currency === 'JPY' ? t('order.shipping.local') : t('order.shipping.intl')}
                     </span>
                     <span className="font-semibold text-gray-800">
-                      {(order.shipping?.cost ?? 0) === 0
-                        ? t('order.shipping.free')
-                        : formatPrice(
-                          order.priceBreakdown?.shipping ?? convertYen(order.shipping?.cost ?? 0, order.currency || 'BRL'),
-                          order.currency || 'BRL',
-                        )}
+                      {formatPrice(
+                        order.priceBreakdown?.shipping ?? convertYen(order.shipping?.cost ?? 0, order.currency || 'BRL'),
+                        order.currency || 'BRL',
+                      )}
                     </span>
                   </div>
+
+                  {Number(order.priceBreakdown?.importDuty) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('order.importDuty')}</span>
+                      <span className="font-semibold text-gray-800">
+                        {formatPrice(Number(order.priceBreakdown?.importDuty), order.currency || 'BRL')}
+                      </span>
+                    </div>
+                  )}
+
+                  {Number(order.priceBreakdown?.paymentFee) > 0 && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('order.pixIof')}</span>
+                        <span className="font-semibold text-gray-800">
+                          {formatPrice(Number(order.priceBreakdown?.pixIof), order.currency || 'BRL')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('order.pixBankFee')}</span>
+                        <span className="font-semibold text-gray-800">
+                          {formatPrice(Number(order.priceBreakdown?.pixBankFee), order.currency || 'BRL')}
+                        </span>
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex justify-between pt-3 border-t font-black text-base md:text-lg">
                     <span>{t('order.total')}</span>

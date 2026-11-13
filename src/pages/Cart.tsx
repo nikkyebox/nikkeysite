@@ -60,9 +60,8 @@ const Cart: React.FC = () => {
   const [pointsToUse, setPointsToUse] = useState<number>(0);
 
   // Cupons do perfil que estão válidos (para sugerir ao clicar no campo).
-  // Cupom de "frete grátis" (freeShipping) não existe mais: não é sugerido.
   const availableCoupons = coupons.filter(
-    (c) => !c.isUsed && new Date(c.expiresAt) > new Date() && !c.freeShipping
+    (c) => !c.isUsed && new Date(c.expiresAt) > new Date()
   );
 
   const applyCouponObject = (coupon: Coupon) => {
@@ -102,7 +101,6 @@ const Cart: React.FC = () => {
         discountType: gc.type === 'fixed' ? 'fixed' : 'percentage',
         expiresAt: gc.expiryDate,
         isUsed: false,
-        freeShipping: gc.freeShipping,
       });
       return;
     }
@@ -217,7 +215,6 @@ const Cart: React.FC = () => {
 
   // Desconto a partir do cupom do perfil (porcentagem ou valor fixo)
   const computeDiscount = (coupon: Coupon, subtotal: number): number => {
-    if (coupon.freeShipping) return 0; // legado: cupom de frete não dá desconto em produto nem zera o frete
     if (coupon.discountType === 'percentage') {
       return subtotal * (coupon.discount / 100);
     }
@@ -251,7 +248,7 @@ const Cart: React.FC = () => {
         ? sum + fxConvert(effectiveYen(item.product, item.size), currency) * item.quantity
         : sum, 0)
     : regularSubtotal;
-  // Conta do servidor (shared/checkout-totals.js) para cupom comum. O cupom de
+  // Conta do servidor (shared/money.js) para cupom comum. O cupom de
   // campanha (promoProductId) segue a conta antiga: a regra do servidor para a
   // campanha ainda não foi confirmada (ver o relatório).
   const cartTotals = promoProductId ? null : clientCheckoutTotals({
@@ -260,6 +257,7 @@ const Cart: React.FC = () => {
     redeemPoints: 0,
     paymentMethod: '',
     currency,
+    country: selectedCountry,
     rates: { ...getRates(), source: getRateSource() },
     finalShippingYen: 0,
   });

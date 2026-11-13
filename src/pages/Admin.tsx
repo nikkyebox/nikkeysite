@@ -527,7 +527,7 @@ _This is an automated test message_
     const shippingCostYen = order.shipping?.cost ?? null;
     const orderCurrency = order.currency || 'BRL';
     const shippingCostDisplay = shippingCostYen != null
-      ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, orderCurrency), orderCurrency))
+      ? formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, orderCurrency), orderCurrency)
       : 'N/A';
     const grandTotal = order.totalPrice ?? order.total ?? 0;
     const grandTotalYen = order.grandTotalYen || order.totalYen;
@@ -1151,7 +1151,7 @@ _This is an automated test message_
                                     <Truck className="w-3 h-3" />
                                     Frete {order.shippingCarrier && <span className="text-muted-foreground text-xs">({order.shippingCarrier})</span>}
                                   </span>
-                                  <span className="font-mono">{shippingCostYen != null ? (shippingCostYen === 0 ? <span className="text-green-600">Grátis</span> : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, cardCurrency), cardCurrency)) : 'N/A'}</span>
+                                  <span className="font-mono">{shippingCostYen != null ? formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, cardCurrency), cardCurrency) : 'N/A'}</span>
                                 </div>
 
                                 {/* Taxa PS */}

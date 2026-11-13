@@ -12,6 +12,7 @@ import { fulfillOrder } from './_lib/fulfillment.js';
 import { recentProductSpendYen } from './_lib/loyalty-tier.js';
 import { issuePsFeeWaiver, verifyPsFeeWaiver } from './_lib/ps-fee-waiver.js';
 import { getFxRates } from './_lib/fx.js';
+import { paymentMethodsForCountry } from '../shared/money.js';
 import {
   assertExactKeys,
   handleCors,
@@ -311,6 +312,9 @@ async function handleCreate(req, res) {
     const carrier = carrierId(body.shippingCarrier);
     const paymentMethod = requiredText(body.paymentMethod, { max: 20 });
     if (!PAYMENT_METHODS.has(paymentMethod)) throw new HttpError(400, 'invalid_payment_method');
+    // PIX é em real brasileiro: fora do Brasil só cartão. Sem esta trava um
+    // pedido da Europa ou dos EUA podia sair como PIX num total em € ou US$.
+    if (!paymentMethodsForCountry(country).includes(paymentMethod)) throw new HttpError(400, 'payment_method_unavailable');
     const customer = parseCustomer(body.customer, user, country);
     const couponCode = optionalText(body.couponCode, { max: 60 }).toUpperCase();
     const promoCode = optionalText(body.promoCode, { max: 60 }).toUpperCase();
