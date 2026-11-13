@@ -4,9 +4,11 @@
 
 NikkeyBox sends transactional email (order confirmations, account verification, password reset, cart recovery, payment review) through [Resend](https://resend.com), and receives delivery events back through a webhook. This guide documents the current code integration and how to finish wiring it up.
 
-**Current state**: `RESEND_API_KEY` and `RESEND_WEBHOOK_SECRET` are not set in any Vercel environment (checked with `vercel env ls`). Until they are added, `sendMail()` fails with `email_service_not_configured` and the webhook has nothing to verify signatures against.
+**Current state (2026-11-14)**: live in production. The Vercel project `nikkeysite` (team `nikkeybox`) has `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `CRON_SECRET` and `UNSUBSCRIBE_SECRET` set for **Production** only, all as *sensitive*. A test from the Admin panel was delivered from `noreply@nikkeybox.jp`. Preview and Development have none of these, so email does not send from preview deploys.
 
-All outgoing email goes through one helper, `sendMail()` in `api/_lib/mailer.js`. The sender address is a hardcoded constant there, not an environment variable.
+Before that date, no Resend variable existed in Vercel and `/api/send-email` had no route in `vercel.json` (it returned 404), so the site had never sent an email.
+
+All outgoing email goes through one helper, `sendMail()` in `api/_lib/mailer.js`. The sender is `NikkeyBox <noreply@nikkeybox.jp>` unless `RESEND_FROM_EMAIL` overrides it.
 
 ## Prerequisites
 
@@ -19,11 +21,17 @@ All outgoing email goes through one helper, `sendMail()` in `api/_lib/mailer.js`
 
 | Variable | Used by | Status in Vercel | Notes |
 |---|---|---|---|
-| `RESEND_API_KEY` | `api/_lib/mailer.js` (`new Resend(...)`) | Not set | Without it, `sendMail()` throws `email_service_not_configured`. |
-| `RESEND_WEBHOOK_SECRET` | `api/notify.js` (`verifyResendSignature`) | Not set | Needed in production to validate incoming webhook calls. |
+| `RESEND_API_KEY` | `api/_lib/mailer.js` (`new Resend(...)`) | Production | Resend key `nikkeysite-production`: **sending access only**, restricted to the `nikkeybox.jp` domain. Without it, `sendMail()` throws `email_service_not_configured`. |
+| `RESEND_WEBHOOK_SECRET` | `api/notify.js` (`verifyResendSignature`) | Production | Signing secret of the existing Resend webhook (see below). |
+| `CRON_SECRET` | `api/cart-recovery.js` | Production | Authenticates the daily cart-recovery cron (`vercel.json` → `0 15 * * *`). Fallback key for `UNSUBSCRIBE_SECRET` and `CART_RECOVERY_SECRET`. |
+| `UNSUBSCRIBE_SECRET` | `api/_lib/email-optout.js` | Production | Signs unsubscribe links. **Never rotate it**: every link already sent would stop working. |
 | `SITE_ORIGIN` | `api/_lib/mailer.js` (`siteOrigin()`) | Not set, has a default | Defaults to `https://nikkeybox.jp`. Used to build the unsubscribe link. |
+| `ORDER_NOTIFICATION_EMAIL` | `api/notify.js` (`type: 'store'`) | Not set, falls back | Falls back to `ADMIN_EMAIL`, which is set. |
+| `RESEND_FROM_EMAIL` | `api/_lib/mailer.js` (`MAIL_FROM`) | Not set, has a default | Overrides the sender, e.g. `NikkeyBox <noreply@nikkeybox.jp>`. Must be on a verified domain. |
 
-`.env.example` also lists `RESEND_FROM_EMAIL`, `RESEND_FROM_NAME` and `RESEND_REPLY_TO`, but no code in the project reads them. The sender address, reply-to and brand name are hardcoded constants (`MAIL_FROM`, `MAIL_REPLY_TO`, `BRAND`) at the top of `api/_lib/mailer.js` — edit that file, not an environment variable, to change them.
+`.env.example` also lists `RESEND_FROM_NAME` and `RESEND_REPLY_TO`, but no code reads them. Reply-to and brand name are hardcoded constants (`MAIL_REPLY_TO`, `BRAND`) at the top of `api/_lib/mailer.js`; edit that file to change them.
+
+Never prefix any of these with `VITE_`: Vite inlines `VITE_*` variables into the public browser bundle.
 
 ## Get a Resend API Key
 
@@ -77,20 +85,21 @@ sequenceDiagram
     Notify-->>Resend: "200 { received: true }"
 ```
 
-### Create the webhook in the Resend dashboard
-1. Go to https://resend.com/webhooks
-2. Click "Create Webhook"
-3. Endpoint URL: `https://nikkeybox.jp/api/webhook-resend` (default `SITE_ORIGIN`; use the actual deployment domain if different)
-4. Select events:
-- ✅ Email bounced
-- ✅ Email complained
-- Any other event (sent, delivered, opened, clicked...) is accepted and logged, but only bounced and complained trigger an action (automatic opt-out)
-5. Copy the **Signing Secret** (format: `whsec_xxxxxxxxxxxxx`)
+### Current webhook
 
-### Add the webhook secret to Vercel
-1. Go to the Vercel project settings → Environment Variables
-2. Add `RESEND_WEBHOOK_SECRET` with the signing secret from the step above
-3. Redeploy
+There is **one** webhook in Resend, already configured. Do not create a second one for the same URL.
+
+- Endpoint: `https://nikkeybox.jp/api/webhook-resend`
+- Events: `email.received`, `email.bounced`, `email.complained`
+- Its signing secret is the value of `RESEND_WEBHOOK_SECRET` in Vercel
+
+Only `email.bounced` and `email.complained` trigger an action (automatic opt-out). Every other event is accepted and logged.
+
+### Rebuilding it from scratch
+1. https://resend.com/webhooks → "Create Webhook" → endpoint `https://nikkeybox.jp/api/webhook-resend`
+2. Select at least *Email bounced* and *Email complained*
+3. Copy the **Signing Secret** (`whsec_...`) into `RESEND_WEBHOOK_SECRET` in Vercel (Production)
+4. Redeploy: a new variable only takes effect on the next deploy
 
 ## How Signature Verification Works
 
@@ -120,12 +129,34 @@ await sendMail({
 
 Real call sites: order confirmation (`api/stripe-webhook.js`, `api/orders.js`), payment-review notices (`api/_lib/fulfillment.js`), cart recovery (`api/cart-recovery.js`), account emails — verify/reset (`api/notify.js`), and custom-order notifications to the store (`api/public-forms.js`).
 
+### From the browser: `/api/send-email`
+
+The frontend (`src/services/emailService.ts`, `src/services/mailService.ts`) never sends content. It posts a `type` to `/api/send-email`, which `vercel.json` rewrites to `/api/notify?action=email`, and the server renders the template.
+
+| `type` | Auth | Recipient |
+|---|---|---|
+| `verify`, `welcome` | Logged-in user | The user's own email |
+| `verify-admin` | Admin | Body `to` (resend a verification link) |
+| `password-reset` | None (rate-limited by IP and email) | Body `to`; same response whether the account exists or not |
+| `order` | Order owner | Email on the order |
+| `tracking`, `store` | Admin | Customer / `ORDER_NOTIFICATION_EMAIL` or `ADMIN_EMAIL` |
+| `test` | Admin | **Always** the logged-in admin's email; the body cannot set a recipient |
+
+## Testing in production
+
+Admin panel → **"Testar notificações"**. It sends `type: 'test'` and delivers "Teste de envio – NikkeyBox" to the logged-in admin through the same `sendMail()` used by real emails, so it proves key, domain and sender at once. Confirm in the Resend dashboard (Emails) that it shows as *delivered*.
+
 ## Troubleshooting
 
 ### "API Key not found" / emails not sending
 1. Verify `RESEND_API_KEY` is set (`.env.local` locally, Vercel env variable in production)
-2. Restart the dev server after changing `.env.local`
-3. Check the Resend dashboard logs for the actual error
+2. After adding or changing a Vercel variable, **redeploy**: running deployments keep the old values
+3. Restart the dev server after changing `.env.local`
+4. Check the Resend dashboard logs for the actual error
+5. If the browser gets a 404 on `/api/send-email`, the rewrite is missing from `vercel.json`
+
+### Rotating the API key
+Create a new sending-only key restricted to `nikkeybox.jp`, replace `RESEND_API_KEY` in Vercel, redeploy, send a test from the Admin panel, then delete the old key in Resend. Do **not** rotate `UNSUBSCRIBE_SECRET`.
 
 ### "invalid_signature" from the webhook
 1. Confirm `RESEND_WEBHOOK_SECRET` in Vercel matches the signing secret shown in the Resend webhook settings
@@ -141,8 +172,10 @@ Real call sites: order confirmation (`api/stripe-webhook.js`, `api/orders.js`), 
 | File | Role |
 |---|---|
 | `api/_lib/mailer.js` | `sendMail()`, hardcoded sender (`MAIL_FROM`/`MAIL_REPLY_TO`/`BRAND`), `siteOrigin()`, `unsubscribeUrl()` |
+| `api/notify.js` (`handleEmail`) | `/api/send-email` handler: one branch per `type` (table above) |
 | `api/notify.js` (`handleWebhookResend`) | Webhook handler: signature check, bounce/complaint opt-out |
-| `vercel.json` | Rewrites `/api/webhook-resend` to `/api/notify?action=webhook-resend` |
+| `api/_lib/email-optout.js` | Opt-out store and unsubscribe-link signing (`UNSUBSCRIBE_SECRET`) |
+| `vercel.json` | Rewrites `/api/send-email` → `/api/notify?action=email` and `/api/webhook-resend` → `/api/notify?action=webhook-resend`; cart-recovery cron |
 | `.env.example` | Template for environment variables (includes a few that are unused — see above) |
 
 ## References
