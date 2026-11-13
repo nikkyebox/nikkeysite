@@ -9,7 +9,7 @@ vi.mock('resend', () => ({
     return { emails: { send: mocks.send } };
   }),
 }));
-const { sendMail, unsubscribeUrl, wrapEmail, MAIL_FROM } = await import('./mailer.js');
+const { sendMail, unsubscribeUrl, wrapEmail, MAIL_FROM, MAIL_REPLY_TO } = await import('./mailer.js');
 
 const CARTA = { to: 'cliente@exemplo.com', subject: 'Confirme seu e-mail', html: '<p>oi</p>' };
 
@@ -30,7 +30,8 @@ describe('sendMail', () => {
     await sendMail(CARTA);
     const enviado = mocks.send.mock.calls[0][0];
     expect(enviado.from).toBe(MAIL_FROM);
-    expect(enviado.replyTo).toBe(MAIL_FROM);
+    expect(enviado.replyTo).toBe(MAIL_REPLY_TO);
+    expect(MAIL_FROM).toContain('@nikkeybox.jp');
     expect(enviado.to).toBe('cliente@exemplo.com');
   });
 

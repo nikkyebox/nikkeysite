@@ -108,6 +108,14 @@ node scripts/rules-history.mjs save <rulesetId> <file>
 node scripts/rules-history.mjs rollback <rulesetId>  # republish an older ruleset
 ```
 
+## Domínio nikkeybox.jp
+
+O domínio da loja é `nikkeybox.jp` (`nikkeybox-store.com` não existe). O código já usa o domínio novo; o que o dono precisa fazer fora do código:
+
+1. Firebase Console > Authentication > Settings > Authorized domains: adicionar `nikkeybox.jp` (e `www.nikkeybox.jp`). O `authDomain` em `src/config/firebase.ts` (`nikkeybox.firebaseapp.com`) é do Firebase e não muda.
+2. Resend: verificar o domínio `nikkeybox.jp` (registros SPF e DKIM no DNS) e conferir `RESEND_FROM_EMAIL` na Vercel (padrão do código: `NikkeyBox <noreply@nikkeybox.jp>`). Enquanto o domínio não estiver verificado, o envio falha.
+3. Sub-admins: o login aceita a conta pelo e-mail novo (`admin-<hash>@auth.nikkeybox.jp`) ou pelo antigo (`@auth.nikkeybox-store.com`) e, ao logar com senha válida, troca o e-mail da conta para o novo. Depois que todos os sub-admins ativos tiverem logado uma vez, remover `LEGACY_AUTH_DOMAIN` (e o candidato legado em `findAuthAccount`) de `api/admin.js`.
+
 ## Deploy
 
 Pushing to `main` auto-deploys to Vercel (site + `api/`). Firestore/Storage rules are published separately — see the section above.

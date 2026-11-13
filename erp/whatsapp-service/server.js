@@ -324,7 +324,7 @@ app.post('/api/send-order-notification', async (req, res) => {
             message += `Esperamos que você aproveite muito seu pedido! ✨\n\n`;
             message += `💛 *Ficamos muito felizes em tê-lo(a) como cliente!*\n\n`;
             message += `Se puder, nos conte o que achou! Sua opinião é muito importante para nós. ⭐\n\n`;
-            message += `🔄 Para fazer um novo pedido, acesse:\nhttps://nikkeybox-store.com\n\n`;
+            message += `🔄 Para fazer um novo pedido, acesse:\nhttps://nikkeybox.jp\n\n`;
             message += `*Muito obrigada pela confiança!* 🙏💛\n`;
             message += `_NikkeyBox_`;
             
@@ -359,7 +359,7 @@ app.post('/api/send-order-notification', async (req, res) => {
         if (req.body.couponCode) {
             message += `🎟️ Use o cupom *${req.body.couponCode}* e ganhe desconto na sua próxima compra!\n\n`;
         }
-        message += `Acesse: https://nikkeybox-store.com\n\n`;
+        message += `Acesse: https://nikkeybox.jp\n\n`;
         message += `Parabéns! 💛\n`;
         message += `_NikkeyBox_`;
         

@@ -1,10 +1,10 @@
-# REGRAS DO PROJETO — nikkeybox-store.com
+# REGRAS DO PROJETO — nikkeybox.jp
 
 > Único arquivo de regras (consolidado). Substitui o antigo `.clinerules.legacy`.
 > **Recarregado a cada nova sessão do Cline.**
 
 ## 1. PERFIL & ORÇAMENTO DE TOKENS
-- **Usuário:** Não-programador, dono da loja nikkeybox-store.com.
+- **Usuário:** Não-programador, dono da loja nikkeybox.jp.
 - **Agente Core:** GLM 5.2 via Z.ai (1M Context Window).
 - **Prioridade de tokens:** Alta sensibilidade ao acúmulo em loops longos. O usuário roda tarefas no piloto automático, então o agente deve economizar tokens por conta própria, sem resets manuais da janela.
 
@@ -15,7 +15,7 @@
 4. **Parar e pedir direção:** Se um loop de debug/geração falhar mais de 3 iterações seguidas, PARE, resuma o bloqueio em 1–2 frases e peça orientação antes de gastar mais tokens.
 
 ## 3. PADRÕES DE DESENVOLVIMENTO
-- **Site-alvo:** nikkeybox-store.com (e-commerce de produtos japoneses importados para o Brasil, sob regras de Remessa Conforme).
+- **Site-alvo:** nikkeybox.jp (e-commerce de produtos japoneses importados para o Brasil, sob regras de Remessa Conforme).
 - **Integridade do código:** Todo HTML, CSS e JS deve permanecer leve, de carregamento rápido e moderno.
 - **Verificação:** Sempre explicar o que foi alterado em português claro e não-técnico após uma edição, para que o usuário teste facilmente no ambiente ao vivo.
 

@@ -105,8 +105,6 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
 const DEFAULT_ORIGINS = [
   'https://nikkeybox.jp',
   'https://www.nikkeybox.jp',
-  'https://nikkeybox-store.com',
-  'https://www.nikkeybox-store.com',
   'http://localhost:8080',
   'http://localhost:5173',
 ];

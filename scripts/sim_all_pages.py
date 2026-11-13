@@ -7,7 +7,7 @@ Uso: python3 scripts/sim_all_pages.py
 """
 from playwright.sync_api import sync_playwright
 
-BASE = "https://www.nikkeybox-store.com"
+BASE = "https://www.nikkeybox.jp"
 UA = ("Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/120 Mobile Safari/537.36")
 

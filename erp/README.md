@@ -69,7 +69,7 @@ mensagens como a loja, ler o histórico ou desconectar a sessão.
 
 ```mermaid
 flowchart LR
-    Site["Site (nikkeybox-store.com)"]
+    Site["Site (nikkeybox.jp)"]
     FS[("Firestore")]
     ERP["ERP (Streamlit, localhost:8501)"]
     WA["erp/whatsapp-service (porta 3001, sem autenticacao)"]

@@ -222,7 +222,7 @@ function printOrder(order) {
           .text(line())
           .align('ct')
           .text(dateStr)
-          .text('www.nikkeybox-store.com')
+          .text('www.nikkeybox.jp')
           .text(' ')
           // Feed e corte
           .feed(4)

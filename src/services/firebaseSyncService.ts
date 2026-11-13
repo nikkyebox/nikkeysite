@@ -786,7 +786,7 @@ export const firebaseSyncService = {
   /**
    * Envia o e-mail de redefinicao de senha.
    *
-   * Caminho principal: o mailer da loja, de noreply@nikkeybox-store.com, com
+   * Caminho principal: o mailer da loja, de noreply@nikkeybox.jp, com
    * o mesmo layout dos demais e-mails e sob o SPF/DKIM do dominio.
    *
    * Antes ia direto pelo Firebase, que envia de noreply@<projeto>.firebaseapp.com

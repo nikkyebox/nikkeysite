@@ -17,7 +17,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useProducts } from '@/context/ProductsContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen } from '@/utils/pricing';
-import { convertYen as fxConvert, loadFxRates, getRates, getRateSource } from '@/services/fxService';
+import { convertYen as fxConvert, loadFxRates, getRates, getRateSource, getRatesId, applyServerRates } from '@/services/fxService';
 import { clientCheckoutTotals, checkoutLineFromItem, couponYenFor, paymentMethodsForCountry, type CheckoutCoupon } from '@/utils/checkoutTotals';
 import { negotiationService } from '@/services/negotiationService';
 import { psFeeWaiver } from '@/utils/psFeeWaiver';
@@ -34,7 +34,7 @@ import { calcBrazilTax, calcImportTax } from '@/utils/taxRules';
 import { promoCampaignService } from '@/services/promoCampaignService';
 import { thermalPrintService } from '@/services/thermalPrintService';
 import StripeCardForm from '@/components/checkout/StripeCardForm';
-import { prepareCheckout, type AuthoritativeCheckoutOrder, type CheckoutPaymentMethod } from '@/services/checkoutService';
+import { prepareCheckout, CheckoutError, type AuthoritativeCheckoutOrder, type CheckoutPaymentMethod } from '@/services/checkoutService';
 import { getCountryConfig } from '@/data/worldCountries';
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
@@ -80,7 +80,7 @@ const OrderReview: React.FC = () => {
   const [paySettings, setPaySettings] = useState<import('@/services/paymentSettingsService').PaymentSettings>({
     wiseLink: '', wiseEnabled: false,
     pixKey: '', pixReceiverName: 'NikkeyBox', pixCity: 'Sao Paulo',
-    pixEnabled: false, cardEnabled: true,
+    pixEnabled: true, cardEnabled: true,
     contactPhone: '',
   });
 
@@ -335,6 +335,10 @@ const OrderReview: React.FC = () => {
         pointsToRedeem: redeemPoints,
         negotiationId: negotiationId || '',
         psFeeWaiverToken: psFeeWaiver.token(),
+        // O servidor recusa (sem criar nem cobrar nada) se a conta dele der
+        // outro total que o exibido aqui; usa a cotação que esta tela viu.
+        expectedTotal: finalGrandTotal,
+        ratesId: getRatesId(),
       });
       if (result.order.psFeeWaiverApplied === true) psFeeWaiver.clear();
       setPendingOrder(result.order);
@@ -342,6 +346,18 @@ const OrderReview: React.FC = () => {
       setPaymentModal(true);
     } catch (error) {
       const codigo = error instanceof Error ? error.message : '';
+      if (codigo === 'price_changed' && error instanceof CheckoutError && error.quote) {
+        // Nada foi criado nem cobrado. A tela passa a usar a cotação do
+        // servidor e o cliente confirma de novo vendo o total que vai pagar.
+        applyServerRates(error.quote.rates, error.quote.ratesId);
+        setFxRatesTick((v) => v + 1);
+        toast({
+          title: t('review.priceChangedTitle'),
+          description: t('review.priceChanged').replace('{total}', formatPrice(error.quote.total, error.quote.currency, true)),
+          variant: 'destructive',
+        });
+        return;
+      }
       const waiverInvalid = codigo === 'invalid_ps_fee_waiver' || codigo === 'ps_fee_waiver_already_used';
       if (waiverInvalid) psFeeWaiver.clear();
       const fxUnavailable = codigo === 'fx_rate_unavailable';
@@ -742,14 +758,13 @@ const OrderReview: React.FC = () => {
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                 <div className="space-y-4">
                     <>
-                      {/* PIX direto. Fica DESLIGADO no painel: a remessa para o Japão
-                          come IOF mais taxa de conversão. Pagar por outro caminho sem essas
-                          taxas existe, mas não é este.
+                      {/* PIX direto (só Brasil). Fica LIGADO por padrão: vale quando o campo
+                          `pixEnabled` não existe em settings/payments. O admin pode
+                          desligar no painel (pixEnabled=false explícito).
 
                           Quando desligado a opção não é desenhada. Um botão cinza
                           "em manutenção" num site novo o cliente lê como site quebrado,
                           e ele não vai deduzir sozinho que o PIX está logo acima.
-                          O código fica: religar é trocar `pixEnabled` no painel.
 
                           Não precisa de guarda contra ficar selecionado e invisível: o
                           efeito da linha ~97 já troca para o primeiro método ativo. */}

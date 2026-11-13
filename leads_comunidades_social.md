@@ -25,7 +25,7 @@
 ```text
 Oi! Para cosméticos japoneses (Hada Labo, Bioré, Melano CC), tomar muito cuidado com marketplace porque tem muito lote falso da China circulando.
 
-Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!
+Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox.jp) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!
 ```
 
 📩 **Abordagem Privada no Direct / Mensagem Direta (DM):**
@@ -91,7 +91,7 @@ Se precisar de algo específico, só me falar que montamos uma cotação sem com
 ```text
 Olá pessoal do grupo! Para quem voltou do Japão e está com saudade dos produtos ou precisa de itens específicos (remédios japoneses isentos, pomadas, colírios Rohto, cosméticos e snacks), nós moramos aqui no Japão e enviamos caixas para todo o Brasil pela Japan Post com código de rastreio.
 
-Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.nikkeybox-store.com 🇯🇵📦
+Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.nikkeybox.jp 🇯🇵📦
 ```
 
 📩 **Abordagem Privada no Direct / Mensagem Direta (DM):**
@@ -113,7 +113,7 @@ Qual produto você está precisando? Consigo verificar a disponibilidade e te pa
 ```text
 Gente, para quem quer doces japoneses de verdade (KitKats colecionáveis de províncias, balas Hi-Chew, Pocky de sabores raros e caixas misteriosas), a NikkeyBox monta caixas temáticas enviadas direto do Japão!
 
-Tudo com validade fresca e embalado com muito carinho. O link da loja é nikkeybox-store.com!
+Tudo com validade fresca e embalado com muito carinho. O link da loja é nikkeybox.jp!
 ```
 
 📩 **Abordagem Privada no Direct / Mensagem Direta (DM):**

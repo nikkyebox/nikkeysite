@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
     createCustomToken: vi.fn(),
     createUser: vi.fn(),
     updateUser: vi.fn(),
+    getUserByEmail: vi.fn(),
     setCustomUserClaims: vi.fn(),
   },
   adminDb: {
@@ -46,6 +47,8 @@ function mockRes() {
   return res;
 }
 
+const docUpdate = vi.fn();
+
 /** Mocks `db.collection('admins')` for the "migrated" (already Firebase-backed) lookup. */
 function mockMigratedQuery({ empty, doc } = { empty: true }) {
   return {
@@ -53,7 +56,7 @@ function mockMigratedQuery({ empty, doc } = { empty: true }) {
       limit: vi.fn(() => ({
         get: vi.fn(async () => (empty
           ? { empty: true, docs: [] }
-          : { empty: false, docs: [{ id: doc.id, data: () => doc.data }] })),
+          : { empty: false, docs: [{ id: doc.id, data: () => doc.data, ref: { update: docUpdate } }] })),
       })),
     })),
     doc: vi.fn(),
@@ -64,6 +67,15 @@ describe('admin-session endpoint (sub-admin auth only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.adminAuth.createCustomToken.mockResolvedValue('custom-token-abc');
+    mocks.adminAuth.updateUser.mockResolvedValue({});
+    docUpdate.mockResolvedValue(undefined);
+    // Por padrão a conta só existe no domínio novo; os testes de legado sobrescrevem.
+    mocks.adminAuth.getUserByEmail.mockImplementation(async (email) => {
+      if (email.endsWith('@auth.nikkeybox.jp')) return { uid: 'uid-migrated', email };
+      const error = new Error('not found');
+      error.code = 'auth/user-not-found';
+      throw error;
+    });
     process.env.FIREBASE_WEB_API_KEY = 'fake-key';
     globalThis.fetch = vi.fn();
   });
@@ -90,7 +102,7 @@ describe('admin-session endpoint (sub-admin auth only)', () => {
   });
 
   it('authenticates an already-migrated sub-admin and returns a custom token', async () => {
-    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: true, name: 'Joao', role: 2 } };
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox.jp', active: true, name: 'Joao', role: 2 } };
     mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
     globalThis.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ localId: 'uid-migrated' }) });
 
@@ -104,8 +116,104 @@ describe('admin-session endpoint (sub-admin auth only)', () => {
     expect(res.body.admin.role).toBe(2);
   });
 
-  it('rejects a migrated sub-admin when the Identity Toolkit UID does not match the stored doc id (impersonation guard)', async () => {
+  it('conta no domínio novo loga sem migrar nada', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox.jp', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    globalThis.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ localId: 'uid-migrated' }) });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'correct-password' }), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(globalThis.fetch.mock.calls[0][1].body).email).toBe('admin-x@auth.nikkeybox.jp');
+    expect(mocks.adminAuth.updateUser).not.toHaveBeenCalled();
+    expect(docUpdate).not.toHaveBeenCalled();
+  });
+
+  it('conta no domínio ANTIGO loga e migra o e-mail para o domínio novo', async () => {
     const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    mocks.adminAuth.getUserByEmail.mockImplementation(async (email) => {
+      if (email === 'admin-x@auth.nikkeybox-store.com') return { uid: 'uid-migrated', email };
+      const error = new Error('not found');
+      error.code = 'auth/user-not-found';
+      throw error;
+    });
+    globalThis.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ localId: 'uid-migrated' }) });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'correct-password' }), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.customToken).toBe('custom-token-abc');
+    expect(JSON.parse(globalThis.fetch.mock.calls[0][1].body).email).toBe('admin-x@auth.nikkeybox-store.com');
+    expect(mocks.adminAuth.updateUser).toHaveBeenCalledWith('uid-migrated', { email: 'admin-x@auth.nikkeybox.jp' });
+    expect(docUpdate).toHaveBeenCalledWith({ authEmail: 'admin-x@auth.nikkeybox.jp' });
+  });
+
+  it('falha ao migrar o e-mail não bloqueia o login', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    mocks.adminAuth.getUserByEmail.mockImplementation(async (email) => {
+      if (email.endsWith('@auth.nikkeybox-store.com')) return { uid: 'uid-migrated', email };
+      const error = new Error('not found');
+      error.code = 'auth/user-not-found';
+      throw error;
+    });
+    mocks.adminAuth.updateUser.mockRejectedValueOnce(new Error('email-already-exists'));
+    globalThis.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ localId: 'uid-migrated' }) });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'correct-password' }), res);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('conta no domínio antigo com senha inválida continua 401 e não migra', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    mocks.adminAuth.getUserByEmail.mockImplementation(async (email) => {
+      if (email.endsWith('@auth.nikkeybox-store.com')) return { uid: 'uid-migrated', email };
+      const error = new Error('not found');
+      error.code = 'auth/user-not-found';
+      throw error;
+    });
+    globalThis.fetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'senha-errada' }), res);
+
+    expect(res.statusCode).toBe(401);
+    expect(mocks.adminAuth.createCustomToken).not.toHaveBeenCalled();
+    expect(mocks.adminAuth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it('credencial inválida no domínio novo continua 401', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox.jp', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    globalThis.fetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'senha-errada' }), res);
+
+    expect(res.statusCode).toBe(401);
+    expect(mocks.adminAuth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it('recusa quando nenhuma conta do Firebase Auth (nova ou antiga) pertence ao documento', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: true, name: 'Joao', role: 2 } };
+    mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
+    mocks.adminAuth.getUserByEmail.mockResolvedValue({ uid: 'outra-conta', email: 'x' });
+
+    const res = mockRes();
+    await adminSessionHandler(mockReq('POST', { identifier: 'joao', password: 'correct-password' }), res);
+
+    expect(res.statusCode).toBe(401);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a migrated sub-admin when the Identity Toolkit UID does not match the stored doc id (impersonation guard)', async () => {
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox.jp', active: true, name: 'Joao', role: 2 } };
     mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
     globalThis.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ localId: 'someone-else-uid' }) });
 
@@ -117,7 +225,7 @@ describe('admin-session endpoint (sub-admin auth only)', () => {
   });
 
   it('rejects a deactivated migrated sub-admin', async () => {
-    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox-store.com', active: false, name: 'Joao', role: 1 } };
+    const doc = { id: 'uid-migrated', data: { username: 'joao', authEmail: 'admin-x@auth.nikkeybox.jp', active: false, name: 'Joao', role: 1 } };
     mocks.adminDb.collection.mockReturnValue(mockMigratedQuery({ empty: false, doc }));
 
     const req = mockReq('POST', { identifier: 'joao', password: 'whatever' });

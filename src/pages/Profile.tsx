@@ -1327,6 +1327,16 @@ const Profile: React.FC = () => {
                         const carrierName = shippingData?.carrier || '';
                         const couponCode = order.couponCode || order.appliedCoupon?.code || '';
                         const oc = order.currency || 'JPY';
+                        // Linhas da cobrança: só em pedidos com priceBreakdown e só se > 0.
+                        // Pedidos antigos (sem o campo) seguem exibindo como antes.
+                        const pb = order.priceBreakdown;
+                        const positive = (v: number | undefined): number => (pb && Number(v) > 0 ? Number(v) : 0);
+                        const pointsDiscount = positive(pb?.pointsDiscount);
+                        const psFee = positive(pb?.psFee);
+                        const importDuty = positive(pb?.importDuty);
+                        const paymentFee = positive(pb?.paymentFee);
+                        const pixIof = positive(pb?.pixIof);
+                        const pixBankFee = positive(pb?.pixBankFee);
 
                         return (
                           <div className="mt-2 pt-2 border-t border-border space-y-1 text-sm">
@@ -1343,6 +1353,18 @@ const Profile: React.FC = () => {
                                 <span>-{formatPrice(discount, oc)}</span>
                               </div>
                             )}
+                            {pointsDiscount > 0 && (
+                              <div className="flex justify-between text-purple-700">
+                                <span>{t('review.pointsDiscount')}</span>
+                                <span>-{formatPrice(pointsDiscount, oc)}</span>
+                              </div>
+                            )}
+                            {psFee > 0 && (
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>{t('order.psFee')}</span>
+                                <span>{formatPrice(psFee, oc)}</span>
+                              </div>
+                            )}
                             {shippingCost != null && (
                               <div className="flex justify-between text-muted-foreground">
                                 <span className="flex items-center gap-1">
@@ -1351,6 +1373,24 @@ const Profile: React.FC = () => {
                                 </span>
                                 <span>{formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCost, oc), oc)}</span>
                               </div>
+                            )}
+                            {importDuty > 0 && (
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>{t('order.importDuty')}</span>
+                                <span>{formatPrice(importDuty, oc)}</span>
+                              </div>
+                            )}
+                            {paymentFee > 0 && (
+                              <>
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>{t('order.pixIof')}</span>
+                                  <span>{formatPrice(pixIof, oc)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>{t('order.pixBankFee')}</span>
+                                  <span>{formatPrice(pixBankFee, oc)}</span>
+                                </div>
+                              </>
                             )}
                             <div className="flex justify-between font-semibold pt-1 border-t border-border">
                               <span>{t('profile.orders.total')}</span>

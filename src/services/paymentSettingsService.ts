@@ -16,7 +16,7 @@ export interface PaymentSettings {
   pixKey: string;          // chave PIX (e-mail, CPF, telefone ou aleatória)
   pixReceiverName: string; // nome do recebedor PIX, máx 25 caracteres
   pixCity: string;         // cidade do recebedor PIX, máx 15 caracteres
-  pixEnabled: boolean;     // mostra a opção PIX no checkout internacional
+  pixEnabled: boolean;     // mostra a opção PIX (só Brasil); padrão true se o campo não existir
   cardEnabled: boolean;    // mostra a opção Cartão (Stripe) no checkout internacional
   // Japan payment — contato
   contactPhone: string;    // telefone doméstico japonês (ex: 070-1367-1679) usado no WhatsApp e PayPay
@@ -28,7 +28,7 @@ const DEFAULT: PaymentSettings = {
   pixKey: '',
   pixReceiverName: 'NikkeyBox',
   pixCity: 'Sao Paulo',
-  pixEnabled: false,
+  pixEnabled: true,
   cardEnabled: true,
   contactPhone: '',
 };

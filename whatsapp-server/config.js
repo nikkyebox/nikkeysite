@@ -7,7 +7,8 @@ module.exports = {
 
   // Origens permitidas (domínio do site + localhost para testes)
   allowedOrigins: [
-    'https://www.nikkeybox-store.com',
+    'https://nikkeybox.jp',
+    'https://www.nikkeybox.jp',
     'http://localhost:5173',
     'http://localhost:4173',
   ],

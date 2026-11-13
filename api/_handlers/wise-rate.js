@@ -25,5 +25,8 @@ export default async function handler(req, res) {
     JPY_USD: rates.USD,
     source: rates.source,
     ts: rates.loadedAt,
+    // O cliente devolve este id no pedido para ser cobrado com a MESMA
+    // cotação que usou para mostrar os preços (ver `api/_lib/fx.js`).
+    id: rates.id || '',
   });
 }

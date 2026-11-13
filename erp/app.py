@@ -196,7 +196,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("##### 🔗 Links Rápidos")
     st.markdown("[Firebase Console](https://console.firebase.google.com/project/nikkey-33f93)")
-    st.markdown("[Site](https://nikkeybox-store.com)")
+    st.markdown("[Site](https://nikkeybox.jp)")
     
     st.markdown("---")
     
@@ -2856,7 +2856,7 @@ Queria saber se você gostou do seu pedido! 📦
 
 Se tiver qualquer feedback, adoraríamos ouvir.
 E quando quiser fazer um novo pedido, é só acessar nosso site:
-🌐 nikkeybox-store.com
+🌐 nikkeybox.jp
 Obrigada! 💛
 
 _NikkeyBox_"""

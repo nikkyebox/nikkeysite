@@ -287,6 +287,31 @@ async function handleIssuePsFeeWaiver(req, res) {
   }
 }
 
+const RATES_ID_PATTERN = /^[a-z-]+-\d{10,16}$/;
+
+function parseExpectedTotal(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const total = Number(value);
+  if (!Number.isFinite(total) || total < 0 || total > 100_000_000) throw new HttpError(400, 'invalid_request');
+  return total;
+}
+
+/**
+ * O que a tela de revisão precisa para mostrar a conta do servidor quando o
+ * total mudou: o total novo e a cotação (pública, a mesma de /api/wise-rate)
+ * com que ele foi calculado.
+ */
+function publicQuote(quote, rates) {
+  return {
+    currency: quote.currency,
+    total: quote.total,
+    totalYen: quote.totalYen,
+    ratesId: rates.id || '',
+    fxSource: rates.source,
+    rates: { BRL: rates.BRL, EUR: rates.EUR, USD: rates.USD },
+  };
+}
+
 async function handleCreate(req, res) {
   if (!handleCors(req, res, { methods: ['POST'] })) return;
 
@@ -294,7 +319,7 @@ async function handleCreate(req, res) {
     const user = await requireUser(req);
     await enforceRateLimit(req, { scope: 'create-order', limit: 12, windowMs: 30 * 60 * 1000, identity: user.uid });
     const body = parseJsonObject(req.body);
-    assertExactKeys(body, ['orderId', 'items', 'country', 'prefecture', 'state', 'shippingCarrier', 'paymentMethod', 'couponCode', 'redeemPoints', 'negotiationId', 'promoCode', 'psFeeWaiverToken', 'customer']);
+    assertExactKeys(body, ['orderId', 'items', 'country', 'prefecture', 'state', 'shippingCarrier', 'paymentMethod', 'couponCode', 'redeemPoints', 'negotiationId', 'promoCode', 'psFeeWaiverToken', 'customer', 'expectedTotal', 'ratesId']);
     const orderId = requiredText(body.orderId, { max: 40, pattern: ORDER_PATTERN });
     const requestedItems = parseItems(body.items);
     const country = requiredText(body.country, { max: 100 });
@@ -320,6 +345,11 @@ async function handleCreate(req, res) {
     const promoCode = optionalText(body.promoCode, { max: 60 }).toUpperCase();
     const negotiationId = optionalText(body.negotiationId, { max: 120 });
     const psFeeWaiverToken = optionalText(body.psFeeWaiverToken, { max: 1200 });
+    // Opcionais: cliente antigo não manda e o comportamento é o de sempre
+    // (cotação atual, sem conferir o total).
+    const expectedTotal = parseExpectedTotal(body.expectedTotal);
+    const ratesId = optionalText(body.ratesId, { max: 80 });
+    if (ratesId && !RATES_ID_PATTERN.test(ratesId)) throw new HttpError(400, 'invalid_request');
 
     const db = adminDb();
     const orderRef = db.collection('orders').doc(orderId);
@@ -373,7 +403,8 @@ async function handleCreate(req, res) {
     // Recusa cedo, com a mesma conta da transação, para o cliente ver o erro
     // antes de qualquer cobrança. A palavra final continua sendo a da transação.
     if (requestedPoints > pontosDisponiveis(userData)) throw new HttpError(409, 'insufficient_points');
-    const rates = await getFxRates();
+    // A cotação que o cliente viu (`ratesId`), se ainda vale; senão a atual.
+    const rates = await getFxRates(ratesId);
     // 'fallback' = nem Wise nem open.er-api responderam: a taxa fixa
     // (¥28/R$) pode estar longe da cotação real e cobrar errado. Silenciar
     // isso e seguir em frente é como o total exibido no checkout divergiu do
@@ -399,6 +430,14 @@ async function handleCreate(req, res) {
       recentSpendYen,
       psFeeWaived: Boolean(waiver),
     });
+
+    // O cliente manda o total que está vendo. Se a conta do servidor deu outro
+    // número, nada é criado nem cobrado: a resposta traz a cotação nova para a
+    // tela atualizar e o cliente confirmar de novo. Assim o valor pago é
+    // sempre o valor que estava na tela quando ele clicou.
+    if (expectedTotal !== null && Math.abs(quote.total - expectedTotal) > 0.0001) {
+      throw new HttpError(409, 'price_changed', 'price_changed', { quote: publicQuote(quote, rates) });
+    }
 
     const stockByProduct = new Map();
     for (const item of quote.items) stockByProduct.set(item.productId, (stockByProduct.get(item.productId) || 0) + item.quantity);

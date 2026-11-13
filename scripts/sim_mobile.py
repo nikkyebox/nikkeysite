@@ -13,7 +13,7 @@ Uso:
 import sys
 from playwright.sync_api import sync_playwright
 
-BASE = "https://www.nikkeybox-store.com"
+BASE = "https://www.nikkeybox.jp"
 VIEWPORT = {"width": 412, "height": 915}   # Pixel 7
 DPR = 2.625
 UA = ("Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 "

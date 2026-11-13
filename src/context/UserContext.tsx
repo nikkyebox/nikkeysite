@@ -765,7 +765,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
 
       // O fallback do Firebase manda o link a partir de noreply@<projeto>.firebaseapp.com,
-      // não do noreply@nikkeybox-store.com. Chega, mas com outro remetente —
+      // não do noreply@nikkeybox.jp. Chega, mas com outro remetente —
       // e por isso NÃO aparece na caixa de Enviados do Gmail da loja.
       const fallbackSent = await firebaseSyncService.resendVerificationEmail();
       if (fallbackSent) {

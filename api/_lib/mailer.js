@@ -2,7 +2,10 @@ import { Resend } from 'resend';
 import { encodeEmail, unsubscribeToken } from './email-optout.js';
 import { escapeHtml, HttpError } from './http.js';
 
-export const MAIL_FROM = 'nikkeybox.jp@gmail.com';
+// Remetente no domínio da loja (precisa estar verificado no Resend: SPF/DKIM).
+// RESEND_FROM_EMAIL sobrescreve, ex.: 'NikkeyBox <noreply@nikkeybox.jp>'.
+export const MAIL_FROM = (process.env.RESEND_FROM_EMAIL || '').trim() || 'NikkeyBox <noreply@nikkeybox.jp>';
+// Respostas dos clientes vão para uma caixa real (o remetente é noreply).
 export const MAIL_REPLY_TO = 'nikkeybox.jp@gmail.com';
 export const BRAND = 'NikkeyBox';
 

@@ -30,7 +30,7 @@ COMUNIDADES_SOCIAIS = [
         "gatilho_busca": "Buscas por 'protetor japonês', 'onde comprar Hada Labo original', 'falsificação shopee'",
         "copy_comentario": (
             "Oi! Para cosméticos japoneses (Hada Labo, Bioré, Melano CC), tomar muito cuidado com marketplace porque tem muito lote falso da China circulando.\n\n"
-            "Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox-store.com) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!"
+            "Eu compro direto de uma loja de brasileiros que moram no Japão (a NikkeyBox). Eles enviam com rastreio da Japan Post e o lote vem novinho direto de Tóquio. Se quiser dar uma olhada, tem o site deles (nikkeybox.jp) ou pelo WhatsApp direto do Japão (+81 70-2272-3051) que eles até compram itens específicos sob encomenda se você não achar no site!"
         ),
         "copy_dm": (
             "Oi! Vi seu post no r/SkincareBR sobre {produto}. Moramos aqui no Japão e temos um serviço de envio direto de produtos 100% originais de farmácias de Tóquio para o Brasil com código de rastreio.\n\n"
@@ -85,7 +85,7 @@ COMUNIDADES_SOCIAIS = [
         "gatilho_busca": "Postagens diárias de 'Alguém trazendo encomenda do Japão?', 'Onde compro remédio/vitamina japonesa?'",
         "copy_comentario": (
             "Olá pessoal do grupo! Para quem voltou do Japão e está com saudade dos produtos ou precisa de itens específicos (remédios japoneses isentos, pomadas, colírios Rohto, cosméticos e snacks), nós moramos aqui no Japão e enviamos caixas para todo o Brasil pela Japan Post com código de rastreio.\n\n"
-            "Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.nikkeybox-store.com 🇯🇵📦"
+            "Atendimento 100% em português pelo WhatsApp: +81 70-2272-3051 ou pelo site www.nikkeybox.jp 🇯🇵📦"
         ),
         "copy_dm": (
             "Olá {nome}! Tudo bem? Vi sua mensagem no grupo sobre trazer encomendas do Japão. Nós temos a NikkeyBox, com base aqui no Japão e enviamos qualquer encomenda para o Brasil com segurança e suporte completo em português.\n\n"
@@ -102,7 +102,7 @@ COMUNIDADES_SOCIAIS = [
         "gatilho_busca": "Posts de unboxing de doces japoneses, papelaria japonesa e pedidos de importação",
         "copy_comentario": (
             "Gente, para quem quer doces japoneses de verdade (KitKats colecionáveis de províncias, balas Hi-Chew, Pocky de sabores raros e caixas misteriosas), a NikkeyBox monta caixas temáticas enviadas direto do Japão!\n\n"
-            "Tudo com validade fresca e embalado com muito carinho. O link da loja é nikkeybox-store.com!"
+            "Tudo com validade fresca e embalado com muito carinho. O link da loja é nikkeybox.jp!"
         ),
         "copy_dm": (
             "Olá {nome}! Vi que você curte colecionáveis e guloseimas do Japão no grupo. Temos um serviço de Personal Shopper onde compramos direto em Akihabara, Don Quijote e Pokémon Center para enviar para você no Brasil.\n\n"

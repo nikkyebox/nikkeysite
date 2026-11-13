@@ -14,7 +14,7 @@ const env = readFileSync(new URL('../.env', import.meta.url), 'utf8');
 const valor = (chave) => (env.match(new RegExp(`^${chave}=(.*)$`, 'm')) || [])[1]?.trim() || '';
 
 const pass = valor('NOREPLY_EMAIL_PASSWORD') || valor('GMAIL_APP_PASSWORD');
-const user = process.argv[2] || valor('SMTP_USER') || 'noreply@nikkeybox-store.com';
+const user = process.argv[2] || valor('SMTP_USER') || 'noreply@nikkeybox.jp';
 
 if (!pass) {
   console.error('Sem NOREPLY_EMAIL_PASSWORD/GMAIL_APP_PASSWORD no .env');

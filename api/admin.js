@@ -237,6 +237,51 @@ function adminUid(username) {
 // `adminEmail` foi removida junto com a migração legada: era byte a byte igual
 // a `authEmail` (mais abaixo), a única que sobrou.
 
+// Domínio sintético de e-mail de login dos sub-admins (nunca recebe e-mail de
+// verdade; só serve de identificador no Firebase Auth).
+const AUTH_DOMAIN = 'auth.nikkeybox.jp';
+// Domínio ANTIGO (nikkeybox-store.com não existe). As contas criadas antes da
+// troca ainda têm `admin-<hash>@auth.nikkeybox-store.com` no Firebase Auth; o
+// login as encontra por esse domínio e migra o e-mail para AUTH_DOMAIN.
+// TODO: remover LEGACY_AUTH_DOMAIN (e o candidato legado em findAuthAccount)
+// numa limpeza futura, depois que todos os sub-admins ativos tiverem logado.
+const LEGACY_AUTH_DOMAIN = 'auth.nikkeybox-store.com';
+
+function emailLocalPart(email) {
+  const at = String(email).lastIndexOf('@');
+  return at > 0 ? String(email).slice(0, at) : String(email);
+}
+
+// Procura, via Admin SDK, a conta do sub-admin pelo e-mail novo OU pelo antigo.
+// Só vale a conta cujo uid é o id do documento em `admins` (guarda contra
+// personificação). Devolve { email, legacy } ou null.
+async function findAuthAccount(document, data) {
+  const local = emailLocalPart(data.authEmail);
+  const candidates = [`${local}@${AUTH_DOMAIN}`, `${local}@${LEGACY_AUTH_DOMAIN}`];
+  if (!candidates.includes(data.authEmail)) candidates.push(data.authEmail);
+  for (const email of candidates) {
+    try {
+      const record = await adminAuth().getUserByEmail(email);
+      if (record?.uid === document.id) return { email, legacy: email.endsWith(`@${LEGACY_AUTH_DOMAIN}`) };
+    } catch (error) {
+      if (error?.code !== 'auth/user-not-found') throw error;
+    }
+  }
+  return null;
+}
+
+// Troca o e-mail da conta para o domínio novo. Falha aqui NÃO bloqueia o login
+// (o admin entra do mesmo jeito e a migração é tentada de novo no próximo).
+async function migrateAuthEmail(document, legacyEmail) {
+  const newEmail = `${emailLocalPart(legacyEmail)}@${AUTH_DOMAIN}`;
+  try {
+    await adminAuth().updateUser(document.id, { email: newEmail });
+    if (document.ref?.update) await document.ref.update({ authEmail: newEmail });
+  } catch (error) {
+    console.error('[admin-session] auth email migration failed', error instanceof Error ? error.message : error);
+  }
+}
+
 async function migratedAdmin(username, password) {
   const db = adminDb();
   const query = await db.collection('admins').where('username', '==', username).limit(1).get();
@@ -244,8 +289,11 @@ async function migratedAdmin(username, password) {
   const document = query.docs[0];
   const data = document.data();
   if (data.active !== true || !data.authEmail) throw new HttpError(401, 'invalid_credentials');
-  const uid = await passwordSignIn(data.authEmail, password);
+  const account = await findAuthAccount(document, data);
+  if (!account) throw new HttpError(401, 'invalid_credentials');
+  const uid = await passwordSignIn(account.email, password);
   if (uid !== document.id) throw new HttpError(401, 'invalid_credentials');
+  if (account.legacy) await migrateAuthEmail(document, account.email);
   return { uid, username, name: data.name || username, role: Number(data.role) || 1 };
 }
 
@@ -286,7 +334,7 @@ async function handleSession(req, res) {
 // ── admin-users.js ───────────────────────────────────────────────────
 function authEmail(username) {
   const id = createHash('sha256').update(username).digest('hex').slice(0, 32);
-  return `admin-${id}@auth.nikkeybox-store.com`;
+  return `admin-${id}@${AUTH_DOMAIN}`;
 }
 
 async function effectiveRole(user) {

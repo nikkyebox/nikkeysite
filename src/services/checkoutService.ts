@@ -28,6 +28,33 @@ export interface CheckoutDraft {
   pointsToRedeem?: number;
   negotiationId?: string;
   psFeeWaiverToken?: string;
+  /** Total que o cliente está vendo. Se o servidor calcular outro, nada é cobrado (409 `price_changed`). */
+  expectedTotal?: number;
+  /** Id da cotação com que a tela calculou os preços (`/api/wise-rate`). Opcional. */
+  ratesId?: string;
+}
+
+/** Conta nova do servidor quando o total mudou (`price_changed`). */
+export interface CheckoutQuote {
+  currency: string;
+  total: number;
+  totalYen: number;
+  ratesId: string;
+  fxSource: string;
+  rates: { BRL: number; EUR: number; USD: number };
+}
+
+/** Erro do checkout: `message` é o código do servidor; em `price_changed` traz a cotação nova. */
+export class CheckoutError extends Error {
+  code: string;
+  quote: CheckoutQuote | null;
+
+  constructor(code: string, quote: CheckoutQuote | null = null) {
+    super(code);
+    this.name = 'CheckoutError';
+    this.code = code;
+    this.quote = quote;
+  }
 }
 
 export interface AuthoritativeCheckoutOrder {
@@ -111,6 +138,8 @@ export async function prepareCheckout(
       negotiationId: draft.negotiationId || '',
       promoCode: draft.promoCode || '',
       psFeeWaiverToken: draft.psFeeWaiverToken || '',
+      ...(Number.isFinite(draft.expectedTotal) ? { expectedTotal: draft.expectedTotal } : {}),
+      ...(draft.ratesId ? { ratesId: draft.ratesId } : {}),
       customer: {
         ...draft.customer,
         postalCode: draft.shippingAddress.postalCode,
@@ -122,10 +151,14 @@ export async function prepareCheckout(
   });
   const payload = await response.json().catch(() => ({})) as {
     error?: string;
+    quote?: CheckoutQuote;
     order?: AuthoritativeCheckoutOrder;
     clientSecret?: string | null;
   };
-  if (!response.ok) throw new Error(payload.error || 'Não foi possível criar o pedido.');
+  if (!response.ok) {
+    const code = payload.error || 'Não foi possível criar o pedido.';
+    throw new CheckoutError(code, code === 'price_changed' && payload.quote ? payload.quote : null);
+  }
   if (!payload.order?.orderNumber) throw new Error('Resposta inválida ao criar o pedido.');
   if (draft.paymentMethod === 'card' && !payload.clientSecret) throw new Error('Pagamento por cartão não foi inicializado.');
   return { order: payload.order, clientSecret: payload.clientSecret || null };

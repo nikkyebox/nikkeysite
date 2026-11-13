@@ -10,7 +10,7 @@ causam scroll horizontal / desenquadramento no mobile:
   - regras CSS html/body/#root suspeitas
 
 Uso:  python3 scripts/debug_overflow.py [URL]
-      (default: https://www.nikkeybox-store.com)
+      (default: https://www.nikkeybox.jp)
 """
 import sys
 import re
@@ -18,7 +18,7 @@ import urllib.request
 import gzip
 import io
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else "https://www.nikkeybox-store.com"
+BASE = sys.argv[1] if len(sys.argv) > 1 else "https://www.nikkeybox.jp"
 MOBILE_WIDTH = 412  # largura lógica típica de celular Android (Pixel-ish)
 
 UA_MOBILE = ("Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 "

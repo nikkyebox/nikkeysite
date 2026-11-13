@@ -1,16 +1,19 @@
 const DEFAULT_ORIGINS = [
   'https://nikkeybox.jp',
   'https://www.nikkeybox.jp',
-  'https://nikkeybox-store.com',
-  'https://www.nikkeybox-store.com',
 ];
 
 export class HttpError extends Error {
-  constructor(statusCode, code, message = code) {
+  /**
+   * `details` vai junto na resposta JSON (ex.: a cotação nova quando o preço
+   * mudou), sem nunca sobrescrever o campo `error`.
+   */
+  constructor(statusCode, code, message = code, details = undefined) {
     super(message);
     this.name = 'HttpError';
     this.statusCode = statusCode;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -112,6 +115,9 @@ export function sendError(res, error) {
   const status = error instanceof HttpError ? error.statusCode : 500;
   const code = error instanceof HttpError ? error.code : (error?.message || 'internal_error');
   const body = { error: code };
+  if (error instanceof HttpError && error.details && typeof error.details === 'object') {
+    Object.assign(body, error.details, { error: code });
+  }
   if (!(error instanceof HttpError) && error?.message) body.details = error.message;
   res.status(status).json(body);
 }

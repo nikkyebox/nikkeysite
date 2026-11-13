@@ -21,12 +21,17 @@ type Rates = { BRL: number; EUR: number; USD: number };
 
 let _rates: Rates = { ...FALLBACK };
 let _source: 'wise' | 'open-er' | 'cache' | 'fallback' = 'fallback';
+// Id da cotação do servidor (`fx_rates/current`). Vai junto no pedido para o
+// servidor cobrar com a mesma taxa que montou estes preços. Vazio quando a
+// taxa não veio do servidor (cache antigo, open.er-api direto ou fixa).
+let _ratesId = '';
 
 try {
   const c = JSON.parse(safeStorage.getItem(CACHE_KEY) || 'null');
   if (c?.rates?.BRL && c?.rates?.EUR) {
     _rates = { ...FALLBACK, ...c.rates }; // USD pode faltar em cache antigo
     _source = 'cache';
+    _ratesId = typeof c.id === 'string' ? c.id : '';
   }
 } catch { /* ignore */ }
 
@@ -35,6 +40,21 @@ export { FX_BUFFER_YEN };
 /** Taxas atuais (¥→BRL, ¥→EUR, ¥→USD). */
 export const getRates = (): Rates => _rates;
 export const getRateSource = () => _source;
+export const getRatesId = () => _ratesId;
+
+/**
+ * Adota a cotação que o servidor devolveu ao recusar o pedido (`price_changed`):
+ * é a mesma que ele usa para cobrar, então a tela passa a mostrar o total real.
+ */
+export function applyServerRates(rates: Rates, id: string): void {
+  if (!(rates?.BRL > 0 && rates?.EUR > 0 && rates?.USD > 0)) return;
+  _rates = { BRL: rates.BRL, EUR: rates.EUR, USD: rates.USD };
+  _source = 'open-er';
+  _ratesId = id;
+  safeStorage.setItem(CACHE_KEY, JSON.stringify({
+    date: new Date().toISOString().slice(0, 10), rates: _rates, source: 'open-er', id: _ratesId,
+  }));
+}
 
 function rateFor(currency: string): number {
   if (currency === 'BRL') return _rates.BRL;
@@ -78,7 +98,8 @@ export async function loadFxRates(): Promise<Rates> {
       if (brl > 0 && eur > 0 && data?.source !== 'fallback') {
         _rates = { BRL: brl, EUR: eur, USD: usd > 0 ? usd : FALLBACK.USD };
         _source = source;
-        safeStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, rates: _rates, source }));
+        _ratesId = typeof data?.id === 'string' ? data.id : '';
+        safeStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, rates: _rates, source, id: _ratesId }));
         return _rates;
       }
     }
@@ -90,6 +111,7 @@ export async function loadFxRates(): Promise<Rates> {
     if (cached?.date === today && cached?.rates?.BRL && cached?.rates?.EUR) {
       _rates = { ...FALLBACK, ...cached.rates };
       _source = cached.source === 'wise' ? 'wise' : 'cache';
+      _ratesId = typeof cached.id === 'string' ? cached.id : '';
       return _rates;
     }
   } catch { /* ignore */ }
@@ -104,7 +126,9 @@ export async function loadFxRates(): Promise<Rates> {
     if (brl > 0 && eur > 0) {
       _rates = { BRL: brl, EUR: eur, USD: usd > 0 ? usd : FALLBACK.USD };
       _source = 'open-er';
-      safeStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, rates: _rates, source: 'open-er' }));
+      // Não é a cotação do servidor: o pedido sai com a dele (ver price_changed).
+      _ratesId = '';
+      safeStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, rates: _rates, source: 'open-er', id: '' }));
     }
   } catch { _source = 'fallback'; }
 
