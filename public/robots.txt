@@ -46,8 +46,8 @@ Disallow: /limpar-dados.html
 Disallow: /firebase-sync.html
 Disallow: /clear-storage.html
 
-Sitemap: https://nikkeybox-store.com/sitemap.xml
+Sitemap: https://nikkeybox.jp/sitemap.xml
 
 # Feeds de catálogo (preço + frete por peso) para Google Merchant / Shopping
-# Brasil (BRL): https://nikkeybox-store.com/feed.xml
-# Europa (EUR): https://nikkeybox-store.com/feed-eu.xml
+# Brasil (BRL): https://nikkeybox.jp/feed.xml
+# Europa (EUR): https://nikkeybox.jp/feed-eu.xml

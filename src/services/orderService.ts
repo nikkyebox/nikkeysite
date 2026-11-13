@@ -15,6 +15,18 @@ const devLog = isDev ? console.log.bind(console) : () => {};
 const devWarn = isDev ? console.warn.bind(console) : () => {};
 const devError = isDev ? console.error.bind(console) : () => {};
 
+/** Pedido como guardado no localStorage (`nikkeybox-users` / `orders_*`). Só os
+ *  campos que este módulo lê ou atualiza são tipados; o resto é preservado. */
+interface StoredOrder {
+  orderNumber?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
+  status?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
 export interface OrderStatus {
   status: 'pending' | 'processing' | 'packing' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   updatedAt: string;
@@ -82,9 +94,10 @@ export const orderService = {
 
       await firebaseSyncService.syncOrderToFirestore('manual-sale', order);
       return { ok: true, orderNumber };
-    } catch (e: any) {
+    } catch (e: unknown) {
       devError('❌ [ORDER] createManualSale falhou:', e);
-      return { ok: false, error: e?.message || 'Erro ao registrar venda' };
+      const message = e instanceof Error ? e.message : undefined;
+      return { ok: false, error: message || 'Erro ao registrar venda' };
     }
   },
 
@@ -97,11 +110,13 @@ export const orderService = {
     cursor: OrderPageCursor | null = null
   ): Promise<OrdersPage> => {
     const page = await firebaseSyncService.getOrdersPageFromFirestore(pageSize, cursor);
-    const items: Order[] = page.items.map((order) => ({
+    // Documentos do Firestore seguem o formato gravado por `api/orders.js`; o
+    // cast cobre só os campos que este painel não lê (`items` etc.).
+    const items = page.items.map((order) => ({
       ...order,
       orderDate: order.orderDate || order.date || order.syncedAt,
       totalPrice: order.totalPrice || order.totalAmount || 0,
-    }));
+    })) as unknown as Order[];
     return { ...page, items };
   },
 
@@ -182,7 +197,7 @@ export const orderService = {
     Object.keys(users).forEach((email) => {
       const user = users[email];
       if (user.orders && user.orders.length > 0) {
-        const orderIndex = user.orders.findIndex((order: any) =>
+        const orderIndex = user.orders.findIndex((order: StoredOrder) =>
           order.orderNumber === orderNumber
         );
         if (orderIndex !== -1) {
@@ -279,7 +294,7 @@ export const orderService = {
     Object.keys(users).forEach((email) => {
       const user = users[email];
       if (user.orders && user.orders.length > 0) {
-        user.orders.forEach((order: any, orderIndex: number) => {
+        user.orders.forEach((order: StoredOrder, orderIndex: number) => {
           if (order.orderNumber === orderNumber) {
             users[email].orders[orderIndex].trackingNumber = trackingNumber;
             users[email].orders[orderIndex].trackingUrl = trackingUrl;
@@ -300,7 +315,7 @@ export const orderService = {
         try {
           const userOrders = JSON.parse(safeStorage.getItem(key) || '[]');
           let changed = false;
-          userOrders.forEach((order: any, idx: number) => {
+          userOrders.forEach((order: StoredOrder, idx: number) => {
             if (order.orderNumber === orderNumber) {
               userOrders[idx].trackingNumber = trackingNumber;
               userOrders[idx].trackingUrl = trackingUrl;

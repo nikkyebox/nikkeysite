@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Save, Loader2, Video, Star, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -137,8 +138,8 @@ const VlogManager: React.FC = () => {
       setContent(clean);
       setUsingDefaults(false);
       toast({ title: '✅ Vlog atualizado!', description: 'Os vídeos já estão no ar na página /vlog.' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao salvar', description: errorMessage(e), variant: 'destructive' });
     } finally {
       setSaving(false);
     }

@@ -30,6 +30,7 @@ const Wishlist: React.FC = () => {
     }
 
     loadWishlist();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carrega a lista quando o login muda; loadWishlist é recriado a cada render
   }, [isAuthenticated, authReady, navigate, user]);
 
   const loadWishlist = () => {
@@ -47,8 +48,8 @@ const Wishlist: React.FC = () => {
     if (success) {
       loadWishlist();
       toast({
-        title: "Removido dos favoritos",
-        description: "Produto removido da sua lista de desejos",
+        title: t('wishlist.toast.removedTitle'),
+        description: t('wishlist.toast.removedDesc'),
       });
     }
   };
@@ -59,8 +60,8 @@ const Wishlist: React.FC = () => {
     if (product) {
       addToCart(product, 'small', 1);
       toast({
-        title: "Adicionado ao carrinho!",
-        description: `${productEnglishName(product)} (Pequeno) adicionado`,
+        title: t('wishlist.toast.addedTitle'),
+        description: t('wishlist.toast.addedDesc').replace('{name}', productEnglishName(product)),
       });
     }
   };
@@ -68,7 +69,7 @@ const Wishlist: React.FC = () => {
   const handleClearAll = () => {
     if (!user?.email) return;
 
-    if (!confirm('Deseja remover todos os produtos da lista de desejos?')) {
+    if (!confirm(t('wishlist.confirmClear'))) {
       return;
     }
 
@@ -77,8 +78,8 @@ const Wishlist: React.FC = () => {
     if (success) {
       loadWishlist();
       toast({
-        title: "Lista limpa!",
-        description: "Todos os produtos foram removidos",
+        title: t('wishlist.toast.clearedTitle'),
+        description: t('wishlist.toast.clearedDesc'),
       });
     }
   };
@@ -163,7 +164,7 @@ const Wishlist: React.FC = () => {
                               })()}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Adicionado em {new Date(item.addedAt).toLocaleDateString('pt-BR')}
+                              {t('wishlist.addedOn')} {new Date(item.addedAt).toLocaleDateString('pt-BR')}
                             </p>
                           </div>
 

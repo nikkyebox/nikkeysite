@@ -29,6 +29,16 @@ vi.mock('@/context/CartContext', () => ({
   }),
 }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: mocks.toast }) }));
+vi.mock('@/context/LanguageContext', async () => {
+  const { translations } = await import('@/data/translations');
+  return {
+    useLanguage: () => ({
+      t: (key: string) => translations.pt[key as keyof typeof translations.pt] ?? key,
+      language: 'pt',
+      selectedCountry: 'Brasil',
+    }),
+  };
+});
 vi.mock('@/services/newsletterService', () => ({
   newsletterService: { subscribe: vi.fn() },
 }));

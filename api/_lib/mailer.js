@@ -2,8 +2,8 @@ import { Resend } from 'resend';
 import { encodeEmail, unsubscribeToken } from './email-optout.js';
 import { escapeHtml, HttpError } from './http.js';
 
-export const MAIL_FROM = 'contato@nikkeybox.jp';
-export const MAIL_REPLY_TO = 'contato@nikkeybox.jp';
+export const MAIL_FROM = 'nikkeybox.jp@gmail.com';
+export const MAIL_REPLY_TO = 'nikkeybox.jp@gmail.com';
 export const BRAND = 'NikkeyBox';
 
 let resendClient = null;

@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useState, useEffect } from 'react';
 import { Tag, Plus, Trash2, Edit2, Calendar, Percent, DollarSign, Check, X, Gift, Star, Users, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -209,12 +210,12 @@ const CouponManager: React.FC = () => {
                 };
                 couponService.create({ code: 'TESTE20', type: 'percent', discount: 0, discountPercent: 20, description: 'Cupom de teste', isActive: true, targetType: 'all', expiryDate: profileCoupon.expiresAt });
                 // Adiciona imediatamente ao perfil do admin logado (sem precisar de reload)
-                addCoupon(profileCoupon as any);
+                addCoupon(profileCoupon);
                 const res = await firebaseSyncService.grantCouponToAllUsers(profileCoupon);
                 toast({ title: '🎟️ TESTE20 criado', description: `Concedido a ${res.granted ?? 0} cliente(s). Código: TESTE20 — 20% OFF` });
                 loadCoupons();
-              } catch (e: any) {
-                toast({ title: 'Erro', description: e?.message, variant: 'destructive' });
+              } catch (e: unknown) {
+                toast({ title: 'Erro', description: errorMessage(e), variant: 'destructive' });
               }
             }}>
             <Star className="w-3.5 h-3.5" /> TESTE20
@@ -368,7 +369,7 @@ const CouponManager: React.FC = () => {
                       key={opt.value}
                       type="button"
                       variant={formData.targetType === opt.value ? 'default' : 'outline'}
-                      onClick={() => setFormData(prev => ({ ...prev, targetType: opt.value as any }))}
+                      onClick={() => setFormData(prev => ({ ...prev, targetType: opt.value as 'all' | 'specific' | 'birthday' | 'loyalty' }))}
                       className="flex items-center"
                       size="sm"
                     >

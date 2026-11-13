@@ -18,10 +18,7 @@ export interface PaymentSettings {
   pixCity: string;         // cidade do recebedor PIX, máx 15 caracteres
   pixEnabled: boolean;     // mostra a opção PIX no checkout internacional
   cardEnabled: boolean;    // mostra a opção Cartão (Stripe) no checkout internacional
-  // Japan payment — Yucho Bank & contact
-  yuchoKigo: string;       // 記号 (símbolo da conta ゆうちょ)
-  yuchoNumber: string;     // 番号 (número da conta ゆうちょ)
-  yuchoName: string;       // 口座名義 (nome do titular)
+  // Japan payment — contato
   contactPhone: string;    // telefone doméstico japonês (ex: 070-1367-1679) usado no WhatsApp e PayPay
 }
 
@@ -33,9 +30,6 @@ const DEFAULT: PaymentSettings = {
   pixCity: 'Sao Paulo',
   pixEnabled: false,
   cardEnabled: true,
-  yuchoKigo: '',
-  yuchoNumber: '',
-  yuchoName: '',
   contactPhone: '',
 };
 

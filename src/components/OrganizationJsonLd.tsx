@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 
-const SITE_URL = 'https://www.nikkeybox-store.com';
+const SITE_URL = 'https://www.nikkeybox.jp';
 
 /**
  * Injeta Schema.org Organization no <head>, uma única vez, em toda página

@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useUser } from '@/context/UserContext';
 import { ShieldAlert } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Props {
   children: ReactNode;
@@ -13,6 +14,7 @@ interface Props {
  */
 const RequireAdmin: React.FC<Props> = ({ children }) => {
   const { isAdmin, isAuthenticated } = useUser();
+  const { t } = useLanguage();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -25,12 +27,12 @@ const RequireAdmin: React.FC<Props> = ({ children }) => {
           <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
             <ShieldAlert className="w-7 h-7 text-red-600 dark:text-red-400" />
           </div>
-          <h2 className="font-display text-lg font-bold mb-2">Acesso restrito</h2>
+          <h2 className="font-display text-lg font-bold mb-2">{t('route.restricted.title')}</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Esta área é exclusiva para administradores.
+            {t('route.restricted.desc')}
           </p>
           <a href="/" className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition">
-            Voltar ao início
+            {t('route.back')}
           </a>
         </div>
       </div>

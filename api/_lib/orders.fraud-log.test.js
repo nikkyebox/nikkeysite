@@ -69,7 +69,7 @@ function pedido() {
       prefecture: '',
       state: 'SP',
       shippingCarrier: 'ems',
-      paymentMethod: 'wise',
+      paymentMethod: 'pix',
       couponCode: 'ANA10',
       redeemPoints: 0,
       negotiationId: '',

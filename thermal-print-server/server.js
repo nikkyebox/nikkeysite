@@ -86,7 +86,7 @@ const PAYMENT_PT = {
   boleto: 'Boleto Bancario',
   wise:   'Wise (Transferencia)',
   paypal: 'PayPal',
-  yucho:  'Banco Yucho',
+  yucho:  'Transferência (método antigo)',
 };
 
 function printOrder(order) {

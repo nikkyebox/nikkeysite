@@ -120,8 +120,8 @@ export const carrierService = {
         carrier,
         status: 'in_transit',
         events: [
-          { date: new Date().toISOString(), status: 'label_created', location: 'Hiroshima-ken' },
-          { date: new Date().toISOString(), status: 'picked_up', location: 'Hiroshima-ken' }
+          { date: new Date().toISOString(), status: 'label_created', location: 'Mie-ken' },
+          { date: new Date().toISOString(), status: 'picked_up', location: 'Mie-ken' }
         ]
       };
     } catch (error) {

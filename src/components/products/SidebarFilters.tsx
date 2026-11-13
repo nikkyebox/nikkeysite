@@ -40,7 +40,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
           onClick={() => toggleSection('categories')}
           className="flex items-center justify-between w-full text-lg font-bold mb-4 hover:text-primary transition-colors"
         >
-          <span>{t('filter.categories') || 'Categorias'}</span>
+          <span>{t('filter.categories')}</span>
           <ChevronDown
             className={cn(
               'w-5 h-5 transition-transform',
@@ -60,7 +60,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
               )}
             >
-              {t('filter.all') || 'Todos'}
+              {t('filter.all')}
             </button>
             {categories.map((cat) => (
               <button
@@ -87,7 +87,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
             onClick={() => toggleSection('types')}
             className="flex items-center justify-between w-full text-lg font-bold mb-4 hover:text-primary transition-colors"
           >
-            <span>{t('filter.types') || 'Tipos'}</span>
+            <span>{t('filter.types')}</span>
             <ChevronDown
               className={cn(
                 'w-5 h-5 transition-transform',
@@ -107,7 +107,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                 )}
               >
-                {t('filter.all') || 'Todos'}
+                {t('filter.all')}
               </button>
               {types.map((type) => (
                 <button
@@ -138,7 +138,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
           variant="outline"
           className="w-full"
         >
-          {t('filter.clear') || 'Limpar Filtros'}
+          {t('filter.clear')}
         </Button>
       )}
     </div>

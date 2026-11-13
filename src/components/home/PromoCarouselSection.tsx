@@ -55,6 +55,8 @@ const PromoCarouselSection: React.FC = () => {
   }, [heroProducts]);
 
   const slides: CarouselSlide[] = useMemo(() => {
+    // Conversão local: depende só de `currency`, que já está na lista de dependências.
+    const convertYen = (yen: number) => fxConvert(yen, currency);
     // Preço da variante mais barata (com promoção, se houver), na moeda do visitante.
     const pricesOf = (p: Product) => {
       const firstVariant = [...getVariants(p)].sort((a, b) => a.price - b.price)[0];
@@ -89,9 +91,9 @@ const PromoCarouselSection: React.FC = () => {
         id: 'promo',
         image: cdnImage(promo.productImage, 1400),
         layout: 'split',
-        badge: PROMO_TYPES.find(pt => pt.value === promo.type)?.label ?? promo.type,
+        badge: ((promoType) => promoType?.labelKey ? t(promoType.labelKey) : (promoType?.label ?? promo.type))(PROMO_TYPES.find(pt => pt.value === promo.type)),
         title: promo.productName,
-        ctaLabel: 'Saiba Mais',
+        ctaLabel: t('home.promo.cta'),
         ctaLink: '/promocao',
         priceOriginal: promo.originalPriceYen > 0 ? formatPrice(convertYen(promo.originalPriceYen), currency) : undefined,
         pricePromo: formatPrice(convertYen(promo.promoPriceYen), currency),

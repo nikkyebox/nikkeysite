@@ -1,3 +1,5 @@
+import type { AdminOrder, AdminOrderItem } from '@/types/order';
+import { errorMessage } from '@/utils/errors';
 import React, { useState } from 'react';
 import { db } from '@/config/firebase';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
@@ -51,8 +53,8 @@ const CpfMigration: React.FC = () => {
         if (!index[cpf]) index[cpf] = { productIds: new Set(), affiliateCodes: new Set() };
 
         // Produtos com limite de estoque
-        const orderItems: any[] = order.items || [];
-        orderItems.forEach((it: any) => {
+        const orderItems: AdminOrderItem[] = order.items || [];
+        orderItems.forEach((it: AdminOrderItem) => {
           const pid = it.productId || it.id || '';
           if (pid) index[cpf].productIds.add(pid);
         });
@@ -90,8 +92,8 @@ const CpfMigration: React.FC = () => {
 
       setResult({ total, processed, skipped, cpfsFound, errors, log });
       toast({ title: 'Migração concluída!', description: `${cpfsFound} CPFs indexados.` });
-    } catch (e: any) {
-      log.push(`❌ Erro fatal: ${e?.message}`);
+    } catch (e: unknown) {
+      log.push(`❌ Erro fatal: ${errorMessage(e)}`);
       setResult({ total, processed, skipped, cpfsFound: 0, errors: errors + 1, log });
       toast({ title: 'Erro na migração', variant: 'destructive' });
     }

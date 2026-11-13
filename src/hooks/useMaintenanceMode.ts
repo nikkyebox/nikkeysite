@@ -1,3 +1,4 @@
+import { errorMessage, errorCode } from '@/utils/errors';
 import { useState, useEffect } from 'react';
 import { db, auth } from '@/config/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
@@ -62,10 +63,10 @@ export const useMaintenanceMode = () => {
       });
       // onSnapshot atualiza isEnabled automaticamente
       return { ok: true, newState };
-    } catch (e: any) {
-      const msg = e?.code === 'permission-denied'
+    } catch (e: unknown) {
+      const msg = errorCode(e) === 'permission-denied'
         ? 'Permissão negada — verifique se está logado como admin no Firebase'
-        : String(e?.message || e);
+        : String(errorMessage(e) || e);
       return { ok: false, newState: isEnabled, error: msg };
     }
   };

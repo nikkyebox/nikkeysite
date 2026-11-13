@@ -3,7 +3,7 @@
 // páginas que mais convertem. Produtos são públicos no Firestore (leitura REST sem auth).
 import { fetchProducts, escapeXml, isVisibleInternationally } from '../_lib/firestore-products.js';
 
-const SITE_ORIGIN = 'https://nikkeybox-store.com';
+const SITE_ORIGIN = 'https://nikkeybox.jp';
 
 function toIso(ts) {
   try {

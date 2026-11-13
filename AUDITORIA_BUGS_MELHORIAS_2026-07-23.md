@@ -16,6 +16,29 @@ Todos os itens de prioridade crítica, alta e média deste documento foram imple
 
 Itens marcados **[INFERÊNCIA]** permanecem como dedução do código; evidências sem essa marca foram observadas diretamente.
 
+## Revalidação do backlog (verificada no código)
+
+Revisão feita por leitura do código e testes automatizados, sem alterar o comportamento dos itens listados abaixo.
+
+| Item | Situação verificada |
+|---|---|
+| SEC-01 `decrement-stock` público | Resolvido: o endpoint não existe mais. Estoque é reservado e baixado no servidor (`api/_lib/stock-hold.js`, `api/_lib/fulfillment.js`). |
+| PAY-01 Stripe confia no valor do navegador | Resolvido: PaymentIntent criado no servidor a partir do pedido (`api/orders.js`); confirmação só por webhook assinado (`api/stripe-webhook.js`). |
+| PUSH-01 push sem autorização | Resolvido: `api/notify.js` exige `requireAdmin` e limite de taxa. |
+| MAIL-01 e-mail promocional sem admin | Resolvido: campanha promocional exige `requireAdmin` e limite de taxa. |
+| RECOVERY-01 cron aberto | Resolvido: `requireCronSecret` responde 503 sem `CRON_SECRET` e 401 sem o header correto. |
+| PROMO-01 limite e contador no cliente | Resolvido no servidor: `api/_lib/promo-reserve.js` e `promo-identity.js` (reserva por CPF em transação). Regras negam escrita de `siteContent` e `promo_usage` para não-admin. |
+| RULES-01 regras permissivas | Parcialmente resolvido: `coupon_usage`, `cpf_index`, `fraud_attempts`, `affiliate_pending`, `orders` e `products` são só admin ou servidor. Teste de regras com 90 verificações passa no emulador (`scripts/test-firestore-rules.mjs`). Ainda vale revisar `eventos` e `video_reviews` (ver abaixo). |
+| STOCK-02 baixa antes do pagamento | Resolvido: estado `pending_payment` até confirmação; baixa definitiva em `fulfillment.js`. |
+| PERF-01 consulta de pedidos sem paginação | Resolvido no painel admin: `startAfter` + `limit` em `src/services/firebaseSyncService.ts`. |
+| DEV-01 `vite dev` sem APIs | Resolvido: `scripts/vercel-dev-api.mjs` serve `api/*` e as reescritas do `vercel.json` dentro do `vite dev`. Testado com `curl` (404 para rota inexistente, 503 sem credenciais, 401 em rota protegida, 200 em `/api/wise-rate`) e no navegador (home carrega). Testes em `scripts/vercel-dev-api.test.mjs`. |
+| TypeScript com erros (QA-02) | Resolvido: `tsc --noEmit -p tsconfig.app.json` passa. |
+| Lint (QA-01) | Resolvido nos erros: `npx eslint .` sem erros (0) e sem `any` em `src/`. Artefatos gerados e snapshots da raiz ficam fora do lint em `eslint.config.js`. Avisos de hooks (`exhaustive-deps`) zerados: 4 corrigidos no código e 14 intencionais, marcados com `eslint-disable-next-line` e justificativa. Avisos de `react-refresh/only-export-components` também zerados: funções de dados movidas para `src/services` e `src/utils`, e `getLenis` para `src/lib/lenisInstance.ts`; hooks e variantes de estilo do shadcn/ui ficaram como exceções documentadas em `eslint.config.js`. Lint total: 0 avisos. |
+| DEPS-01 vulnerabilidades | Parcial: `npm audit fix` sem `--force` reduziu de 24 para 16 vulnerabilidades em produção (6 high). Os restantes exigem major (nodemailer 10.x) ou não têm correção publicada no npm (ver histórico do lockfile). |
+| Código morto de escrita no cliente | Removido nesta revisão: `cpfGuardService.ts`, `productService.decrementStock`, `UserContext.addOrder`. |
+
+Regras de `eventos` e `video_reviews` apertadas: `eventos` aceita só o formato de `src/services/eventosService.ts` (campos fixos, uid do próprio usuário, `criadoEm` de servidor, tamanhos limitados); `video_reviews` exige `id` igual ao id do documento, nome limitado e URL de vídeo só do Firebase Storage. Cobertas por `scripts/test-firestore-rules.mjs` (96 verificações, emulador). `newsletter`, `analytics_*` e `cpf_index` já são só admin.
+
 ## Regra original desta auditoria (histórico)
 
 - A auditoria nasceu com a regra de propor apenas recomendações, sem aplicar. Essa regra foi posteriormente superada por instrução explícita do usuário para aplicar todo o backlog.
@@ -116,6 +139,8 @@ Arquivos alterados:
 
 ### DATA-01 — Endereço e centro logístico divergem entre Mie, Hiroshima e Tóquio [RESOLVIDO]
 
+> **Atualização (confirmada pelo responsável):** o centro logístico é **Mie-ken** (Tsu-shi, CEP 514-0817, `shared/company-profile.json`). A análise original (Fukuyama-shi, Hiroshima-ken) estava errada. Textos de cliente, páginas, assistente e evento de rastreio foram trocados para Mie (106 ocorrências em 8 arquivos; `pt`, `en` e `ja`). **Pendente de decisão:** a tabela de zonas de frete (`src/data/japanPrefectures.ts`, `api/_lib/commerce.js`) ainda calcula a partir de Hiroshima (zona 1 = Hiroshima e vizinhas; Mie está na zona 3 no servidor). Ou seja, o texto diz Mie, mas o preço ainda é calculado como se a origem fosse Hiroshima. Isso precisa ser corrigido antes de publicar, e a tabela de zonas e os valores de frete devem ser definidos pelo responsável.
+
 **Evidência observada (histórica):**
 
 - `CN23Modal` e dados postais usavam `Iga-shi, Mie-ken`, CEP `518-0225`.
@@ -176,6 +201,8 @@ Pontos observados em `firestore.rules`:
 
 ### I18N-01 — Internacionalização incompleta fora do hero
 
+**Progresso:** casca compartilhada da loja concluída nos três idiomas: cabeçalho mobile, menu lateral, widget de WhatsApp, rodapé (rótulos de redes sociais que tinham "teste"), seção de app (incluindo os guias de instalação Android e iOS) e captação de newsletter. Chaves novas: `shell.*`, `whatsapp.*`, `app.*`, `newsletter.*`. As traduções para japonês foram escritas sem revisão nativa e precisam dessa revisão. Ainda pendentes: páginas legais, checkout, pedido, perfil, páginas de produto e o assistente KimiClaw.
+
 Com japonês selecionado, a auditoria visual encontrou conteúdo em português/inglês em vários pontos:
 
 - “itens”, “Mais Vistos”, “Ofertas”, newsletter e seção de instalação na home;
@@ -185,13 +212,9 @@ Com japonês selecionado, a auditoria visual encontrou conteúdo em português/i
 
 **Correção futura recomendada:** mover todos os textos visíveis, toasts, placeholders e `aria-labels` para o dicionário; adicionar uma verificação automática que falha quando a chave retorna o próprio nome.
 
-### CURRENCY-01 — Fallback monetário contraditório
+### CURRENCY-01 — Fallback monetário contraditório [RESOLVIDO]
+**Situação verificada:** `getCurrencyByCountry` já retorna USD para país desconhecido (o BRL descrito na auditoria original não existe mais). A moeda padrão agora vem de `FALLBACK_CONFIG.currency` em `src/data/worldCountries.ts`, sem repetir o valor. Coberto por `src/utils/currency.test.ts`.
 
-**Evidência:** `worldCountries.ts` define o fallback universal como USD, mas `getCurrencyByCountry` retorna BRL quando o país não é encontrado.
-
-**Risco [INFERÊNCIA]:** preferências antigas ou países ainda não cadastrados podem exibir real em vez de dólar.
-
-**Correção futura recomendada:** usar `FALLBACK_CONFIG.currency` e cobrir país desconhecido em teste.
 
 ### MEDIA-01 — Miniaturas quebradas no Vlog
 

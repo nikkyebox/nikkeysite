@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useState } from 'react';
 import { Trash2, Loader2, AlertTriangle, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,8 +37,8 @@ const ResetOrdersButton: React.FC = () => {
         description: `${removed} pedido(s) removidos do banco + dados locais limpos. Recarregando...`,
       });
       setTimeout(() => window.location.reload(), 1200);
-    } catch (e: any) {
-      toast({ title: 'Erro ao resetar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao resetar', description: errorMessage(e), variant: 'destructive' });
       setBusyOrders(false);
     }
   };
@@ -58,8 +59,8 @@ const ResetOrdersButton: React.FC = () => {
       } else {
         toast({ title: 'Erro ao zerar pontos', description: res.error ? String(res.error) : 'Tente novamente.', variant: 'destructive' });
       }
-    } catch (e: any) {
-      toast({ title: 'Erro ao zerar pontos', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao zerar pontos', description: errorMessage(e), variant: 'destructive' });
     }
     setBusyPoints(false);
   };
@@ -77,8 +78,8 @@ const ResetOrdersButton: React.FC = () => {
     try {
       firebaseSyncService.clearAllReviews();
       toast({ title: '⭐ Avaliações apagadas', description: 'Todas as avaliações de produtos foram removidas.' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao apagar avaliações', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao apagar avaliações', description: errorMessage(e), variant: 'destructive' });
     }
     setBusyReviews(false);
   };

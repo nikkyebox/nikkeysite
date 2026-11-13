@@ -1,3 +1,4 @@
+import type { AdminOrder, AdminOrderItem } from '@/types/order';
 import React, { useState } from 'react';
 import { Package, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 
 interface TrackingModalProps {
-  order: any;
+  order: AdminOrder;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (trackingNumber: string, carrier: string) => void | Promise<void>;

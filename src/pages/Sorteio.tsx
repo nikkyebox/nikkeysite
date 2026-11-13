@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { raffleService, Raffle } from '@/services/raffleService';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/context/LanguageContext';
 
 const PODIUM_GIFS: Record<number, string> = {
   1: '/raffle/trofeu-ouro.gif',
@@ -13,6 +14,7 @@ const PODIUM_GIFS: Record<number, string> = {
 };
 
 const Sorteio: React.FC = () => {
+  const { t } = useLanguage();
   const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ const Sorteio: React.FC = () => {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-muted-foreground">Carregando sorteio...</p>
+          <p className="text-muted-foreground">{t('sorteio.loading')}</p>
         </div>
       </Layout>
     );
@@ -49,7 +51,7 @@ const Sorteio: React.FC = () => {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-muted-foreground">Erro ao carregar sorteio</p>
+          <p className="text-muted-foreground">{t('sorteio.loadError')}</p>
         </div>
       </Layout>
     );
@@ -65,18 +67,18 @@ const Sorteio: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <h1 className="text-4xl font-bold text-center mb-2">Sorteio NikkeyBox</h1>
+        <h1 className="text-4xl font-bold text-center mb-2">{t('sorteio.title')}</h1>
         <p className="text-center text-muted-foreground mb-8">
-          Confira os ganhadores e as regras da nossa promoção
+          {t('sorteio.subtitle')}
         </p>
 
         <Tabs defaultValue="sorteio" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="sorteio" className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
-              Sorteio
+              {t('sorteio.tabDraw')}
             </TabsTrigger>
-            <TabsTrigger value="regras">Regras</TabsTrigger>
+            <TabsTrigger value="regras">{t('sorteio.tabRules')}</TabsTrigger>
           </TabsList>
 
           {/* Aba: Sorteio (Vencedores) */}
@@ -85,10 +87,10 @@ const Sorteio: React.FC = () => {
               <div className="text-center py-12 bg-secondary/20 rounded-2xl border border-border">
                 <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <p className="text-lg font-semibold text-foreground mb-2">
-                  Sorteio em breve!
+                  {t('sorteio.soon')}
                 </p>
                 <p className="text-muted-foreground">
-                  Em breve anunciaremos os ganhadores desta promoção. Fique atento!
+                  {t('sorteio.soonDesc')}
                 </p>
               </div>
             ) : (
@@ -113,7 +115,7 @@ const Sorteio: React.FC = () => {
                             {trophyGif ? (
                               <img
                                 src={trophyGif}
-                                alt={`Troféu do ${winner.rank}º lugar`}
+                                alt={t('sorteio.trophyAlt').replace('{pos}', String(winner.rank))}
                                 className="h-24 w-24 object-contain"
                               />
                             ) : (
@@ -122,7 +124,7 @@ const Sorteio: React.FC = () => {
                               </div>
                             )}
                             <p className="text-sm font-semibold text-muted-foreground mt-1">
-                              {winner.rank}º lugar
+                              {t('sorteio.place').replace('{pos}', String(winner.rank))}
                             </p>
                           </div>
 
@@ -149,19 +151,19 @@ const Sorteio: React.FC = () => {
                                         />
                                       )}
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-muted-foreground">Prêmio:</p>
+                                        <p className="text-sm text-muted-foreground">{t('sorteio.prize')}</p>
                                         <p className="font-semibold text-foreground truncate">
                                           {prize.productName}
                                         </p>
-                                        <p className="text-xs text-primary mt-1">Ver produto →</p>
+                                        <p className="text-xs text-primary mt-1">{t('sorteio.viewProduct')}</p>
                                       </div>
                                     </div>
                                   </Link>
                                 ) : prize.type === 'points' ? (
                                   <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                    <p className="text-sm text-muted-foreground">Prêmio:</p>
+                                    <p className="text-sm text-muted-foreground">{t('sorteio.prize')}</p>
                                     <p className="text-2xl font-bold text-purple-700">
-                                      {prize.points} pontos
+                                      {prize.points} {t('sorteio.points')}
                                     </p>
                                   </div>
                                 ) : null}
@@ -190,7 +192,7 @@ const Sorteio: React.FC = () => {
             ) : (
               <div className="text-center py-12 bg-secondary/20 rounded-2xl border border-border">
                 <p className="text-muted-foreground">
-                  Regras ainda não foram publicadas. Volte em breve!
+                  {t('sorteio.rulesSoon')}
                 </p>
               </div>
             )}

@@ -19,7 +19,7 @@ function safeUrl(value) {
 export async function sendPush({ emails, title, body, url = '/', tag = 'promo' }) {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || 'mailto:contato@nikkeybox-store.com';
+  const subject = process.env.VAPID_SUBJECT || 'mailto:nikkeybox.jp@gmail.com';
   if (!publicKey || !privateKey) throw new HttpError(503, 'push_not_configured');
   webpush.setVapidDetails(subject, publicKey, privateKey);
 

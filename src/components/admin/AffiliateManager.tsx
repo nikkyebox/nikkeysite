@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { affiliateService, Affiliate, PendingCommission, TIER_CONFIG, AffiliateTier } from '@/services/affiliateService';
 
-const SITE_URL = 'https://nikkeybox-store.com';
+const SITE_URL = 'https://nikkeybox.jp';
 
 const AffiliateManager: React.FC = () => {
   const { toast } = useToast();

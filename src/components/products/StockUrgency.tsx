@@ -1,6 +1,7 @@
 import React from 'react';
 import { Flame } from 'lucide-react';
 import { Product } from '@/types';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface StockUrgencyProps {
   stock?: Product['stock'];
@@ -16,6 +17,7 @@ const LOW_STOCK_THRESHOLD = 10;
  * tem estoque ilimitado ou abundante (acima do limite).
  */
 const StockUrgency: React.FC<StockUrgencyProps> = ({ stock, className = '' }) => {
+  const { t } = useLanguage();
   const hasLowStock =
     !!stock && !stock.unlimited && stock.quantity > 0 && stock.quantity <= LOW_STOCK_THRESHOLD;
   if (!hasLowStock) return null;
@@ -30,8 +32,8 @@ const StockUrgency: React.FC<StockUrgencyProps> = ({ stock, className = '' }) =>
       <Flame className="w-4 h-4 shrink-0" />
       <p className="text-xs sm:text-sm font-bold leading-tight">
         {isLastOne
-          ? '🔥 Última unidade — pode acabar a qualquer momento!'
-          : `🔥 Últimas ${qty} unidades em estoque!`}
+          ? t('stock.lastOne')
+          : t('stock.lastN').replace('{qty}', String(qty))}
       </p>
     </div>
   );

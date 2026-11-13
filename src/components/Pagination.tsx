@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface PaginationProps {
   page: number;
@@ -24,6 +25,7 @@ const Pagination: React.FC<PaginationProps> = ({
   total,
   className = '',
 }) => {
+  const { t } = useLanguage();
   if (totalPages <= 1) return null;
 
   // Calcula as páginas visíveis (janela de 5 centrada na atual)
@@ -38,13 +40,13 @@ const Pagination: React.FC<PaginationProps> = ({
     'min-w-9 h-9 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center';
 
   return (
-    <nav className={`flex flex-col items-center gap-3 ${className}`} aria-label="Paginação">
+    <nav className={`flex flex-col items-center gap-3 ${className}`} aria-label={t('pager.nav')}>
       <div className="flex items-center gap-1.5">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           className={`${btnBase} border border-border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-secondary`}
-          aria-label="Página anterior"
+          aria-label={t('pager.prev')}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -84,7 +86,7 @@ const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
           className={`${btnBase} border border-border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-secondary`}
-          aria-label="Próxima página"
+          aria-label={t('pager.next')}
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -92,7 +94,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
       {total !== undefined && rangeStart !== undefined && rangeEnd !== undefined && (
         <p className="text-xs text-muted-foreground">
-          Mostrando {rangeStart}–{rangeEnd} de {total}
+          {t('pager.showing').replace('{start}', String(rangeStart)).replace('{end}', String(rangeEnd)).replace('{total}', String(total))}
         </p>
       )}
     </nav>

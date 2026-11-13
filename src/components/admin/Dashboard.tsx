@@ -8,10 +8,10 @@ import { z } from 'zod';
 import { affiliateService } from '@/services/affiliateService';
 import type { Affiliate, PendingCommission } from '@/services/affiliateService';
 import { authenticatedFetch } from '@/services/authenticatedFetch';
-import { getMarketingExpenses } from '@/components/admin/MarketingManager';
-import type { MarketingExpense } from '@/components/admin/MarketingManager';
-import { getEmployeePayments } from '@/components/admin/EmployeeManager';
-import type { EmployeePayment } from '@/components/admin/EmployeeManager';
+import { getMarketingExpenses } from '@/services/marketingExpenseService';
+import type { MarketingExpense } from '@/services/marketingExpenseService';
+import { getEmployeePayments } from '@/services/employeePaymentService';
+import type { EmployeePayment } from '@/services/employeePaymentService';
 import type { OrderStatistics } from '@/types';
 import MaintenanceToggle from '@/components/admin/MaintenanceToggle';
 import ResetOrdersButton from '@/components/admin/ResetOrdersButton';
@@ -134,6 +134,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     void loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega só quando refreshKey muda; loadData é recriado a cada render
   }, [refreshKey]);
 
   const loadData = async () => {
@@ -515,7 +516,7 @@ const Dashboard: React.FC = () => {
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} label>
-                      {statusData.map((entry: any, idx: number) => (
+                      {statusData.map((entry, idx: number) => (
                         <Cell key={`cell-${idx}`} fill={entry.color} />
                       ))}
                     </Pie>

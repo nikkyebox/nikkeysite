@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
+import { vercelApiDevPlugin } from "./scripts/vercel-dev-api.mjs";
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -9,12 +10,11 @@ export default defineConfig(({ mode }) => ({
     port: Number(process.env.PORT) || 8080,
     allowedHosts: true,
     hmr: { overlay: false },
-    proxy: {
-      "/api": "http://localhost:3000",
-    },
   },
   plugins: [
     react(),
+    // /api/* e reescritas do vercel.json são servidos pelo próprio Vite (sem `vercel dev`).
+    vercelApiDevPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: null, // registro feito manualmente em main.tsx (controle do reload)

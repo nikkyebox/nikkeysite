@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { isChunkLoadError, recoverFromChunkError } from '@/utils/recoverFromChunkError';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Props {
   children: ReactNode;
@@ -15,6 +16,49 @@ interface State {
   error: Error | null;
   isChunkError: boolean;
 }
+
+/** Tela de recuperação. Função à parte para poder usar o idioma (a classe não pode). */
+const ErrorFallback: React.FC<{ isChunkError: boolean; error: Error | null; onReset: () => void }> = ({
+  isChunkError,
+  error,
+  onReset,
+}) => {
+  const { t } = useLanguage();
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-5">
+          <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        </div>
+        <h2 className="font-display text-xl font-bold mb-2">
+          {isChunkError ? t('ui.err.newVersion') : t('ui.err.generalTitle')}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {isChunkError ? t('ui.err.updated') : t('ui.err.body')}
+        </p>
+        {error && (
+          <pre className="text-left text-xs bg-secondary/40 rounded-lg p-3 mb-6 overflow-auto max-h-32 text-red-600 dark:text-red-400">
+            {error.name}: {error.message}
+          </pre>
+        )}
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition"
+          >
+            <RefreshCw className="w-4 h-4" /> {t('ui.retry')}
+          </button>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border font-medium hover:bg-secondary transition"
+          >
+            <Home className="w-4 h-4" /> {t('ui.home')}
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Captura erros de renderização em qualquer componente filho e mostra
@@ -53,40 +97,11 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback;
 
     return (
-      <div className="min-h-[50vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-5">
-            <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
-          </div>
-          <h2 className="font-display text-xl font-bold mb-2">
-            {this.state.isChunkError ? 'Nova versão disponível' : 'Algo deu errado'}
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            {this.state.isChunkError
-              ? 'O site foi atualizado. A página será recarregada automaticamente em instantes...'
-              : 'Encontramos um problema ao carregar esta parte da página. Você pode tentar novamente ou voltar para o início.'}
-          </p>
-          {this.state.error && (
-            <pre className="text-left text-xs bg-secondary/40 rounded-lg p-3 mb-6 overflow-auto max-h-32 text-red-600 dark:text-red-400">
-              {this.state.error.name}: {this.state.error.message}
-            </pre>
-          )}
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={this.handleReset}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition"
-            >
-              <RefreshCw className="w-4 h-4" /> Tentar novamente
-            </button>
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border font-medium hover:bg-secondary transition"
-            >
-              <Home className="w-4 h-4" /> Início
-            </a>
-          </div>
-        </div>
-      </div>
+      <ErrorFallback
+        isChunkError={this.state.isChunkError}
+        error={this.state.error}
+        onReset={this.handleReset}
+      />
     );
   }
 }

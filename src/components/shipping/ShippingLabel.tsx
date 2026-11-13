@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Package, Printer, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ShippingLabelProps {
   orderNumber: string;
@@ -32,6 +33,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
   deliveryTime
 }) => {
   const labelRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   // Format shipping data for QR code (standard format used by Japanese carriers)
   const qrData = JSON.stringify({
@@ -66,7 +68,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
     printWindow.document.write(`
       <html>
         <head>
-          <title>Etiqueta de Envio - ${escapeHtml(orderNumber)}</title>
+          <title>${t('shipLabel.printTitle')} - ${escapeHtml(orderNumber)}</title>
           <style>
             @media print {
               @page {
@@ -190,7 +192,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
       <div className="flex gap-3 print:hidden">
         <Button onClick={handlePrint} className="flex items-center gap-2">
           <Printer className="w-4 h-4" />
-          Imprimir Etiqueta
+          {t('shipLabel.print')}
         </Button>
       </div>
 
@@ -198,7 +200,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
       <div ref={labelRef} className="label-container bg-white border-2 border-gray-800 p-6 max-w-[148mm]">
         {/* Order Number Header */}
         <div className="order-number">
-          Pedido: {orderNumber}
+          {t('shipLabel.order')}: {orderNumber}
         </div>
 
         {/* Carrier Logo */}
@@ -208,10 +210,10 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
 
         {/* Recipient (TO) Section */}
         <div className="section">
-          <div className="section-title">📍 DESTINATÁRIO (お届け先)</div>
+          <div className="section-title">📍 {t('shipLabel.recipient')}</div>
           <div className="address-box">
             <div className="postal-code">〒 {recipient.postalCode}</div>
-            <div className="name">{recipient.name} 様</div>
+            <div className="name">{recipient.name} {t('shipLabel.honorific')}</div>
             <div className="address">
               {recipient.prefecture} {recipient.city}<br />
               {recipient.address}
@@ -226,11 +228,11 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
           </div>
           {deliveryTime && (
             <div style={{ marginTop: '10px', padding: '5px', background: '#fff3cd', border: '1px solid #ffc107' }}>
-              <strong>⏰ Horário Preferido:</strong> {
+              <strong>⏰ {t('shipLabel.preferredTime')}:</strong> {
                 deliveryTime === 'morning' ? '9:00-12:00' :
                 deliveryTime === 'afternoon' ? '12:00-17:00' :
                 deliveryTime === 'evening' ? '17:00-20:00' :
-                'Qualquer horário'
+                t('shipLabel.anyTime')
               }
             </div>
           )}
@@ -238,7 +240,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
 
         {/* Sender (FROM) Section */}
         <div className="section">
-          <div className="section-title">📤 REMETENTE (ご依頼主)</div>
+          <div className="section-title">📤 {t('shipLabel.sender')}</div>
           <div className="address-box">
             <div className="postal-code">〒 {sender.postalCode}</div>
             <div className="name">{sender.name}</div>
@@ -250,7 +252,7 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
         {/* QR Code Section */}
         <div className="qr-section">
           <div style={{ marginBottom: '10px', fontSize: '14px', fontWeight: 'bold' }}>
-            QRコード (Código de Rastreamento)
+            {t('shipLabel.qrTitle')}
           </div>
           <div style={{ display: 'inline-block', padding: '10px', background: 'white', border: '2px solid #000' }}>
             <QRCodeSVG
@@ -261,17 +263,17 @@ const ShippingLabel: React.FC<ShippingLabelProps> = ({
             />
           </div>
           <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-            Escaneie este código na transportadora
+            {t('shipLabel.scanHint')}
           </div>
         </div>
 
         {/* Instructions */}
         <div style={{ marginTop: '15px', padding: '10px', background: '#f8f9fa', fontSize: '11px', borderRadius: '5px' }}>
-          <strong>Instruções:</strong>
+          <strong>{t('shipLabel.instructions')}</strong>
           <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
-            <li>Cole esta etiqueta na caixa de forma visível</li>
-            <li>Apresente o QR code ao atendente da transportadora</li>
-            <li>Guarde o número do pedido para rastreamento</li>
+            <li>{t('shipLabel.instr1')}</li>
+            <li>{t('shipLabel.instr2')}</li>
+            <li>{t('shipLabel.instr3')}</li>
           </ul>
         </div>
       </div>

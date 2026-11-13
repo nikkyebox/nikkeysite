@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
                 href={FACEBOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook teste"
+                aria-label="Facebook"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <Facebook className="w-5 h-5" />
@@ -72,7 +72,7 @@ const Footer: React.FC = () => {
                 href={X_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="X (Twitter) @teste"
+                aria-label="X (Twitter)"
                 className="p-2 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
               >
                 <Twitter className="w-5 h-5" />
@@ -189,7 +189,7 @@ const Footer: React.FC = () => {
               {t('footer.cookies')}
             </Link>
             <Link to="/devolucao" className="text-xs text-accent-foreground/50 hover:text-accent-foreground/80 transition-colors">
-              {t('footer.returns') || 'Devolução'}
+              {t('footer.returns')}
             </Link>
           </div>
         </div>

@@ -29,7 +29,7 @@ const valor = (chave) => {
 
 const publicKey = valor('VAPID_PUBLIC_KEY');
 const privateKey = valor('VAPID_PRIVATE_KEY');
-const subject = valor('VAPID_SUBJECT') || 'mailto:contato@nikkeybox-store.com';
+const subject = valor('VAPID_SUBJECT') || 'mailto:nikkeybox.jp@gmail.com';
 if (!publicKey || !privateKey) {
   console.error('Faltam VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY no .env');
   process.exit(1);

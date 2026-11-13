@@ -28,13 +28,13 @@ const SocialFollowRewards: React.FC = () => {
     setLoading(net);
     const { ok, alreadyClaimed } = await socialFollowService.confirmFollow(user.id, net);
     if (alreadyClaimed) {
-      toast({ title: t('social.followed'), description: `+${SOCIAL_POINTS} pts — ${SOCIAL_CONFIG[net].label}` });
+      toast({ title: t('social.followed'), description: t('social.pointsLine').replace('{pts}', String(SOCIAL_POINTS)).replace('{label}', SOCIAL_CONFIG[net].label) });
     } else if (ok) {
       addPoints(SOCIAL_POINTS);
       setFollowed(f => ({ ...f, [net]: true }));
-      toast({ title: `+${SOCIAL_POINTS} pts!`, description: `${SOCIAL_CONFIG[net].label} 🎉` });
+      toast({ title: t('social.pointsAward').replace('{pts}', String(SOCIAL_POINTS)), description: `${SOCIAL_CONFIG[net].label} 🎉` });
     } else {
-      toast({ title: 'Error', description: 'Try again.', variant: 'destructive' });
+      toast({ title: t('social.toast.error'), description: t('social.toast.retry'), variant: 'destructive' });
     }
     setLoading(null);
   };
@@ -64,7 +64,7 @@ const SocialFollowRewards: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">{cfg.label}</p>
-                <p className="text-xs text-muted-foreground">+{SOCIAL_POINTS} pts</p>
+                <p className="text-xs text-muted-foreground">+{SOCIAL_POINTS} {t('profile.points.unit')}</p>
               </div>
             </div>
             {followed[net] ? (

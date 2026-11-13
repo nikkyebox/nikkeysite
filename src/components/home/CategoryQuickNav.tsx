@@ -52,7 +52,7 @@ const CategoryQuickNav: React.FC = () => {
                   </span>
                   <span className="relative min-w-0">
                     <span className="block truncate text-xs font-extrabold text-slate-800">{cat.label}</span>
-                    <span className="mt-1 block text-[10px] font-bold text-pink-500">{counts[cat.id]} itens</span>
+                    <span className="mt-1 block text-[10px] font-bold text-pink-500">{t('ui.itemCount').replace('{n}', String(counts[cat.id]))}</span>
                   </span>
                 </Link>
               ))}

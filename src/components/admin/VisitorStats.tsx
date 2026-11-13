@@ -43,6 +43,7 @@ export default function VisitorStats() {
     setLoading(false);
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega ao trocar o período; load é recriado a cada render
   useEffect(() => { load(); }, [period]);
 
   // Gráfico de barras simples (últimos 14 dias)

@@ -9,6 +9,7 @@ import { uploadMedia } from '@/services/uploadService';
 import { userRewardsService } from '@/services/userRewardsService';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 const MAX_VIDEO_MB = 60;
 
@@ -23,6 +24,7 @@ interface ReviewModalProps {
 const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClose, onDone }) => {
   const { user, addPoints } = useUser();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -51,7 +53,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
-      toast({ title: 'Vídeo muito grande', description: `O limite é ${MAX_VIDEO_MB}MB. Grave um vídeo mais curto.`, variant: 'destructive' });
+      toast({ title: t('rv.video.tooBigTitle'), description: t('rv.video.tooBig').replace('{max}', String(MAX_VIDEO_MB)), variant: 'destructive' });
       return;
     }
     setVideoFile(file);
@@ -60,8 +62,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
 
   const submit = async () => {
     if (!user) return;
-    if (selectedRating === 0) { toast({ title: 'Selecione uma nota (estrelas)', variant: 'destructive' }); return; }
-    if (comment.trim().length < 10) { toast({ title: 'Escreva pelo menos 10 caracteres', variant: 'destructive' }); return; }
+    if (selectedRating === 0) { toast({ title: t('rv.err.rating'), variant: 'destructive' }); return; }
+    if (comment.trim().length < 10) { toast({ title: t('rv.err.comment'), variant: 'destructive' }); return; }
 
     setSaving(true);
 
@@ -72,7 +74,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
         const { url } = await uploadMedia(videoFile, `review-videos/${productId}`, setVideoProgress);
         videoUrl = url;
       } catch (err: unknown) {
-        toast({ title: 'Falha ao enviar o vídeo', description: err instanceof Error ? err.message : 'Tente novamente.', variant: 'destructive' });
+        toast({ title: t('rv.err.upload'), description: err instanceof Error ? err.message : t('profile.error.retry'), variant: 'destructive' });
         setSaving(false);
         return;
       }
@@ -83,8 +85,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
       reward = await userRewardsService.claimProductReview(productId);
     } catch (err: unknown) {
       toast({
-        title: 'Não foi possível validar os pontos',
-        description: err instanceof Error ? err.message : 'Confirme que esta compra já foi paga.',
+        title: t('rv.err.points'),
+        description: err instanceof Error ? err.message : t('rv.err.pointsDesc'),
         variant: 'destructive',
       });
       setSaving(false);
@@ -110,14 +112,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
         userId: user.id, userName: user.name, userEmail: user.email,
         productId, productName, videoUrl,
       });
-      videoMsg = ' Seu vídeo foi enviado para validação — os pontos do vídeo entram após a aprovação do time.';
+      videoMsg = ' ' + t('rv.video.pending');
     }
 
     toast({
       title: reward.awarded > 0
-        ? `Avaliação enviada! +${reward.awarded} ponto`
-        : 'Avaliação enviada!',
-      description: `Você agora tem ${reward.total} pontos.` + videoMsg,
+        ? t('rv.sent.points').replace('{n}', String(reward.awarded))
+        : t('rv.sent'),
+      description: t('rv.sent.total').replace('{n}', String(reward.total)) + videoMsg,
     });
     setSaving(false);
     onDone?.();
@@ -128,7 +130,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-card rounded-2xl w-full max-w-lg my-8 shadow-elevated border border-border">
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h3 className="font-display text-lg font-bold flex items-center gap-2"><Star className="w-5 h-5 text-gold" /> Avaliar produto</h3>
+          <h3 className="font-display text-lg font-bold flex items-center gap-2"><Star className="w-5 h-5 text-gold" /> {t('rv.title')}</h3>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary"><X className="w-5 h-5" /></button>
         </div>
 
@@ -139,13 +141,13 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
           <div className="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
             <Gift className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-amber-900 leading-relaxed">
-              Avaliar = <b>+{POINTS.perReview} ponto</b> · vídeo de review = <b>+{POINTS.perVideoMinute} pts/min</b> (após validação do time).
+              {t('rv.points.rate')} <b>+{POINTS.perReview} {t('rv.points.one')}</b> · {t('rv.points.video')} = <b>+{POINTS.perVideoMinute} {t('rv.unit.ptsMin')}</b> {t('rv.points.afterCheck')}
             </div>
           </div>
 
           {/* Estrelas */}
           <div>
-            <label className="block text-sm font-medium mb-2">Sua nota</label>
+            <label className="block text-sm font-medium mb-2">{t('rv.rating')}</label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button key={star} type="button" onClick={() => setSelectedRating(star)}
@@ -159,14 +161,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
 
           {/* Comentário */}
           <div>
-            <label className="block text-sm font-medium mb-2">Seu comentário</label>
+            <label className="block text-sm font-medium mb-2">{t('rv.comment')}</label>
             <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={4}
-              placeholder="Compartilhe sua experiência com este produto..." />
+              placeholder={t('rv.commentPlaceholder')} />
           </div>
 
           {/* Fotos */}
           <div>
-            <label className="block text-sm font-medium mb-2">Fotos (opcional)</label>
+            <label className="block text-sm font-medium mb-2">{t('rv.photos')}</label>
             <div className="flex flex-wrap gap-2">
               {images.map((img, index) => (
                 <div key={index} className="relative">
@@ -187,30 +189,30 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
           {/* Vídeo — upload direto no site */}
           <div>
             <label className="block text-sm font-medium mb-2 flex items-center gap-1.5">
-              <Video className="w-4 h-4" /> Vídeo de review <span className="text-amber-600 font-bold">(+{POINTS.perVideoMinute} pts/min, após validação)</span>
+              <Video className="w-4 h-4" /> {t('rv.video.label')} <span className="text-amber-600 font-bold">(+{POINTS.perVideoMinute} {t('rv.unit.ptsMin')}, {t('rv.video.afterCheck')})</span>
             </label>
 
             {alreadyHasVideo ? (
-              <p className="text-xs text-muted-foreground">Você já enviou um vídeo deste produto.</p>
+              <p className="text-xs text-muted-foreground">{t('rv.video.already')}</p>
             ) : videoFile ? (
               <div className="relative">
                 <video src={videoPreview} controls className="w-full max-h-48 rounded-lg bg-black" />
                 <button type="button" onClick={() => { setVideoFile(null); setVideoPreview(''); setVideoProgress(0); }}
                   className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"><X className="w-4 h-4" /></button>
-                <p className="text-xs text-muted-foreground mt-1 truncate">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)}MB</p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)}{t('rv.unit.mb')}</p>
                 {saving && videoProgress > 0 && (
                   <div className="mt-2">
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
                       <div className="h-full bg-primary transition-all" style={{ width: `${videoProgress}%` }} />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Enviando vídeo... {videoProgress}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('rv.video.uploading')} {videoProgress}%</p>
                   </div>
                 )}
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-border rounded-lg py-6 cursor-pointer hover:border-primary">
                 <Video className="w-6 h-6 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Toque para gravar/enviar um vídeo (até {MAX_VIDEO_MB}MB)</span>
+                <span className="text-xs text-muted-foreground">{t('rv.video.tap').replace('{max}', String(MAX_VIDEO_MB))}</span>
                 <input type="file" accept="video/*" className="hidden" onChange={handleVideoSelect} />
               </label>
             )}
@@ -218,8 +220,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
         </div>
 
         <div className="p-5 border-t border-border flex gap-3">
-          <Button onClick={submit} disabled={saving} className="flex-1">Enviar avaliação</Button>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={submit} disabled={saving} className="flex-1">{t('rv.submit')}</Button>
+          <Button variant="outline" onClick={onClose}>{t('profile.cancel')}</Button>
         </div>
       </div>
     </div>

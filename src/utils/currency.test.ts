@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getCurrencyByCountry, toYen } from './currency';
+import { FALLBACK_CONFIG } from '@/data/worldCountries';
 
 describe('regional currency policy', () => {
   it.each([
@@ -23,5 +24,11 @@ describe('regional currency policy', () => {
   it('keeps historical totals with no currency as yen to avoid inflating legacy data', () => {
     expect(toYen(900)).toBe(900);
     expect(toYen(900, 'UNKNOWN')).toBe(900);
+  });
+});
+
+describe('fallback monetário', () => {
+  it('país desconhecido usa a moeda de FALLBACK_CONFIG (fonte única)', () => {
+    expect(getCurrencyByCountry('Atlântida')).toBe(FALLBACK_CONFIG.currency);
   });
 });

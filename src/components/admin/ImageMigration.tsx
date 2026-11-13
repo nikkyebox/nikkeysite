@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useState, useCallback, useEffect } from 'react';
 import { CheckCircle, CloudUpload, AlertTriangle, RefreshCw, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,7 @@ const ImageMigration: React.FC = () => {
     const TEST = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     cloudinaryService.uploadDataUrl(TEST, 'nikkeybox/__test__')
       .then(() => setTested('ok'))
-      .catch((e) => { setTested('fail'); setTestError(e?.message || String(e)); });
+      .catch((e) => { setTested('fail'); setTestError(errorMessage(e) || String(e)); });
   }, []);
 
   const toMigrate = products.filter(needsMigration);
@@ -168,8 +169,8 @@ const ImageMigration: React.FC = () => {
       try {
         const migrated = await remigrateProductHD(p);
         await productService.save(migrated);
-      } catch (e: any) {
-        errors.push(`${p.name}: ${e?.message || 'erro'}`);
+      } catch (e: unknown) {
+        errors.push(`${p.name}: ${errorMessage(e) || 'erro'}`);
       }
       setHdState((s) => ({ ...s, done: s.done + 1, errors: [...errors] }));
     });
@@ -186,8 +187,8 @@ const ImageMigration: React.FC = () => {
       try {
         const migrated = await migrateProduct(p);
         await productService.save(migrated);
-      } catch (e: any) {
-        errors.push(`${p.name}: ${e?.message || 'erro'}`);
+      } catch (e: unknown) {
+        errors.push(`${p.name}: ${errorMessage(e) || 'erro'}`);
       }
       setState((s) => ({ ...s, done: s.done + 1, errors: [...errors] }));
     });

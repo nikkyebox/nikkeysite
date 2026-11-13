@@ -143,7 +143,7 @@ function pedido(quantity = 2) {
       prefecture: '',
       state: 'SP',
       shippingCarrier: 'ems',
-      paymentMethod: 'wise',
+      paymentMethod: 'pix',
       couponCode: '',
       redeemPoints: 0,
       negotiationId: '',

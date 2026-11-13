@@ -2,13 +2,13 @@
   "brand": "NikkeyBox",
   "legalName": "NikkeyBox",
   "contactName": "NikkeyBox",
- "email": "contato@nikkeybox.jp",
+ "email": "nikkeybox.jp@gmail.com",
  "website": "https://nikkeybox.jp",
-  "whatsapp": {
-    "international": "+81 70-2272-3051",
-    "domestic": "070-2272-3051",
-    "digits": "817022723051"
-  },
+ "whatsapp": {
+   "international": "+81 90-6158-9251",
+   "domestic": "090-6158-9251",
+   "digits": "819061589251"
+ },
   "fulfillmentOrigin": {
     "postalCode": "514-0817",
     "addressLine1": "Takachaya Komori-cho 2781",

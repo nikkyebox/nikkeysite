@@ -15,12 +15,12 @@ const VideoGallery: React.FC = () => {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const videos: VideoItem[] = [
-    { src: '/video/preparo.mp4', title: 'Preparo Artesanal', flavor: '🍯' },
-    { src: '/video/tradicional.mp4', title: 'Doce Cremoso', flavor: '🥄' },
-    { src: '/video/coco.mp4', title: 'Sabor Coco', flavor: '🥥' },
-    { src: '/video/cafe.mp4', title: 'Sabor Café', flavor: '☕' },
-    { src: '/video/amendoim.mp4', title: 'Sabor Amendoim', flavor: '🥜' },
-    { src: '/video/cholate.mp4', title: 'Sabor Chocolate', flavor: '🍫' },
+    { src: '/video/preparo.mp4', title: t('ui.home.video.preparo'), flavor: '🍯' },
+    { src: '/video/tradicional.mp4', title: t('ui.home.video.tradicional'), flavor: '🥄' },
+    { src: '/video/coco.mp4', title: t('ui.home.video.coco'), flavor: '🥥' },
+    { src: '/video/cafe.mp4', title: t('ui.home.video.cafe'), flavor: '☕' },
+    { src: '/video/amendoim.mp4', title: t('ui.home.video.amendoim'), flavor: '🥜' },
+    { src: '/video/cholate.mp4', title: t('ui.home.video.chocolate'), flavor: '🍫' },
   ];
 
   const togglePlay = (index: number) => {

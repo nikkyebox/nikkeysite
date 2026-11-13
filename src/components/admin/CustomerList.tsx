@@ -20,7 +20,7 @@ import { COUPONS_ENABLED } from '@/config/featureFlags';
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<CustomerStats[]>([]);
-  const [overview, setOverview] = useState<any>(null);
+  const [overview, setOverview] = useState<Awaited<ReturnType<typeof customerService.getCustomerOverviewAsync>> | null>(null);
   const [verification, setVerification] = useState<Map<string, CustomerVerification>>(new Map());
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerStats | null>(null);
   const { toast } = useToast();
@@ -172,6 +172,7 @@ const CustomerList: React.FC = () => {
 
   useEffect(() => {
     loadCustomers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carrega a lista só ao montar; loadCustomers é recriado a cada render
   }, []);
 
   const withTimeout = <T,>(p: Promise<T>, ms: number, fallback: T): Promise<T> =>

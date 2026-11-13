@@ -90,7 +90,14 @@ export function calcEuVat(price: number, country: string): number {
 
 // IVA/VAT/GST universal — consulta a taxa do país na tabela central.
 // Para EUA usa sales tax por estado (calcUsSalesTax); demais usam a taxa do país.
-export function calcImportTax(price: number, country: string, stateCode?: string): { tax: number; label: string } {
+export interface ImportTaxResult {
+  tax: number;
+  label: string;
+  labelKey?: string;
+  labelVars?: Record<string, string>;
+}
+
+export function calcImportTax(price: number, country: string, stateCode?: string): ImportTaxResult {
   if (country === 'Brasil') {
     // Brazil import taxes are subject to customs authority rules and cannot be reliably estimated.
     // Returning tax: 0 suppresses the estimate display while keeping factual customs warning in UI.
@@ -99,12 +106,17 @@ export function calcImportTax(price: number, country: string, stateCode?: string
   if (country === 'Estados Unidos') {
     const tax = calcUsSalesTax(price, stateCode);
     const stRate = US_SALES_TAX[(stateCode || '').toUpperCase()];
-    return { tax, label: stRate != null ? `Sales Tax Est. (${stateCode} ${(stRate * 100).toFixed(1)}%)` : 'Sales Tax Estimado (US)' };
+    if (stRate != null) {
+      const pct = (stRate * 100).toFixed(1);
+      return { tax, label: `Sales Tax Est. (${stateCode} ${pct}%)`, labelKey: 'util.tax.usState', labelVars: { uf: String(stateCode), pct } };
+    }
+    return { tax, label: 'Sales Tax Estimado (US)', labelKey: 'util.tax.usAvg' };
   }
   const cfg = getCountryConfig(country);
   const rate = cfg ? cfg.vat : 0.10;
   if (rate <= 0) return { tax: 0, label: '' };
-  return { tax: price * rate, label: `IVA / VAT Estimado (${Math.round(rate * 100)}%)` };
+  const pct = String(Math.round(rate * 100));
+  return { tax: price * rate, label: `IVA / VAT Estimado (${pct}%)`, labelKey: 'util.tax.vat', labelVars: { pct } };
 }
 
 // ── USA Sales Tax por estado ─────────────────────────────────────────────────

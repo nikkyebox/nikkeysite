@@ -1,4 +1,4 @@
-// Card "Notificações & Promoções" do perfil: mostra as campanhas promocionais
+// Card de notificações e promoções do perfil: mostra as campanhas promocionais
 // enviadas pelo admin (e-mail/push). Fonte: siteContent/promoNotifications —
 // doc de leitura pública já permitida nas regras (match /siteContent),
 // gravado pelo promoCampaignService junto com a criação da campanha.
@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Sparkles, ArrowRight } from 'lucide-react';
 import { db } from '@/config/firebase';
+import { useLanguage } from '@/context/LanguageContext';
 import { doc, getDoc } from 'firebase/firestore';
 
 interface PromoFeedItem {
@@ -25,6 +26,7 @@ interface PromoFeedItem {
 }
 
 const PromoNotificationsCard: React.FC = () => {
+  const { t } = useLanguage();
   const [items, setItems] = useState<PromoFeedItem[]>([]);
 
   useEffect(() => {
@@ -50,12 +52,12 @@ const PromoNotificationsCard: React.FC = () => {
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
           <Bell className="w-5 h-5 text-primary" />
         </div>
-        <h2 className="font-display text-2xl font-semibold text-foreground">Notificações & Promoções</h2>
+        <h2 className="font-display text-2xl font-semibold text-foreground">{t('promoNotif.title')}</h2>
       </div>
 
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">
-          Nenhuma promoção no momento. Quando enviarmos uma oferta, ela aparece aqui. 🔔
+          {t('promoNotif.empty')}
         </p>
       ) : (
         <div className="space-y-4">
@@ -67,7 +69,7 @@ const PromoNotificationsCard: React.FC = () => {
               {item.productImage && (
                 <img
                   src={item.productImage}
-                  alt={item.productName || 'Produto'}
+                  alt={item.productName || t('promoNotif.productAlt')}
                   className="w-16 h-16 rounded-lg object-cover shrink-0"
                 />
               )}
@@ -79,7 +81,7 @@ const PromoNotificationsCard: React.FC = () => {
                     </span>
                   )}
                   <span className="font-semibold text-foreground">
-                    {item.tagline || item.headline || 'Oferta especial'}
+                    {item.tagline || item.headline || t('promoNotif.defaultOffer')}
                   </span>
                 </div>
                 {item.description && (
@@ -87,7 +89,7 @@ const PromoNotificationsCard: React.FC = () => {
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
                   {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                  {item.expiresAt ? ` · válida até ${new Date(item.expiresAt).toLocaleDateString('pt-BR')}` : ''}
+                  {item.expiresAt ? ` · ${t('promoNotif.validUntil')} ${new Date(item.expiresAt).toLocaleDateString('pt-BR')}` : ''}
                 </p>
               </div>
               <Link
@@ -96,7 +98,7 @@ const PromoNotificationsCard: React.FC = () => {
                   : `/carrinho?promo=${item.code}`}
                 className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold text-primary hover:underline"
               >
-                <Sparkles className="w-4 h-4" /> Ver oferta <ArrowRight className="w-4 h-4" />
+                <Sparkles className="w-4 h-4" /> {t('promoNotif.viewOffer')} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           ))}

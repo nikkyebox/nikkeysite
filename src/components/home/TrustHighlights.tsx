@@ -8,23 +8,23 @@ export const TrustHighlights: React.FC = () => {
   const highlights = [
     {
       icon: <ShieldCheck className="w-6 h-6 text-pink-600" />,
-      title: '100% Originais do Japão',
-      desc: 'Cosméticos, doces e produtos autênticos despachados diretamente de Mie-ken.',
+      title: t('ui.home.trust1.title'),
+      desc: t('ui.home.trust1.desc'),
     },
     {
       icon: <PlaneTakeoff className="w-6 h-6 text-purple-600" />,
-      title: 'Envio Internacional Seguro',
-      desc: 'Frete calculado por peso real com código de rastreio Japan Post / Correios.',
+      title: t('ui.home.trust2.title'),
+      desc: t('ui.home.trust2.desc'),
     },
     {
       icon: <Sparkles className="w-6 h-6 text-amber-600" />,
-      title: 'Personal Shopper & Encomendas',
-      desc: 'Não achou o que procura? Nós compramos qualquer item no Japão sob demanda.',
+      title: t('ui.home.trust3.title'),
+      desc: t('ui.home.trust3.desc'),
     },
     {
       icon: <HeartHandshake className="w-6 h-6 text-emerald-600" />,
-      title: 'Suporte Humanizado em Português',
-      desc: 'Atendimento direto pelo WhatsApp para tirar dúvidas antes e depois do pedido.',
+      title: t('ui.home.trust4.title'),
+      desc: t('ui.home.trust4.desc'),
     },
   ];
 

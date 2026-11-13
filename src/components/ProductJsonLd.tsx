@@ -13,7 +13,7 @@ interface Props {
   rating?: { averageRating: number; totalReviews: number };
 }
 
-const SITE_URL = 'https://www.nikkeybox-store.com';
+const SITE_URL = 'https://www.nikkeybox.jp';
 
 /**
  * Injeta Schema.org Product/Offer com shippingDetails no <head>.

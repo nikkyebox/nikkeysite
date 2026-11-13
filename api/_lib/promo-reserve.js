@@ -43,7 +43,8 @@ export const PRAZO_RESERVA_CARTAO_MS = 2 * 60 * 60 * 1000;
 
 /**
  * Prazo dos métodos que a loja confirma à mão (`handleConfirmManualPayment`
- * recusa só cartão): PIX, PayPay, transferência bancária, Yucho e Wise. Aqui o
+ * recusa só cartão): PIX, PayPay, transferência bancária e Wise (e pedidos antigos
+ * com o método Yucho, já descontinuado). Aqui o
  * relógio não é o do cliente, é o do balcão — quem transfere às 23h só é
  * confirmado na manhã seguinte, e Wise é transferência internacional. 24h é o
  * teto: cobre um dia útil de defasagem sem virar bloqueio indefinido, e é o

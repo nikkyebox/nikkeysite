@@ -5,7 +5,7 @@ import { firebaseSyncService } from '@/services/firebaseSyncService';
 export const referralService = {
   // Gera o link de indicação do usuário
   getReferralLink(userId: string): string {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://nikkeybox-store.com';
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://nikkeybox.jp';
     return `${base}?ref=${userId}`;
   },
 

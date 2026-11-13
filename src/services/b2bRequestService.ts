@@ -44,7 +44,7 @@ export const b2bRequestService = {
       await ensureAdminAuth();
       const snap = await getDocs(collection(db, COL));
       const list: B2BRequest[] = [];
-      snap.forEach((d) => list.push({ id: d.id, ...(d.data() as any) }));
+      snap.forEach((d) => list.push({ id: d.id, ...(d.data() as Omit<B2BRequest, 'id'>) }));
       return list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     } catch (e) {
       devError('[b2b] getAll falhou:', e);

@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
-import CouponSelector, { computeCouponDiscount } from '@/components/checkout/CouponSelector';
+import CouponSelector from '@/components/checkout/CouponSelector';
+import { computeCouponDiscount } from '@/utils/couponDiscount';
 import { prefectures } from '@/data/prefectures';
 import { japanPrefectures } from '@/data/japanPrefectures';
 import { europePrefectures } from '@/data/europePrefectures';
@@ -22,7 +23,8 @@ import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
 import { useLanguage, CountryType } from '@/context/LanguageContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen } from '@/utils/pricing';
-import { convertYen as fxConvert, yenFromConverted, getRates, loadFxRates } from '@/services/fxService';
+import { convertYen as fxConvert, yenFromConverted, getRates, getRateSource, loadFxRates } from '@/services/fxService';
+import { clientCheckoutTotals, checkoutLineFromItem, couponYenFor, type CheckoutCoupon } from '@/utils/checkoutTotals';
 import { POINTS } from '@/services/pointsService';
 import { safeStorage } from '@/utils/storage';
 import { checkoutPointsCoverage, psFeeWaiver, PS_FEE_WAIVER_EVENT } from '@/utils/psFeeWaiver';
@@ -105,7 +107,7 @@ const Checkout: React.FC = () => {
 
   // Coupon state
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [, setCouponDiscount] = useState(0);
 
   // Points redemption
   const availablePoints = user?.points || 0;
@@ -117,9 +119,8 @@ const Checkout: React.FC = () => {
   const convertYenExact = (yen: number) => fxConvert(yen, currency, true);
   const maxRedeemable = canRedeem ? Math.min(availablePoints, Math.floor(productSubtotalYen / POINTS.yenPerPoint)) : 0;
   const redeemPoints = Math.max(0, Math.min(pointsToUse, maxRedeemable));
-  const pointsDiscount = convertYen(redeemPoints * POINTS.yenPerPoint);
   // Quanto do cupom em ienes (mesmo cálculo que o servidor)
-  const couponDiscountYen = couponDiscount > 0 ? Math.floor(yenFromConverted(couponDiscount, currency)) : 0;
+  const couponDiscountYen = couponYenFor(items.map((i) => checkoutLineFromItem({ product: i.product, size: i.size, quantity: i.quantity, freeGift: i.freeGift })), (appliedCoupon ?? null) as CheckoutCoupon | null);
   // Pedido zerado por pontos: resgate cobre toda a mercadoria após cupom.
   // Quando verdadeiro, taxa PS é cobrada cheia (sem negociação nem isenção de popup).
   const netProductsAfterCouponAndPoints = productSubtotalYen - couponDiscountYen - redeemPoints;
@@ -239,14 +240,6 @@ const Checkout: React.FC = () => {
   const handleCouponApply = (coupon: Coupon, discount: number) => {
     setAppliedCoupon(coupon);
     setCouponDiscount(discount);
-
-    if (coupon.freeShipping && selectedShipping) {
-      setSelectedShipping({
-        ...selectedShipping,
-        cost: 0,
-        carrier: selectedShipping.carrier + ' (Frete Grátis)',
-      });
-    }
   };
 
   const handleCouponRemove = () => {
@@ -348,13 +341,13 @@ const Checkout: React.FC = () => {
               address: result.town,
             }));
             toast({
-              title: "Código Postal Encontrado!",
+              title: t('checkout.postalFound'),
               description: `${result.province} ${result.city} ${result.town}`,
             });
           } else {
             toast({
-              title: "Erro no Código Postal",
-              description: "Não foi possível localizar este endereço japonês.",
+              title: t('checkout.postalError'),
+              description: t('checkout.jpAddressNotFound'),
               variant: "destructive",
             });
           }
@@ -389,14 +382,14 @@ const Checkout: React.FC = () => {
               city: data.localidade || '',
               address: addressString,
             }));
-            toast({ title: "CEP Encontrado!", description: `${data.localidade} - ${stateCode}` });
+            toast({ title: t('checkout.cepFound'), description: `${data.localidade} - ${stateCode}` });
           } else {
-            toast({ title: "CEP não encontrado", description: "Preencha o endereço manualmente.", variant: "destructive" });
+            toast({ title: t('checkout.cepNotFound'), description: t('checkout.fillManually'), variant: "destructive" });
           }
         } catch (error) {
           clearTimeout(timeoutId);
           if (error instanceof Error && error.name === 'AbortError') {
-            toast({ title: "ViaCEP indisponível", description: "Serviço lento — preencha o endereço manualmente.", variant: "destructive" });
+            toast({ title: t('checkout.viaCepDown'), description: t('checkout.viaCepSlow'), variant: "destructive" });
           } else {
             devError('Erro ao buscar CEP:', error);
           }
@@ -444,7 +437,7 @@ const Checkout: React.FC = () => {
                 prefecture: stateValue || prev.prefecture,
               }));
               toast({
-                title: 'Código Postal Encontrado!',
+                title: t('checkout.postalFound'),
                 description: `${place['place name']} — ${place['state']}`,
               });
             }
@@ -486,12 +479,12 @@ const Checkout: React.FC = () => {
     if (!user || !negModalType) return;
     const requestedYen = parseInt(negRequest, 10) || 0;
     if (requestedYen <= 0) {
-      toast({ title: 'Informe o desconto desejado em ienes', variant: 'destructive' });
+      toast({ title: t('checkout.negNeedAmount'), variant: 'destructive' });
       return;
     }
     const originalYen = negModalType === 'ps_fee' ? psFeeYen : (selectedShipping?.costYen || 0);
     if (requestedYen >= originalYen) {
-      toast({ title: 'O desconto não pode ser igual ou maior que o valor total', variant: 'destructive' });
+      toast({ title: t('checkout.negTooHigh'), variant: 'destructive' });
       return;
     }
     setNegSubmitting(true);
@@ -540,13 +533,13 @@ const Checkout: React.FC = () => {
       });
       setActiveNegId(neg.id);
       setActiveNeg(neg);
-      toast({ title: '📩 Solicitação enviada!', description: 'A vendedora irá analisar e responder em breve.' });
+      toast({ title: `📩 ${t('checkout.negSent')}`, description: t('checkout.negSentDesc') });
       setNegModalType(null);
       setNegRequest('');
       setNegNote('');
     } catch (err) {
       devError('Erro ao criar negociação:', err);
-      toast({ title: 'Erro ao enviar solicitação', variant: 'destructive' });
+      toast({ title: t('checkout.negError'), variant: 'destructive' });
     }
     setNegSubmitting(false);
   };
@@ -556,26 +549,26 @@ const Checkout: React.FC = () => {
 
     // Valida os campos do formulário
     const fieldErrors = runValidations({
-      name: () => (isNonEmpty(formData.name, 2) ? null : 'Informe o nome completo.'),
-      email: () => (isValidEmail(formData.email) ? null : 'E-mail inválido.'),
-      phone: () => (isValidPhone(formData.phone) ? null : 'Telefone inválido.'),
+      name: () => (isNonEmpty(formData.name, 2) ? null : t('checkout.vName')),
+      email: () => (isValidEmail(formData.email) ? null : t('checkout.vEmail')),
+      phone: () => (isValidPhone(formData.phone) ? null : t('checkout.vPhone')),
       cpf: () =>
         formData.country === 'Brasil'
           ? isValidCPF(formData.cpf)
             ? null
-            : 'CPF inválido (verifique os dígitos).'
+            : t('checkout.vCpf')
           : null,
-      postalCode: () => (isNonEmpty(formData.postalCode, 4) ? null : 'Informe o código postal.'),
-      prefecture: () => (isNonEmpty(formData.prefecture) ? null : 'Selecione o estado/província.'),
-      city: () => (isNonEmpty(formData.city) ? null : 'Informe a cidade.'),
-      address: () => (isNonEmpty(formData.address, 3) ? null : 'Informe a rua e número.'),
+      postalCode: () => (isNonEmpty(formData.postalCode, 4) ? null : t('checkout.vPostal')),
+      prefecture: () => (isNonEmpty(formData.prefecture) ? null : t('checkout.vState')),
+      city: () => (isNonEmpty(formData.city) ? null : t('checkout.vCity')),
+      address: () => (isNonEmpty(formData.address, 3) ? null : t('checkout.vStreet')),
     });
     setErrors(fieldErrors);
 
     if (Object.keys(fieldErrors).length > 0) {
       toast({
-        title: 'Confira os campos destacados',
-        description: 'Alguns dados precisam de correção antes de continuar.',
+        title: t('checkout.checkFields'),
+        description: t('checkout.checkFieldsDesc'),
         variant: 'destructive',
       });
       return;
@@ -583,8 +576,8 @@ const Checkout: React.FC = () => {
 
     if (!selectedShipping) {
       toast({
-        title: "Método de envio pendente",
-        description: "Por favor, selecione uma forma de entrega.",
+        title: t('checkout.shipPending'),
+        description: t('checkout.shipPendingDesc'),
         variant: "destructive",
       });
       return;
@@ -608,10 +601,8 @@ const Checkout: React.FC = () => {
     });
   };
 
-  // Apply free shipping override if coupon gives free shipping
-  const rawShippingCost = appliedCoupon?.freeShipping ? 0 : (selectedShipping?.cost || 0);
+  const rawShippingCost = selectedShipping?.cost || 0;
   const shippingDiscountDisplay = convertYen(shippingDiscountYen);
-  const actualShippingCost = Math.max(0, rawShippingCost - shippingDiscountDisplay);
 
   // PS fee final — para auto-aprovação, cap impede manipulação de carrinho.
   // Para aprovação manual pelo admin, respeita o valor aprovado (apenas cap no valor real da taxa).
@@ -624,8 +615,25 @@ const Checkout: React.FC = () => {
   // (limitada ao valor real da taxa — nunca desconta mais do que a taxa atual).
   const effectivePsFeeDiscountYen = pointsCoverAllProducts ? 0 : (psFeeWaived ? psFeeYen : negPsFeeDiscountYen);
   const psFeeFinalYen = Math.max(0, psFeeYen - effectivePsFeeDiscountYen);
-  const psFeeDisplay = convertYenExact(psFeeFinalYen);
   const psFeeOriginalDisplay = convertYenExact(psFeeYen);
+
+  // Conta do checkout: a MESMA do servidor (shared/checkout-totals.js). A forma de
+  // pagamento ainda não foi escolhida aqui: o desconto de 5% (cartão/PIX) entra na revisão.
+  const totals = clientCheckoutTotals({
+    lines: items.map((i) => checkoutLineFromItem({ product: i.product, size: i.size, quantity: i.quantity, freeGift: i.freeGift })),
+    coupon: (appliedCoupon ?? null) as CheckoutCoupon | null,
+    redeemPoints,
+    paymentMethod: '',
+    currency,
+    rates: { ...getRates(), source: getRateSource() },
+    finalShippingYen: Math.max(0, (selectedShipping?.costYen ?? 0) - shippingDiscountYen),
+    negotiatedPsDiscountYen: effectivePsFeeDiscountYen,
+  });
+  const couponDiscount = totals.display.couponDiscount;
+  const pointsDiscount = totals.display.pointsDiscount;
+  const actualShippingCost = totals.display.shipping;
+  const psFeeDisplay = totals.display.psFee;
+  const grandTotal = totals.total;
 
   const subtotalWithCoupon = baseTotalPrice - couponDiscount;
   
@@ -636,11 +644,12 @@ const Checkout: React.FC = () => {
   {
     const r = calcImportTax(subtotalWithCoupon, formData.country, formData.prefecture);
     estimatedTax = r.tax;
-    taxLabel = r.label;
+    taxLabel = r.labelKey
+      ? Object.entries(r.labelVars ?? {}).reduce((s, [k, v]) => s.replace(`{${k}}`, v), t(r.labelKey))
+      : r.label;
   }
     
   // Taxes are completely omitted from checkout final price!
-  const grandTotal = subtotalWithCoupon - pointsDiscount + actualShippingCost + psFeeDisplay;
 
   // Check expiry (client-side) — purely derived, no side-effects here
   const negIsExpired = activeNeg ? negotiationService.isExpired(activeNeg) : false;
@@ -660,7 +669,7 @@ const Checkout: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Handshake className="w-5 h-5 text-primary" />
                 <h3 className="font-display font-bold text-lg text-foreground">
-                  {negModalType === 'ps_fee' ? 'Negociar Taxa Personal Shopper' : 'Negociar Frete'}
+                  {negModalType === 'ps_fee' ? t('checkout.negPsTitle') : t('checkout.negShipTitle')}
                 </h3>
               </div>
               <button onClick={() => { setNegModalType(null); setNegRequest(''); setNegNote(''); }} className="text-muted-foreground hover:text-foreground">
@@ -671,7 +680,7 @@ const Checkout: React.FC = () => {
             <div className="bg-secondary/40 rounded-xl p-4 mb-4 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  {negModalType === 'ps_fee' ? `Taxa PS (${psFeeQty} itens × ¥${psFeeUnitYen.toLocaleString()})` : 'Frete selecionado'}
+                  {negModalType === 'ps_fee' ? t('checkout.psFeeRow').replace('{qty}', String(psFeeQty)).replace('{unit}', `¥${psFeeUnitYen.toLocaleString()}`) : t('checkout.shipSelected')}
                 </span>
                 <span className="font-semibold">
                   ¥{(negModalType === 'ps_fee' ? psFeeYen : (selectedShipping?.costYen || 0)).toLocaleString()}
@@ -679,12 +688,12 @@ const Checkout: React.FC = () => {
               </div>
               {negModalType === 'ps_fee' && (
                 <p className="text-xs text-primary font-medium">
-                  Desconto até ¥{(psFeeAutoApprovableUnitYen * psFeeQty).toLocaleString()} é aprovado automaticamente.
+                  {t('checkout.autoApprove').replace('{amount}', `¥${(psFeeAutoApprovableUnitYen * psFeeQty).toLocaleString()}`)}
                 </p>
               )}
               {negModalType === 'shipping' && (
                 <p className="text-xs text-pink-500 font-medium">
-                  Desconto no frete requer aprovação manual da vendedora.
+                  {t('checkout.shipNeedsApproval')}
                 </p>
               )}
             </div>
@@ -692,26 +701,26 @@ const Checkout: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1">
-                  Desconto solicitado (em ienes ¥)
+                  {t('checkout.requestedYen')}
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={negRequest}
                   onChange={e => setNegRequest(e.target.value)}
-                  placeholder="Ex: 500"
+                  placeholder={t('checkout.exAmount')}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1">
-                  Mensagem (opcional)
+                  {t('checkout.messageOpt')}
                 </label>
                 <textarea
                   rows={2}
                   value={negNote}
                   onChange={e => setNegNote(e.target.value)}
-                  placeholder="Ex: Compra recorrente, posso fechar logo..."
+                  placeholder={t('checkout.exMessage')}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary text-sm resize-none"
                 />
               </div>
@@ -722,14 +731,14 @@ const Checkout: React.FC = () => {
                 onClick={() => { setNegModalType(null); setNegRequest(''); setNegNote(''); }}
                 className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/60 transition-colors"
               >
-                Cancelar
+                {t('checkout.cancel')}
               </button>
               <button
                 onClick={handleNegotiationSubmit}
                 disabled={negSubmitting || !negRequest}
                 className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {negSubmitting ? 'Enviando...' : 'Enviar Proposta'}
+                {negSubmitting ? t('checkout.sending') : t('checkout.sendOffer')}
               </button>
             </div>
           </div>
@@ -740,10 +749,10 @@ const Checkout: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h1 className="font-display text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Finalizar Pedido
+              {t('checkout.title')}
             </h1>
             <p className="text-muted-foreground text-lg">
-              Preencha seus dados para receber os produtos importados do Japão
+              {t('checkout.subtitle')}
             </p>
           </div>
         </div>
@@ -760,7 +769,7 @@ const Checkout: React.FC = () => {
                     <MapPin className="w-5 h-5 text-primary" />
                   </div>
                   <h2 className="font-sans text-xl font-bold text-foreground">
-                    Dados para Entrega
+                    {t('checkout.deliveryData')}
                   </h2>
                 </div>
 
@@ -769,8 +778,8 @@ const Checkout: React.FC = () => {
                     <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                       <span className="text-base shrink-0">👤</span>
                       <span>
-                        <strong>Compra como Convidado</strong> — Sem pontos, cupons ou histórico de pedidos.{' '}
-                        <button type="button" onClick={() => navigate('/cadastro')} className="underline ml-1 font-semibold hover:text-amber-900">Criar conta</button> para aproveitar todos os benefícios.
+                        <strong>{t('checkout.guestTitle')}</strong> — {t('checkout.guestDesc')}{' '}
+                        <button type="button" onClick={() => navigate('/cadastro')} className="underline ml-1 font-semibold hover:text-amber-900">{t('checkout.createAccount')}</button> {t('checkout.guestBenefits')}
                       </span>
                     </div>
                   )}
@@ -778,20 +787,20 @@ const Checkout: React.FC = () => {
                   {/* Personal Information */}
                   <div className="space-y-4">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                      Informações Pessoais
+                      {t('checkout.personalInfo')}
                     </h3>
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name" className="flex items-center gap-2 font-semibold">
                           <User className="w-4 h-4 text-gray-500" />
-                          Nome Completo *
+                          {t('checkout.fullName')} *
                         </Label>
                         <Input
                           id="name"
                           name="name"
                           type="text"
-                          placeholder="Ex: João Silva"
+                          placeholder={t('checkout.exName')}
                           value={formData.name}
                           onChange={handleInputChange}
                           aria-invalid={!!errors.name}
@@ -804,13 +813,13 @@ const Checkout: React.FC = () => {
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="flex items-center gap-2 font-semibold">
                           <Phone className="w-4 h-4 text-gray-500" />
-                          Telefone Celular *
+                          {t('checkout.phone')} *
                         </Label>
                         <Input
                           id="phone"
                           name="phone"
                           type="tel"
-                          placeholder="Ex: 090-1234-5678"
+                          placeholder={t('checkout.exPhone')}
                           value={formData.phone}
                           onChange={handleInputChange}
                           aria-invalid={!!errors.phone}
@@ -826,13 +835,13 @@ const Checkout: React.FC = () => {
                       <div className="space-y-2">
                         <Label htmlFor="email" className="flex items-center gap-2 font-semibold">
                           <Mail className="w-4 h-4 text-gray-500" />
-                          Email *
+                          {t('checkout.email')} *
                         </Label>
                         <Input
                           id="email"
                           name="email"
                           type="email"
-                          placeholder="exemplo@email.com"
+                          placeholder={t('checkout.exEmail')}
                           value={formData.email}
                           onChange={handleInputChange}
                           aria-invalid={!!errors.email}
@@ -846,7 +855,7 @@ const Checkout: React.FC = () => {
                       <div className="space-y-2">
                         <Label htmlFor="cpf" className="flex items-center gap-2 font-semibold">
                           <User className="w-4 h-4 text-gray-500" />
-                          CPF (Obrigatório Aduana) *
+                          {t('checkout.cpfRequired')} *
                         </Label>
                         <Input
                           id="cpf"
@@ -863,7 +872,7 @@ const Checkout: React.FC = () => {
                           <p className="text-xs text-destructive">{errors.cpf}</p>
                         ) : (
                           <p className="text-[10px] text-gray-400">
-                            Exigido pela Receita Federal para desembaraço de importação.
+                            {t('checkout.cpfNote')}
                           </p>
                         )}
                       </div>
@@ -874,13 +883,13 @@ const Checkout: React.FC = () => {
                   {/* Shipping Address */}
                   <div className="space-y-4 pt-4 border-t border-gray-100">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                      Endereço de Entrega
+                      {t('address.title')}
                     </h3>
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="country" className="font-semibold">
-                          País de Destino *
+                          {t('checkout.country')} *
                         </Label>
                         <select
                           id="country"
@@ -904,7 +913,7 @@ const Checkout: React.FC = () => {
                         >
                           {WORLD_COUNTRIES.map((c) => (
                             <option key={c.name} value={c.name}>
-                              {c.name}{c.name === 'Japão' ? ' (Envio Local)' : ' (Envio Internacional)'}
+                              {c.name}{c.name === 'Japão' ? ` (${t('checkout.localShip')})` : ` (${t('checkout.intlShip')})`}
                             </option>
                           ))}
                         </select>
@@ -912,7 +921,7 @@ const Checkout: React.FC = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="postalCode" className="font-semibold">
-                          {formData.country === 'Japão' ? 'Código Postal (ZIP) *' : formData.country === 'Estados Unidos' ? 'ZIP Code *' : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? 'Código Postal *' : 'CEP *'}
+                          {formData.country === 'Japão' ? `${t('checkout.zipJp')} *` : formData.country === 'Estados Unidos' ? `${t('checkout.zipUs')} *` : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? `${t('checkout.postalEu')} *` : `${t('checkout.cepBr')} *`}
                         </Label>
                         <Input
                           id="postalCode"
@@ -925,14 +934,14 @@ const Checkout: React.FC = () => {
                         />
                         <p className="text-[10px] text-gray-400">
                           {formData.country === 'Japão'
-                            ? 'Preenche o endereço japonês automaticamente (7 dígitos).'
+                            ? t('checkout.hintJp')
                             : formData.country === 'Portugal'
-                            ? 'Formato XXXX-XXX (ex: 2910-112) — preenche cidade automaticamente.'
+                            ? t('checkout.hintPt')
                             : formData.country === 'Estados Unidos'
-                            ? 'Enter ZIP code (5 digits) — city and state auto-filled.'
+                            ? t('checkout.hintUs')
                             : ['França', 'Itália', 'Espanha'].includes(formData.country)
-                            ? 'Formato XXXXX (5 dígitos) — preenche cidade automaticamente.'
-                            : 'Preenche o endereço brasileiro automaticamente (8 dígitos).'}
+                            ? t('checkout.hintEu')
+                            : t('checkout.hintBr')}
                         </p>
                       </div>
                     </div>
@@ -940,7 +949,7 @@ const Checkout: React.FC = () => {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="prefecture" className="font-semibold">
-                          {formData.country === 'Japão' ? 'Província *' : formData.country === 'Estados Unidos' ? 'State *' : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? 'Região / Distrito *' : formData.country === 'Brasil' ? 'Estado (UF) *' : 'State / Region *'}
+                          {formData.country === 'Japão' ? t('checkout.provinceJp') : formData.country === 'Estados Unidos' ? t('checkout.stateUs') : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? t('checkout.regionEu') : formData.country === 'Brasil' ? t('checkout.stateBr') : t('checkout.stateOther')}
                         </Label>
                         {(() => {
                           // Países com lista pronta usam select; os demais usam texto livre
@@ -958,7 +967,7 @@ const Checkout: React.FC = () => {
                                 id="prefecture"
                                 name="prefecture"
                                 type="text"
-                                placeholder="State / Region"
+                                placeholder={t('checkout.stateRegionPh')}
                                 value={formData.prefecture}
                                 onChange={handleInputChange}
                                 required
@@ -975,10 +984,10 @@ const Checkout: React.FC = () => {
                               className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium text-sm"
                             >
                               <option value="">
-                                {formData.country === 'Japão' ? 'Escolha a Província...'
-                                  : formData.country === 'Estados Unidos' ? 'Select your State...'
-                                  : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? 'Escolha a Região/Distrito...'
-                                  : 'Escolha seu Estado...'}
+                                {formData.country === 'Japão' ? t('checkout.chooseProvince')
+                                  : formData.country === 'Estados Unidos' ? t('checkout.selectStateUs')
+                                  : ['Portugal', 'França', 'Itália', 'Espanha'].includes(formData.country) ? t('checkout.chooseRegion')
+                                  : t('checkout.chooseState')}
                               </option>
                               {stateList.map((pref) => (
                                 <option key={pref.name} value={pref.name}>
@@ -992,13 +1001,13 @@ const Checkout: React.FC = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="city" className="font-semibold">
-                          Cidade *
+                          {t('checkout.city')} *
                         </Label>
                         <Input
                           id="city"
                           name="city"
                           type="text"
-                          placeholder="Ex: São Paulo"
+                          placeholder={t('checkout.exCity')}
                           value={formData.city}
                           onChange={handleInputChange}
                           aria-invalid={!!errors.city}
@@ -1011,13 +1020,13 @@ const Checkout: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="address" className="font-semibold">
-                        Rua e Número *
+                        {t('checkout.street')} *
                       </Label>
                       <Input
                         id="address"
                         name="address"
                         type="text"
-                        placeholder="Ex: Avenida Paulista, 1000"
+                        placeholder={t('checkout.exStreet')}
                         value={formData.address}
                         onChange={handleInputChange}
                         aria-invalid={!!errors.address}
@@ -1029,13 +1038,13 @@ const Checkout: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="building" className="font-semibold">
-                        Complemento / Bloco / Apto (Opcional)
+                        {t('checkout.complement')}
                       </Label>
                       <Input
                         id="building"
                         name="building"
                         type="text"
-                        placeholder="Ex: Bloco B, Apto 42"
+                        placeholder={t('checkout.exComplement')}
                         value={formData.building}
                         onChange={handleInputChange}
                       />
@@ -1045,13 +1054,12 @@ const Checkout: React.FC = () => {
                   {/* Shipping Calculator Section */}
                   <div className="pt-4 border-t border-border">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-4">
-                      Forma de Envio Internacional
+                      {t('checkout.shipMethodIntl')}
                     </h3>
                     <ShippingCalculator 
                       selectedPrefecture={formData.prefecture}
                       onShippingSelect={setSelectedShipping}
                       destinationCountry={formData.country as CountryType}
-                      couponDiscount={couponDiscount}
                     />
                   </div>
 
@@ -1060,26 +1068,26 @@ const Checkout: React.FC = () => {
                       <div className="w-full rounded-xl border-2 border-dashed border-pink-300 bg-pink-50 dark:bg-pink-950/20 p-4 text-center space-y-1">
                         <div className="flex items-center justify-center gap-2 text-pink-600 font-bold">
                           <Hourglass className="w-4 h-4 animate-pulse" />
-                          Aguardando resposta da vendedora
+                          {t('checkout.awaiting')}
                         </div>
                         <p className="text-xs text-pink-500">
-                          Expira em 24h · Acompanhe em Perfil → Negociações
+                          {t('checkout.expires24')}
                         </p>
                       </div>
                     ) : negActuallyExpired ? (
                       <div className="space-y-2">
                         <div className="w-full rounded-xl border border-gray-300 bg-gray-50 dark:bg-gray-900/30 p-3 text-center text-xs text-muted-foreground">
-                          Negociação expirada sem resposta.
+                          {t('checkout.expiredNoReply')}
                           <button
                             type="button"
                             onClick={() => { setActiveNegId(null); setPsFeeDiscountYen(0); setShippingDiscountYen(0); localStorage.removeItem('activeNegId'); }}
                             className="block mx-auto mt-1 text-primary hover:underline font-semibold"
                           >
-                            Limpar e tentar novamente
+                            {t('checkout.clearRetry')}
                           </button>
                         </div>
                         <Button type="submit" className="w-full btn-primary rounded-xl py-6 text-lg font-bold" disabled={!selectedShipping}>
-                          Ir para a Revisão do Pedido <ArrowRight className="w-5 h-5 ml-2" />
+                          {t('checkout.goReview')} <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
                       </div>
                     ) : (
@@ -1090,12 +1098,12 @@ const Checkout: React.FC = () => {
                           className="w-full btn-primary rounded-xl py-6 text-lg font-bold"
                           disabled={!selectedShipping}
                         >
-                          Ir para a Revisão do Pedido
+                          {t('checkout.goReview')}
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
                         {!selectedShipping && (
                           <p className="text-xs text-muted-foreground text-center mt-2">
-                            Selecione uma forma de entrega para continuar
+                            {t('checkout.selectShipFirst')}
                           </p>
                         )}
                       </>
@@ -1113,7 +1121,7 @@ const Checkout: React.FC = () => {
                     <Package className="w-5 h-5 text-primary" />
                   </div>
                   <h2 className="font-sans text-lg font-bold text-foreground">
-                    Resumo do Pedido
+                    {t('checkout.summary')}
                   </h2>
                 </div>
 
@@ -1134,11 +1142,11 @@ const Checkout: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-xs text-gray-800 truncate">{productName}</p>
                           <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
-                            {item.freeGift ? '🎁 Presente da promoção' : (item.variantLabel || (item.size === 'small' ? 'Pequeno' : 'Grande'))} • {item.quantity}x
+                            {item.freeGift ? `🎁 ${t('cartItem.promoGift')}` : (item.variantLabel || (item.size === 'small' ? t('review.small') : t('review.large')))} • {item.quantity}x
                           </p>
                         </div>
                         <p className={`font-bold text-xs ${item.freeGift ? 'text-green-600' : 'text-gray-800'}`}>
-                          {item.freeGift ? 'GRÁTIS' : formatPrice(displayItemPrice, currency)}
+                          {item.freeGift ? t('cartItem.free') : formatPrice(displayItemPrice, currency)}
                         </p>
                       </div>
                     );
@@ -1160,16 +1168,16 @@ const Checkout: React.FC = () => {
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <Sparkles className={`w-3.5 h-3.5 ${canRedeem ? 'text-purple-600' : 'text-muted-foreground'}`} />
                         <span className={`font-bold ${canRedeem ? 'text-purple-800 dark:text-purple-300' : 'text-muted-foreground'}`}>
-                          Pontos de fidelidade ({availablePoints} disponíveis)
+                          {t('checkout.pointsTitle')} ({availablePoints} {t('review.available')})
                         </span>
                       </div>
                       {!canRedeem ? (
                         <p className="text-muted-foreground leading-snug">
-                          Mínimo de <strong>{POINTS.minRedeem} pontos</strong> para resgatar. Faltam <strong>{POINTS.minRedeem - availablePoints}</strong> pontos.
+                          {t('checkout.minPts1')} <strong>{POINTS.minRedeem} {t('checkout.minPts2')}</strong> {t('checkout.minPts3')} <strong>{POINTS.minRedeem - availablePoints}</strong> {t('checkout.minPts4')}
                         </p>
                       ) : (
                         <>
-                          <p className="text-purple-700 mb-2 leading-snug">1 ponto = ¥1 de desconto. Máx. resgatável: {maxRedeemable} pts.</p>
+                          <p className="text-purple-700 mb-2 leading-snug">{t('checkout.pointsRule').replace('{max}', String(maxRedeemable))}</p>
                           <div className="flex items-center gap-2">
                             <input
                               type="number" min={0} max={maxRedeemable}
@@ -1180,12 +1188,12 @@ const Checkout: React.FC = () => {
                             />
                             <button type="button" onClick={() => setPointsToUse(maxRedeemable)}
                               className="text-xs font-semibold text-purple-700 hover:underline">
-                              Usar máx.
+                              {t('checkout.useMax')}
                             </button>
                             {redeemPoints > 0 && (
                               <button type="button" onClick={() => setPointsToUse(0)}
                                 className="text-xs text-muted-foreground hover:underline ml-auto">
-                                limpar
+                                {t('checkout.clear')}
                               </button>
                             )}
                           </div>
@@ -1197,20 +1205,20 @@ const Checkout: React.FC = () => {
                   {/* Calculations breakdown */}
                   <div className="space-y-2 pt-2 text-xs">
                     <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground min-w-0 truncate">Subtotal dos itens</span>
-                      <span className="font-semibold text-gray-800 shrink-0 whitespace-nowrap">{formatPrice(baseTotalPrice, currency)}</span>
+                      <span className="text-muted-foreground min-w-0 truncate">{t('cart.subtotal')}</span>
+                      <span className="font-semibold text-gray-800 shrink-0 whitespace-nowrap">{formatPrice(totals.display.subtotal, currency)}</span>
                     </div>
 
                     {appliedCoupon && couponDiscount > 0 && (
                       <div className="flex justify-between text-green-600 font-bold bg-green-50/50 p-1.5 rounded border border-dashed border-green-200">
-                        <span>Desconto ({appliedCoupon.code})</span>
+                        <span>{t('checkout.discount')} ({appliedCoupon.code})</span>
                         <span>-{formatPrice(couponDiscount, currency)}</span>
                       </div>
                     )}
 
                     {redeemPoints > 0 && (
                       <div className="flex justify-between text-purple-700 font-bold bg-purple-50/60 p-1.5 rounded border border-dashed border-purple-200">
-                        <span>Pontos ({redeemPoints} pts)</span>
+                        <span>{t('review.points')} ({redeemPoints} {t('review.ptsAbbr')})</span>
                         <span>-{formatPrice(pointsDiscount, currency)}</span>
                       </div>
                     )}
@@ -1223,29 +1231,29 @@ const Checkout: React.FC = () => {
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
                         <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
-                          ⚠️ <strong>Lembrete:</strong> Este imposto é estimado e poderá ser cobrado pela alfândega na chegada ao país. Ele <strong>NÃO</strong> está incluído no total cobrado no site.
+                          ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('checkout.taxReminder')}
                         </p>
                       </div>
                     )}
 
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {formData.country === 'Japão' ? 'Frete Local' : 'Frete Internacional'}
+                        {formData.country === 'Japão' ? t('review.freightLocal') : t('checkout.freightIntl')}
                       </span>
                       {selectedShipping ? (
                         <span className="font-semibold text-gray-800">
-                          {actualShippingCost === 0 ? 'Grátis' : formatPrice(actualShippingCost, currency)}
+                          {actualShippingCost === 0 ? t('order.shipping.free') : formatPrice(actualShippingCost, currency)}
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-[10px]">
-                          {formData.country === 'Japão' ? 'Aguardando Província' : 'Aguardando Estado'}
+                          {formData.country === 'Japão' ? t('checkout.awaitingProv') : t('checkout.awaitingState')}
                         </span>
                       )}
                     </div>
 
                     {selectedShipping && (
                       <div className="text-[10px] text-gray-400 text-right">
-                        {selectedShipping.carrier} • {selectedShipping.estimatedDays} dias
+                        {selectedShipping.carrier} • {selectedShipping.estimatedDays} {t('checkout.days')}
                       </div>
                     )}
 
@@ -1253,7 +1261,7 @@ const Checkout: React.FC = () => {
                     {totalQty > 0 && (
                       <div className="pt-2 border-t border-border/60">
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Taxa Personal Shopper</span>
+                          <span className="text-muted-foreground">{t('review.psFee')}</span>
                           <div className="text-right">
                             {effectivePsFeeDiscountYen > 0 ? (
                               <>
@@ -1272,30 +1280,30 @@ const Checkout: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">{totalQty}x ¥{psFeeUnitYen.toLocaleString()} • serviço de compra</span>
+                          <span className="text-[10px] text-muted-foreground">{totalQty}x ¥{psFeeUnitYen.toLocaleString()} • {t('checkout.purchaseService')}</span>
                           {psFeeWaived && (
                             <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5">
-                              <CheckCircle2 className="w-3 h-3" /> Isenta — oferta
+                              <CheckCircle2 className="w-3 h-3" /> {t('checkout.waivedOffer')}
                             </span>
                           )}
                           {negIsApproved && activeNeg?.type === 'ps_fee' && (
                             <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5">
-                              <CheckCircle2 className="w-3 h-3" /> Aprovado
+                              <CheckCircle2 className="w-3 h-3" /> {t('checkout.approved')}
                             </span>
                           )}
                           {negIsPending && activeNeg?.type === 'ps_fee' && (
                             <span className="text-[10px] text-pink-500 font-bold flex items-center gap-0.5">
-                              <Hourglass className="w-3 h-3" /> Aguardando
+                              <Hourglass className="w-3 h-3" /> {t('checkout.waiting')}
                             </span>
                           )}
                           {negIsRejected && activeNeg?.type === 'ps_fee' && (
                             <span className="text-[10px] text-red-500 font-bold flex items-center gap-0.5">
-                              <AlertCircle className="w-3 h-3" /> Recusado
+                              <AlertCircle className="w-3 h-3" /> {t('checkout.rejected')}
                             </span>
                           )}
                           {negActuallyExpired && activeNeg?.type === 'ps_fee' && (
                             <span className="text-[10px] text-gray-400 font-bold flex items-center gap-0.5">
-                              <AlertCircle className="w-3 h-3" /> Expirado
+                              <AlertCircle className="w-3 h-3" /> {t('checkout.expired')}
                             </span>
                           )}
                         </div>
@@ -1310,39 +1318,39 @@ const Checkout: React.FC = () => {
                               onClick={() => setNegModalType('ps_fee')}
                               className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-primary bg-pink-50 dark:bg-pink-950/20 text-sm font-bold text-pink-700 dark:text-pink-300 transition-colors hover:bg-pink-700 hover:text-white dark:hover:bg-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 animate-pulse-zoom hover:animate-none motion-reduce:animate-none"
                             >
-                              <Handshake className="w-5 h-5 shrink-0" /> Pedir desconto nesta taxa
+                              <Handshake className="w-5 h-5 shrink-0" /> {t('checkout.askDiscount')}
                             </button>
                             <p className="text-xs text-muted-foreground mt-1.5 leading-snug">
-                              Esta taxa é negociável: até ¥{(300 * psFeeQty).toLocaleString()} de desconto sai aprovado na hora.
+                              {t('checkout.negotiable').replace('{amount}', `¥${(300 * psFeeQty).toLocaleString()}`)}
                             </p>
                           </div>
                         )}
                         {pointsCoverAllProducts && (
                           <p className="text-xs text-muted-foreground mt-2 leading-snug">
-                            Esta taxa não é negociável quando o pedido é pago integralmente com pontos.
+                            {t('checkout.notNegotiable')}
                           </p>
                         )}
                         {psFeeWaived && (
                           <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1 leading-snug">
-                            Isenção válida só para finalização imediata — se sair da página, a taxa volta a ser cobrada.
+                            {t('checkout.waiverNote')}
                           </p>
                         )}
                         {/* Negociar frete (aparece só depois de selecionar frete e sem negociação ativa) */}
                         {selectedShipping && !activeNeg && (
                           <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/40">
-                            <span className="text-[10px] text-muted-foreground">Negociar frete</span>
+                            <span className="text-[10px] text-muted-foreground">{t('checkout.negotiateShip')}</span>
                             <button
                               type="button"
                               onClick={() => setNegModalType('shipping')}
                               className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline"
                             >
-                              <Handshake className="w-3 h-3" /> Negociar
+                              <Handshake className="w-3 h-3" /> {t('checkout.negotiate')}
                             </button>
                           </div>
                         )}
                         {selectedShipping && shippingDiscountYen > 0 && (
                           <div className="flex items-center justify-between mt-1 text-[10px] text-green-600 font-bold">
-                            <span>Desconto frete</span>
+                            <span>{t('checkout.shipDiscount')}</span>
                             <span>-{formatPrice(shippingDiscountDisplay, currency)}</span>
                           </div>
                         )}
@@ -1350,11 +1358,11 @@ const Checkout: React.FC = () => {
                     )}
 
                     <div className="flex justify-between pt-2 border-t border-border font-bold items-start">
-                      <span className="text-sm">Total a pagar</span>
+                      <span className="text-sm">{t('checkout.totalToPay')}</span>
                       <div className="text-right">
                         {(couponDiscount > 0 || pointsDiscount > 0 || psFeeDiscountYen > 0 || shippingDiscountYen > 0) && (
                           <p className="text-xs text-muted-foreground line-through font-normal">
-                            {formatPrice(baseTotalPrice + rawShippingCost + psFeeOriginalDisplay, currency)}
+                            {formatPrice(totals.display.subtotal + rawShippingCost + psFeeOriginalDisplay, currency)}
                           </p>
                         )}
                         <span className="text-base text-pink-600">
@@ -1362,7 +1370,7 @@ const Checkout: React.FC = () => {
                         </span>
                         {(couponDiscount + pointsDiscount + convertYen(effectivePsFeeDiscountYen) + shippingDiscountDisplay) > 0 && (
                           <p className="text-[10px] text-green-600 font-bold mt-0.5">
-                            Você economiza {formatPrice(couponDiscount + pointsDiscount + convertYen(effectivePsFeeDiscountYen) + shippingDiscountDisplay, currency)}
+                            {t('cart.youSave')} {formatPrice(couponDiscount + pointsDiscount + convertYen(effectivePsFeeDiscountYen) + shippingDiscountDisplay, currency)}
                           </p>
                         )}
                       </div>

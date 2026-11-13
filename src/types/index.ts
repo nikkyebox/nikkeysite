@@ -37,6 +37,7 @@ export interface Product {
   // 'japan-only'    = produto importado (ex: brasileiro), só vende dentro do Japão
   // undefined       = sem restrição (vende em qualquer destino)
   deliveryRestrict?: 'exterior-only' | 'japan-only';
+  promoLimit?: number; // teto de unidades no carrinho quando o item entra por promoção
   origin?: 'importado'; // marca produtos importados (ex: brasileiros) dentro das categorias
   hidden?: boolean;          // Registrado mas não publicado na loja (oculto do cliente)
   discountPercent?: number;  // Desconto promocional em % (0–100). >0 ativa a promoção.
@@ -188,6 +189,6 @@ export interface Coupon {
   targetType?: 'all' | 'specific' | 'birthday' | 'loyalty'; // Quem pode usar
   targetEmails?: string[]; // Lista de emails específicos (quando targetType = 'specific')
   minOrders?: number; // Mínimo de pedidos no histórico (quando targetType = 'loyalty')
-  freeShipping?: boolean; // Se o cupom dá frete grátis em vez de desconto
+  freeShipping?: boolean; // Legado: cupom de frete grátis foi desativado (não zera o frete nem dá desconto)
   minOrderValue?: number; // Valor mínimo do pedido em ¥ para usar o cupom
 }

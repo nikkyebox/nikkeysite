@@ -109,6 +109,7 @@ const ProductDetail: React.FC = () => {
       });
       recentlyViewed.track(product.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- registra a visualização uma vez por produto; incluir product ou selectedSize contaria visualizações extras
   }, [product?.id]);
 
   // Enquanto os produtos carregam, evita piscar "não encontrado".
@@ -117,7 +118,7 @@ const ProductDetail: React.FC = () => {
       <Layout>
         <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground">{t('common.loading') || 'Carregando...'}</p>
+          <p className="text-muted-foreground">{t('productDetail.loading')}</p>
         </div>
       </Layout>
     );
@@ -156,23 +157,14 @@ const ProductDetail: React.FC = () => {
     (product.deliveryRestrict === 'exterior-only' && isJapanDest) ||
     (product.deliveryRestrict === 'japan-only' && !isJapanDest);
 
-  const i18nRestrict = {
-    'exterior-only': {
-      title: { pt: 'Vendas somente para fora do Japão', en: 'Sales for overseas only', ja: '海外への販売のみ' },
-      detail: { pt: 'Este produto japonês é exportado para o exterior. Altere o destino para continuar.', en: 'This Japanese product is exported overseas. Change your destination to continue.', ja: 'この商品は海外への輸出品です。お届け先を変更してください。' },
-      btn: { pt: '🚫 Indisponível neste destino', en: '🚫 Unavailable for this destination', ja: '🚫 このお届け先では購入不可' },
-    },
-    'japan-only': {
-      title: { pt: 'Disponível somente para entrega dentro do Japão', en: 'Available for delivery within Japan only', ja: '日本国内配送のみ対応' },
-      detail: { pt: 'Este produto importado está disponível apenas para entrega no Japão.', en: 'This imported product is only available for delivery within Japan.', ja: 'この輸入商品は日本国内へのお届けのみ対応しています。' },
-      btn: { pt: '🚫 Indisponível neste destino', en: '🚫 Unavailable for this destination', ja: '🚫 このお届け先では購入不可' },
-    },
-  };
-  const lang = (language || 'pt') as 'pt' | 'en' | 'ja';
   const restrictKey = product.deliveryRestrict as 'exterior-only' | 'japan-only' | undefined;
-  const deliveryBlockTitle  = restrictKey ? (i18nRestrict[restrictKey].title[lang]  || i18nRestrict[restrictKey].title.pt)  : '';
-  const deliveryBlockDetail = restrictKey ? (i18nRestrict[restrictKey].detail[lang] || i18nRestrict[restrictKey].detail.pt) : '';
-  const deliveryBlockBtn    = restrictKey ? (i18nRestrict[restrictKey].btn[lang]    || i18nRestrict[restrictKey].btn.pt)    : '';
+  const restrictTexts = {
+    'exterior-only': { title: t('productDetail.restrict.exteriorTitle'), detail: t('productDetail.restrict.exteriorDetail') },
+    'japan-only': { title: t('productDetail.restrict.japanTitle'), detail: t('productDetail.restrict.japanDetail') },
+  };
+  const deliveryBlockTitle  = restrictKey ? restrictTexts[restrictKey].title : '';
+  const deliveryBlockDetail = restrictKey ? restrictTexts[restrictKey].detail : '';
+  const deliveryBlockBtn    = restrictKey ? t('productDetail.restrict.btn') : '';
 
   const handleAddToCart = () => {
     if (deliveryBlocked) {
@@ -181,7 +173,7 @@ const ProductDetail: React.FC = () => {
     }
     const finalQuantity = stockLimit != null ? Math.min(quantity, stockLimit) : quantity;
     if (stockLimit != null && stockLimit <= 0) {
-      toast({ title: 'Produto esgotado', variant: 'destructive' });
+      toast({ title: t('productDetail.soldOut'), variant: 'destructive' });
       return;
     }
     addToCart(product, selectedSize, finalQuantity, selectedVariant?.label);
@@ -308,7 +300,7 @@ const ProductDetail: React.FC = () => {
                 {/* Seletor de tamanho/variante */}
                 {productVariants.length > 1 && (
                   <div className="mb-6">
-                    <span className="block text-sm font-semibold text-muted-foreground mb-2">Escolha o tamanho</span>
+                    <span className="block text-sm font-semibold text-muted-foreground mb-2">{t('productDetail.chooseSize')}</span>
                     <div className="flex flex-wrap gap-2">
                       {productVariants.map((v) => {
                         const active = v.id === selectedSize;
@@ -333,7 +325,7 @@ const ProductDetail: React.FC = () => {
                 )}
 
                 <div className="mb-6 border-b pb-4 border-border/50">
-                  <span className="block text-sm font-semibold text-muted-foreground mb-1">Preço Unitário</span>
+                  <span className="block text-sm font-semibold text-muted-foreground mb-1">{t('productDetail.unitPrice')}</span>
                   {promoActive ? (
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
@@ -342,7 +334,7 @@ const ProductDetail: React.FC = () => {
                           {formatPrice(originalPrice, currency)}
                         </span>
                         <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-extrabold shadow-sm">
-                          {`-${product.discountPercent}% OFF`}
+                          {t('productDetail.offBadge').replace('{pct}', String(product.discountPercent))}
                         </span>
                       </div>
                     </div>
@@ -380,7 +372,7 @@ const ProductDetail: React.FC = () => {
                   </div>
                   {stockLimit != null && (
                     <p className="text-xs text-muted-foreground mt-1.5">
-                      Máximo {stockLimit} {stockLimit === 1 ? 'unidade' : 'unidades'} em estoque.
+                      {t('productDetail.maxStock').replace('{n}', String(stockLimit)).replace('{unidade}', stockLimit === 1 ? t('productDetail.unitSingular') : t('productDetail.unitPlural'))}
                     </p>
                   )}
                 </div>
@@ -398,7 +390,7 @@ const ProductDetail: React.FC = () => {
                 {/* Badge importado */}
                 {product.origin === 'importado' && (
                   <div className="inline-flex items-center gap-1.5 bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-3 py-1.5 rounded-full mb-4">
-                    📦 Produto Importado
+                    {t('productDetail.imported')}
                   </div>
                 )}
 

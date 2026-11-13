@@ -2,7 +2,7 @@ import { safeStorage } from '@/utils/storage';
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Home, Mail, Printer, Copy, AlertCircle, Smartphone, CreditCard, FileText, Landmark, Wallet, ExternalLink, Gift } from 'lucide-react';
+import { CheckCircle, Home, Mail, Printer, Copy, AlertCircle, Smartphone, CreditCard, FileText, ExternalLink, Gift } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -16,11 +16,6 @@ import { useUser } from '@/context/UserContext';
 import { referralService } from '@/services/referralService';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 
-// O PayPay é app japonês e identifica a conta pelo número LOCAL: um cliente que
-// digitar o formato internacional não encontra a loja. Já o WhatsApp é discado
-// do Brasil, onde o DDI é obrigatório. Por isso os dois formatos convivem — o
-// que não pode é cada tela escolher o seu, que foi como divergiram.
-
 type ConfirmedOrderItem = {
   image?: string;
   name?: string;
@@ -28,7 +23,7 @@ type ConfirmedOrderItem = {
   quantity: number;
   price: number;
 };
-const { international: WHATSAPP, domestic: PAYPAY_ID } = COMPANY_PROFILE.whatsapp;
+const { international: WHATSAPP } = COMPANY_PROFILE.whatsapp;
 
 const OrderConfirmation: React.FC = () => {
   const navigate = useNavigate();
@@ -42,12 +37,10 @@ const OrderConfirmation: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [referralCopied, setReferralCopied] = useState(false);
-  const [wiseLink, setWiseLink] = useState('');
   const [pixSettings, setPixSettings] = useState({ pixKey: '', pixReceiverName: 'NikkeyBox', pixCity: 'Sao Paulo' });
 
   useEffect(() => {
     paymentSettingsService.get().then((s) => {
-      setWiseLink(s.wiseLink || '');
       setPixSettings({ pixKey: s.pixKey || '', pixReceiverName: s.pixReceiverName || 'NikkeyBox', pixCity: s.pixCity || 'Sao Paulo' });
     });
   }, [order]);
@@ -103,8 +96,8 @@ const OrderConfirmation: React.FC = () => {
     navigator.clipboard.writeText(pixPayload);
     setCopied(true);
     toast({
-      title: "Chave PIX Copiada!",
-      description: "Código copiado para a área de transferência.",
+      title: t('order.pixCopiedTitle'),
+      description: t('order.pixCopiedDesc'),
     });
     setTimeout(() => setCopied(false), 3000);
   };
@@ -143,7 +136,7 @@ const OrderConfirmation: React.FC = () => {
               </p>
               <p className="text-muted-foreground text-sm">
                 {order.paymentMethod === 'card'
-                  ? 'Pagamento com cartão aprovado! Seu pedido já entrou em preparo.'
+                  ? t('order.cardApproved')
                   : t('order.thanks')}
               </p>
             </div>
@@ -173,103 +166,19 @@ const OrderConfirmation: React.FC = () => {
 
             {/* PAYMENT SCREENS */}
 
-            {/* PAYPAY SCREEN */}
-            {order.paymentMethod === 'paypay' && (
-              <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4 animate-fade-in">
-                <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
-                  <Smartphone className="w-6 h-6 animate-pulse" />
-                  <span>{t('order.payAreaPayPay')}</span>
-                </div>
-
-                <div className="bg-red-50 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl inline-flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{t('order.payDescPayPay')}</span>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 inline-block shadow-sm">
-                  <img 
-                    src="/products/paypay-qr.png" 
-                    alt="PayPay QR Code - NikkeyBox" 
-                    className="w-60 h-auto rounded-xl border border-gray-200 mx-auto shadow-md"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://placehold.co/240x240/red/white?text=PayPay+QR";
-                    }}
-                  />
-                  <p className="text-[10px] text-gray-400 mt-2 font-mono">
-                    Escaneie com o app do PayPay
-                  </p>
-                </div>
-
-                <div className="bg-gray-100 p-4 rounded-xl max-w-sm mx-auto text-xs space-y-2 font-mono text-left">
-                  <p><strong className="text-gray-800">{t('order.sendTo')}</strong> NikkeyBox</p>
-                  <p><strong className="text-gray-800">{t('order.phone')}</strong> {PAYPAY_ID}</p>
-                  <p><strong className="text-gray-800">{t('order.value')}</strong> {formatPrice(order.total, 'JPY')}</p>
-                </div>
-
-                <div className="pt-2 text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
-                  {t('order.transferNote')} <strong className="text-gray-800">{PAYPAY_ID}</strong>.
-                </div>
-              </div>
-            )}
-
-            {/* YUCHO SCREEN */}
-            {order.paymentMethod === 'yucho' && (
-              <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden space-y-4 animate-fade-in">
-                <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
-                  <Landmark className="w-6 h-6" />
-                  <span>DEPÓSITO BANCÁRIO (Yucho Bank / ゆうちょ銀行)</span>
-                </div>
-
-                <div className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-4 py-3 rounded-xl inline-flex items-center gap-2 border border-yellow-200">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Por favor, realize a transferência e nos envie o comprovante pelo WhatsApp ({WHATSAPP}).</span>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-md mx-auto space-y-3 font-mono text-xs md:text-sm text-left">
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-gray-500">Banco:</span>
-                    <span className="font-bold text-gray-800">ゆうちょ銀行 (Japan Post Bank)</span>
-                  </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-gray-500">記号 (Kigou):</span>
-                    <span className="font-bold text-gray-800">12260</span>
-                  </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-gray-500">番号 (Bangou):</span>
-                    <span className="font-bold text-gray-800">33664351</span>
-                  </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-gray-500">Nome:</span>
-                    <span className="font-bold text-gray-800">ロドリゲス シオカワ ミリアン パウラ</span>
-                  </div>
-                  
-                  <div className="pt-3 border-t border-dashed text-[10px] text-gray-500 space-y-1">
-                    <p className="font-bold">Para transferência de outros bancos (振込用):</p>
-                    <p>金融機関コード (Cód. Banco): <strong className="text-gray-700">9900</strong></p>
-                    <p>店名 (Agência): <strong className="text-gray-700">二二八店 (228)</strong></p>
-                    <p>口座番号 (Nº Conta): <strong className="text-gray-700">3366435</strong> (普通)</p>
-                  </div>
-                </div>
-
-                <div className="pt-2 text-xs text-muted-foreground leading-relaxed max-w-md mx-auto text-center">
-                  Após o depósito, envie uma foto do comprovante para o WhatsApp: <strong className="text-gray-800">{WHATSAPP}</strong>.
-                </div>
-              </div>
-            )}
-
             {/* PIX SCREEN — pagamento manual com confirmação por comprovante */}
             {order.paymentMethod === 'pix' && (
               <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4">
                 <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
                   <Smartphone className="w-6 h-6" />
-                  <span>PAGAMENTO VIA PIX</span>
+                  <span>{t('order.payViaPix')}</span>
                 </div>
 
                 {pixPayload ? (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-600 max-w-md mx-auto">
-                      Pague <strong>{formatPrice(order.total, order.currency)}</strong> escaneando o QR Code
-                      ou usando a chave Copia e Cola abaixo no app do seu banco.
+                      {t('order.pixPayPre')} <strong>{formatPrice(order.total, order.currency)}</strong> {t('order.pixScanQr')}
+                      {t('order.pixScan2')}
                     </p>
 
                     <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 inline-block shadow-sm">
@@ -277,7 +186,7 @@ const OrderConfirmation: React.FC = () => {
                     </div>
 
                     <div className="max-w-md mx-auto space-y-2">
-                      <p className="text-xs text-gray-500 font-bold uppercase">Chave Copia e Cola:</p>
+                      <p className="text-xs text-gray-500 font-bold uppercase">{t('order.copyPasteKey')}</p>
                       <div className="flex border border-gray-300 rounded-xl overflow-hidden shadow-sm bg-gray-50">
                         <input
                           type="text"
@@ -290,7 +199,7 @@ const OrderConfirmation: React.FC = () => {
                           className="bg-pink-500 hover:bg-pink-600 text-white px-4 flex items-center justify-center gap-1.5 transition-all text-xs font-bold"
                         >
                           <Copy className="w-4 h-4" />
-                          {copied ? 'Copiado!' : 'Copiar'}
+                          {copied ? t('order.copied') : t('order.copy')}
                         </button>
                       </div>
                     </div>
@@ -298,11 +207,11 @@ const OrderConfirmation: React.FC = () => {
                     <div className="bg-pink-50 border border-pink-200 rounded-2xl p-4 max-w-md mx-auto space-y-3 text-left">
                       <p className="text-sm font-bold text-pink-700 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
-                        Importante: envie o comprovante
+                        {t('order.importantProof')}
                       </p>
                       <p className="text-xs text-pink-700 leading-relaxed">
-                        Depois de pagar, mande o <strong>comprovante</strong> pelo WhatsApp para confirmarmos.
-                        Seu pedido fica <strong>Aguardando Pagamento</strong> até a confirmação — aí preparamos o envio.
+                        {t('order.pixProof1')} <strong>{t('order.pixProof2')}</strong> {t('order.pixProof3')}
+                        {t('order.pixStatus1')} <strong>{t('order.pixStatus2')}</strong> {t('order.pixStatus3')}
                       </p>
                       <a
                         href={whatsappComprovante}
@@ -311,17 +220,17 @@ const OrderConfirmation: React.FC = () => {
                         className="inline-flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-3 rounded-xl transition-all"
                       >
                         <ExternalLink className="w-4 h-4" />
-                        Enviar comprovante no WhatsApp
+                        {t('order.sendReceipt')}
                       </a>
                     </div>
                   </div>
                 ) : (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 max-w-md mx-auto space-y-2">
                     <AlertCircle className="w-8 h-8 text-yellow-600 mx-auto" />
-                    <p className="text-sm font-bold text-yellow-800">Chave PIX ainda não configurada</p>
+                    <p className="text-sm font-bold text-yellow-800">{t('order.pixNotSet')}</p>
                     <p className="text-xs text-yellow-700 leading-relaxed">
-                      A loja ainda não cadastrou a chave PIX. Entre em contato pelo WhatsApp
-                      <strong> {WHATSAPP}</strong> para combinar o pagamento do pedido <strong>{order.id}</strong>.
+                      {t('order.pixNotSetDesc1')}
+                      <strong> {WHATSAPP}</strong> {t('order.pixNotSetDesc2')} <strong>{order.id}</strong>{t('order.pixNotSetDesc3')}
                     </p>
                   </div>
                 )}
@@ -333,21 +242,21 @@ const OrderConfirmation: React.FC = () => {
               <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden space-y-4">
                 <div className="flex items-center gap-2 text-pink-600 font-extrabold text-lg justify-center">
                   <CreditCard className="w-6 h-6" />
-                  <span>PAGAMENTO VIA CARTÃO DE CRÉDITO</span>
+                  <span>{t('order.payViaCard')}</span>
                 </div>
                 <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-3">
                   <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white mx-auto">
                     ✓
                   </div>
-                  <h3 className="font-sans font-bold text-lg text-green-800">Transação de Cartão Aprovada!</h3>
+                  <h3 className="font-sans font-bold text-lg text-green-800">{t('order.cardApprovedTitle')}</h3>
                   <p className="text-xs text-green-700 max-w-sm mx-auto leading-relaxed">
-                    Seu pagamento foi confirmado com sucesso. O pedido foi enviado para separação no centro logístico de Hiroshima.
+                    {t('order.cardApprovedDesc')}
                   </p>
                   <button
                     onClick={() => navigate('/rastrear')}
                     className="text-xs font-bold text-green-800 underline hover:no-underline"
                   >
-                    Acompanhar meu pedido →
+                    {t('order.trackOrder')}
                   </button>
                 </div>
               </div>
@@ -358,12 +267,12 @@ const OrderConfirmation: React.FC = () => {
               <div className="bg-white rounded-3xl border-2 border-pink-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4">
                 <div className="flex items-center justify-center gap-2 text-pink-600 font-extrabold text-lg">
                   <FileText className="w-6 h-6" />
-                  <span>EMISSÃO DE BOLETO BANCÁRIO</span>
+                  <span>{t('order.boletoTitle')}</span>
                 </div>
 
                 <div className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-4 py-3 rounded-xl inline-flex items-center gap-2 border border-yellow-200">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Boleto vence em 3 dias úteis. Compensação em até 48 horas após o pagamento.</span>
+                  <span>{t('order.boletoDue')}</span>
                 </div>
 
                 <div className="bg-gray-100 p-6 rounded-2xl max-w-md mx-auto border border-gray-300 font-mono text-xs flex flex-col items-center gap-3">
@@ -380,46 +289,20 @@ const OrderConfirmation: React.FC = () => {
                   <Button 
                     onClick={() => {
                       navigator.clipboard.writeText(`34191.79001 01043.513184 91020.150008 7 926500000${(order.total * 100).toFixed(0).padStart(6, '0')}`);
-                      toast({ title: "Código copiado!", description: "Linha digitável copiada." });
+                      toast({ title: t('order.codeCopied'), description: t('order.lineCopied') });
                     }}
                     variant="outline"
                     className="border-2"
                   >
-                    Copiar Código de Barras
+                    {t('order.copyBarcode')}
                   </Button>
                   <Button 
                     onClick={handlePrint}
                     variant="secondary"
                   >
-                    Imprimir Boleto
+                    {t('order.printBoleto')}
                   </Button>
                 </div>
-              </div>
-            )}
-
-            {order.paymentMethod === 'wise' && (
-              <div className="bg-white rounded-3xl border-2 border-emerald-500 p-6 mb-8 shadow-md print:hidden text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-emerald-600 font-extrabold text-lg">
-                  <Wallet className="w-6 h-6" />
-                  <span>PAGAMENTO VIA WISE</span>
-                </div>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Pague <strong>{formatPrice(order.total, order.currency || 'BRL')}</strong> pelo Wise com câmbio justo. Após pagar, nos envie o comprovante pelo contato informado.
-                </p>
-                {wiseLink ? (
-                  <a
-                    href={wiseLink.startsWith('http') ? wiseLink : `https://wise.com/pay/${wiseLink.replace(/^@/, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-                  >
-                    <ExternalLink className="w-5 h-5" /> Pagar pelo Wise
-                  </a>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    Em instantes enviaremos o link de pagamento Wise pelo seu contato.
-                  </p>
-                )}
               </div>
             )}
 
@@ -464,7 +347,7 @@ const OrderConfirmation: React.FC = () => {
                       onClick={() => navigate('/rastrear')}
                       className="font-bold text-pink-700 underline hover:no-underline text-base"
                     >
-                      Acompanhar meu pedido →
+                      {t('order.trackOrder')}
                     </button>
                   </div>
                   <div className="text-right">
@@ -485,9 +368,9 @@ const OrderConfirmation: React.FC = () => {
                     <h4 className="font-semibold text-gray-500 uppercase tracking-wider mb-1">{t('order.recipient')}</h4>
                     <p className="font-bold text-gray-800">{order.name}</p>
                     {order.currency !== 'JPY' && order.cpf && (
-                      <p className="text-muted-foreground font-mono mt-0.5">CPF: {order.cpf}</p>
+                      <p className="text-muted-foreground font-mono mt-0.5">{t('order.cpfLabel')} {order.cpf}</p>
                     )}
-                    <p className="text-muted-foreground">Tel: {order.phone}</p>
+                    <p className="text-muted-foreground">{t('order.telLabel')} {order.phone}</p>
                     <p className="text-muted-foreground">{order.email}</p>
                   </div>
                   <div>
@@ -577,7 +460,7 @@ const OrderConfirmation: React.FC = () => {
 
                   {order.psFeeYen > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Taxa PS</span>
+                      <span className="text-muted-foreground">{t('order.psFee')}</span>
                       <span className="font-semibold text-gray-800">
                         {formatPrice(
                           order.priceBreakdown?.psFee ?? convertYen(order.psFeeYen, order.currency || 'BRL', true),
@@ -692,18 +575,18 @@ const OrderConfirmation: React.FC = () => {
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl">🎉</span>
               </div>
-              <h2 className="text-lg font-bold text-foreground">Pedido confirmado!</h2>
-              <p className="text-sm text-muted-foreground mt-1">Você comprou como convidado.</p>
+              <h2 className="text-lg font-bold text-foreground">{t('order.guestTitle')}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{t('order.guestSub')}</p>
             </div>
 
             <div className="bg-muted/50 rounded-xl p-4 mb-5">
-              <p className="text-xs font-bold text-foreground mb-3 uppercase tracking-wide">Crie uma conta e aproveite:</p>
+              <p className="text-xs font-bold text-foreground mb-3 uppercase tracking-wide">{t('order.guestCta')}</p>
               <ul className="space-y-2 text-sm text-foreground">
-                <li className="flex items-center gap-2"><span>🎁</span> <span><strong>Pontos de fidelidade</strong> a cada compra</span></li>
-                <li className="flex items-center gap-2"><span>📦</span> <span><strong>Histórico</strong> de todos os seus pedidos</span></li>
-                <li className="flex items-center gap-2"><span>🚚</span> <span><strong>Rastreamento</strong> do envio em tempo real</span></li>
-                <li className="flex items-center gap-2"><span>🎟️</span> <span><strong>Cupons</strong> e promoções exclusivas</span></li>
-                <li className="flex items-center gap-2"><span>🤝</span> <span><strong>Negociações</strong> de desconto personalizadas</span></li>
+                <li className="flex items-center gap-2"><span>🎁</span> <span><strong>{t('order.perk1')}</strong> {t('order.perk1b')}</span></li>
+                <li className="flex items-center gap-2"><span>📦</span> <span><strong>{t('order.perk2')}</strong> {t('order.perk2b')}</span></li>
+                <li className="flex items-center gap-2"><span>🚚</span> <span><strong>{t('order.perk3')}</strong> {t('order.perk3b')}</span></li>
+                <li className="flex items-center gap-2"><span>🎟️</span> <span><strong>{t('order.perk4')}</strong> {t('order.perk4b')}</span></li>
+                <li className="flex items-center gap-2"><span>🤝</span> <span><strong>{t('order.perk5')}</strong> {t('order.perk5b')}</span></li>
               </ul>
             </div>
 
@@ -712,13 +595,13 @@ const OrderConfirmation: React.FC = () => {
                 onClick={() => navigate('/cadastro')}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
               >
-                Criar conta grátis agora
+                {t('order.createAccount')}
               </button>
               <button
                 onClick={() => setShowGuestModal(false)}
                 className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Continuar sem conta
+                {t('order.continueGuest')}
               </button>
             </div>
           </div>

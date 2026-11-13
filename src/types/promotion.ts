@@ -1,12 +1,11 @@
 export const PROMO_TYPES = [
-  { value: 'abertura',   label: '🎉 Promoção de Abertura' },
-  { value: 'mes',        label: '📅 Promoção do Mês' },
-  { value: 'lancamento', label: '🚀 Promoção de Lançamento' },
-  { value: 'temporada',  label: '🌸 Promoção de Temporada' },
-  { value: 'relampago',  label: '⚡ Promoção Relâmpago' },
-  { value: 'especial',   label: '⭐ Promoção Especial' },
-  { value: 'exclusiva',  label: '💎 Exclusiva Online' },
-  { value: 'frete',      label: '🚚 Frete Grátis' },
+  { value: 'abertura',   label: '🎉 Promoção de Abertura', labelKey: 'promo.type.abertura' },
+  { value: 'mes',        label: '📅 Promoção do Mês', labelKey: 'promo.type.mes' },
+  { value: 'lancamento', label: '🚀 Promoção de Lançamento', labelKey: 'promo.type.lancamento' },
+  { value: 'temporada',  label: '🌸 Promoção de Temporada', labelKey: 'promo.type.temporada' },
+  { value: 'relampago',  label: '⚡ Promoção Relâmpago', labelKey: 'promo.type.relampago' },
+  { value: 'especial',   label: '⭐ Promoção Especial', labelKey: 'promo.type.especial' },
+  { value: 'exclusiva',  label: '💎 Exclusiva Online', labelKey: 'promo.type.exclusiva' },
 ];
 
 export interface ScheduledNextPromo {

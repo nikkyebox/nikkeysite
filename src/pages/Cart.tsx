@@ -11,8 +11,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useUser, Coupon } from '@/context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
+import { clientCheckoutTotals, checkoutLineFromItem, type CheckoutCoupon } from '@/utils/checkoutTotals';
 import { effectiveYen } from '@/utils/pricing';
-import { convertYen as fxConvert } from '@/services/fxService';
+import { convertYen as fxConvert, getRates, getRateSource } from '@/services/fxService';
 import { POINTS } from '@/services/pointsService';
 import { affiliateService, Affiliate } from '@/services/affiliateService';
 import { couponService as globalCouponService } from '@/services/couponService';
@@ -22,10 +23,10 @@ import WelcomeCouponBanner from '@/components/WelcomeCouponBanner';
 import { taxDisclosure } from '../../shared/tax-disclosure.js';
 
 // Converte um afiliado num "cupom" aplicável (carrega o código para gerar comissão)
-const affiliateToCoupon = (aff: Affiliate, productId?: string | null): Coupon => ({
+const affiliateToCoupon = (aff: Affiliate, productId: string | null | undefined, description: string): Coupon => ({
   id: `aff-${aff.code}`,
   code: aff.code,
-  description: `Indicação de ${aff.ownerName} — ${aff.discountPercent}% OFF`,
+  description,
   discount: aff.discountPercent,
   discountType: 'percentage',
   expiresAt: aff.expiresAt,
@@ -41,6 +42,7 @@ const Cart: React.FC = () => {
   const { isAuthenticated, validateProfileCoupon, coupons, user } = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const affDesc = (aff: Affiliate) => t('cart.affiliateDesc').replace('{name}', aff.ownerName).replace('{pct}', String(aff.discountPercent));
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -57,9 +59,10 @@ const Cart: React.FC = () => {
   // Os pontos são aplicados só na etapa de revisão do pedido — no carrinho fica 0.
   const [pointsToUse, setPointsToUse] = useState<number>(0);
 
-  // Cupons do perfil que estão válidos (para sugerir ao clicar no campo)
+  // Cupons do perfil que estão válidos (para sugerir ao clicar no campo).
+  // Cupom de "frete grátis" (freeShipping) não existe mais: não é sugerido.
   const availableCoupons = coupons.filter(
-    (c) => !c.isUsed && new Date(c.expiresAt) > new Date()
+    (c) => !c.isUsed && new Date(c.expiresAt) > new Date() && !c.freeShipping
   );
 
   const applyCouponObject = (coupon: Coupon) => {
@@ -94,7 +97,7 @@ const Cart: React.FC = () => {
       applyCouponObject({
         id: `global-${gc.code}-${Date.now()}`,
         code: gc.code,
-        description: gc.description || `Cupom ${gc.code}`,
+        description: gc.description || t('cart.couponFallbackDesc').replace('{code}', gc.code),
         discount: gc.type === 'percent' ? (gc.discountPercent || gc.discount || 0) : gc.discount,
         discountType: gc.type === 'fixed' ? 'fixed' : 'percentage',
         expiresAt: gc.expiryDate,
@@ -108,7 +111,7 @@ const Cart: React.FC = () => {
     const aff = await affiliateService.validate(code);
     if (aff.valid && aff.affiliate) {
       // Quando digitado manualmente (não via link de produto), não há productId
-      applyCouponObject(affiliateToCoupon(aff.affiliate, null));
+      applyCouponObject(affiliateToCoupon(aff.affiliate, null, affDesc(aff.affiliate)));
       safeStorage.setItem('affiliate_ref', aff.affiliate.code);
       safeStorage.removeItem('affiliate_ref_product');
       return;
@@ -130,7 +133,7 @@ const Cart: React.FC = () => {
       const productId = safeStorage.getItem('affiliate_ref_product') || null;
       affiliateService.validate(ref).then((res) => {
         if (res.valid && res.affiliate) {
-          setActiveCoupon(affiliateToCoupon(res.affiliate, productId));
+          setActiveCoupon(affiliateToCoupon(res.affiliate, productId, affDesc(res.affiliate)));
         }
       });
     }
@@ -178,13 +181,13 @@ const Cart: React.FC = () => {
           : 0;
         setPromoBreakdown(
           base > 0
-            ? `Dois descontos somados neste link: ${base}% já embutidos no preço do produto e ${pct}% do cupom ${rotulo} aplicados agora. O cupom vale uma única vez.`
-            : `Cupom ${rotulo} aplicado pelo link: ${pct}% de desconto, válido uma única vez.`
+            ? t('cart.promoBreakdownBoth').replace('{base}', String(base)).replace('{pct}', String(pct)).replace('{label}', rotulo)
+            : t('cart.promoBreakdownOne').replace('{label}', rotulo).replace('{pct}', String(pct))
         );
         setActiveCoupon({
           id: `promo-${c.code}`,
           code: rotulo,
-          description: c.tagline || `Promoção ${rotulo}`,
+          description: c.tagline || t('cart.promoDesc').replace('{label}', rotulo),
           discount: pct,
           discountType: 'percentage',
           expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
@@ -214,7 +217,7 @@ const Cart: React.FC = () => {
 
   // Desconto a partir do cupom do perfil (porcentagem ou valor fixo)
   const computeDiscount = (coupon: Coupon, subtotal: number): number => {
-    if (coupon.freeShipping) return 0; // frete é tratado no checkout
+    if (coupon.freeShipping) return 0; // legado: cupom de frete não dá desconto em produto nem zera o frete
     if (coupon.discountType === 'percentage') {
       return subtotal * (coupon.discount / 100);
     }
@@ -248,7 +251,22 @@ const Cart: React.FC = () => {
         ? sum + fxConvert(effectiveYen(item.product, item.size), currency) * item.quantity
         : sum, 0)
     : regularSubtotal;
-  const discountAmount = activeCoupon ? computeDiscount(activeCoupon, baseDoCupom) : 0;
+  // Conta do servidor (shared/checkout-totals.js) para cupom comum. O cupom de
+  // campanha (promoProductId) segue a conta antiga: a regra do servidor para a
+  // campanha ainda não foi confirmada (ver o relatório).
+  const cartTotals = promoProductId ? null : clientCheckoutTotals({
+    lines: items.map((i) => checkoutLineFromItem({ product: i.product, size: i.size, quantity: i.quantity, freeGift: i.freeGift })),
+    coupon: (activeCoupon ?? null) as CheckoutCoupon | null,
+    redeemPoints: 0,
+    paymentMethod: '',
+    currency,
+    rates: { ...getRates(), source: getRateSource() },
+    finalShippingYen: 0,
+  });
+  const summaryBase = cartTotals ? cartTotals.display.subtotal : baseTotalPrice;
+  const discountAmount = cartTotals
+    ? cartTotals.display.couponDiscount
+    : activeCoupon ? computeDiscount(activeCoupon, baseDoCupom) : 0;
 
   // Resgate de pontos: 1 ponto = ¥1, limitado ao valor dos produtos (em ¥)
   const convertYen = (yen: number) => fxConvert(yen, currency);
@@ -281,11 +299,11 @@ const Cart: React.FC = () => {
     const rates: Record<string, number> = { Portugal: 0.23, França: 0.20, Itália: 0.22, Espanha: 0.21 };
     const rate = rates[selectedCountry] || 0.20;
     estimatedTax = subtotalWithDiscount * rate;
-    taxLabel = `IVA / VAT Estimado (${Math.round(rate * 100)}%)`;
+    taxLabel = t('cart.vatEstimate').replace('{rate}', String(Math.round(rate * 100)));
   }
 
   // Grand total ONLY has items subtotal (no taxes added!)
-  const grandTotal = subtotalWithDiscount;
+  const grandTotal = cartTotals ? cartTotals.display.products : subtotalWithDiscount;
 
   return (
     <Layout>
@@ -369,12 +387,12 @@ const Cart: React.FC = () => {
                       <span className="text-xl shrink-0">🎁</span>
                       <div>
                         <p className="text-sm font-bold text-purple-800 dark:text-purple-200">
-                          Ganhe <span className="underline">{pg.giftProductName}</span> grátis!
+                          {t('cart.giftReminder').split('{gift}')[0]}<span className="underline">{pg.giftProductName}</span>{t('cart.giftReminder').split('{gift}')[1]}
                         </p>
                         <p className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
-                          {missingQty > 0 && !missingVal && `Compre mais ${missingQty} unidade(s) deste produto.`}
-                          {missingQty === 0 && missingVal && `Adicione mais ${missingVal} em produtos no carrinho.`}
-                          {missingQty > 0 && missingVal && `Compre mais ${missingQty} unidade(s) e adicione mais ${missingVal} no total.`}
+                          {missingQty > 0 && !missingVal && t('cart.buyMoreThis').replace('{qty}', String(missingQty))}
+                          {missingQty === 0 && missingVal && t('cart.addMoreValue').replace('{amount}', String(missingVal))}
+                          {missingQty > 0 && missingVal && t('cart.buyMoreAndValue').replace('{qty}', String(missingQty)).replace('{amount}', String(missingVal))}
                         </p>
                       </div>
                     </div>
@@ -402,10 +420,10 @@ const Cart: React.FC = () => {
                     <span className="text-xl">📦</span>
                     <div>
                       <h4 className="font-sans font-bold text-sm text-emerald-800">
-                        Envio Nacional Seguro (Japan Post / Yamato / Sagawa)
+                        {t('cart.japanShipTitle')}
                       </h4>
                       <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
-                        Seu pedido será embalado e despachado diretamente de nossa loja em Hiroshima. O frete será calculado na próxima etapa com base no tamanho das caixas e na província selecionada.
+                        {t('cart.japanShipDesc')}
                       </p>
                     </div>
                   </div>
@@ -447,9 +465,7 @@ const Cart: React.FC = () => {
                           </p>
                           {availableCoupons.map((coupon) => {
                             const preview = computeDiscount(coupon, baseTotalPrice);
-                            const label = coupon.freeShipping
-                              ? 'Frete Grátis'
-                              : coupon.discountType === 'percentage'
+                            const label = coupon.discountType === 'percentage'
                               ? `${coupon.discount}% OFF`
                               : `¥${coupon.discount.toLocaleString()} OFF`;
                             return (
@@ -463,7 +479,7 @@ const Cart: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                   <span className="font-bold text-primary text-sm">{coupon.code}</span>
                                   <span className="text-xs font-bold text-green-600">
-                                    {coupon.freeShipping ? label : `-${formatPrice(preview, currency)}`}
+                                    {`-${formatPrice(preview, currency)}`}
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground">{coupon.description} · {label}</p>
@@ -486,7 +502,7 @@ const Cart: React.FC = () => {
                   {isAuthenticated && availablePoints > 0 && (
                     <div className="bg-purple-50 dark:bg-purple-950/20 border border-dashed border-purple-300 rounded-xl p-3 text-xs text-purple-700 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>Você tem <b>{availablePoints} pontos</b>. Use como desconto na etapa final da compra.</span>
+                      <span>{t('cart.pointsAvailable1')} <b>{availablePoints} {t('cart.pointsWord')}</b>{t('cart.pointsAvailable2')}</span>
                     </div>
                   )}
 
@@ -495,14 +511,14 @@ const Cart: React.FC = () => {
 
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-                      <span className="font-semibold text-gray-800">{formatPrice(baseTotalPrice, currency)}</span>
+                      <span className="font-semibold text-gray-800">{formatPrice(summaryBase, currency)}</span>
                     </div>
 
                     {COUPONS_ENABLED && activeCoupon && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-sm text-green-600 font-bold bg-green-50/50 p-2 rounded-lg border border-dashed border-green-200">
                           <span className="flex items-center gap-1">
-                            <Tag className="w-3.5 h-3.5 shrink-0" /> Cupom ({activeCoupon.code})
+                            <Tag className="w-3.5 h-3.5 shrink-0" /> {t('cart.couponLabel')} ({activeCoupon.code})
                             {activeCoupon.discountType === 'percentage' ? ` −${activeCoupon.discount}%` : ''}
                           </span>
                           <span className="flex items-center gap-1">
@@ -510,7 +526,7 @@ const Cart: React.FC = () => {
                             <button
                               onClick={handleRemoveCoupon}
                               className="text-red-500 hover:text-red-700 ml-1 text-xs"
-                              title="Remover cupom"
+                              title={t('cart.removeCoupon')}
                             >
                               ×
                             </button>
@@ -523,12 +539,12 @@ const Cart: React.FC = () => {
                         )}
                         {hasPromoItems && regularSubtotal === 0 && (
                           <p className="text-[11px] text-pink-600 font-semibold bg-pink-50 border border-pink-200 rounded-lg px-2 py-1.5 leading-snug">
-                            ⚠️ Todos os itens já têm desconto promocional. O cupom não foi aplicado.
+                            ⚠️ {t('cart.allPromoItems')}
                           </p>
                         )}
                         {hasPromoItems && regularSubtotal > 0 && (
                           <p className="text-[11px] text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 leading-snug">
-                            ℹ️ Cupom aplicado apenas aos itens sem promoção ({formatPrice(regularSubtotal, currency)}). Itens com preço promocional não acumulam desconto.
+                            ℹ️ {t('cart.partialCoupon').replace('{amount}', formatPrice(regularSubtotal, currency))}
                           </p>
                         )}
                       </div>
@@ -542,7 +558,7 @@ const Cart: React.FC = () => {
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
                         <p className="text-[10px] text-pink-700 dark:text-pink-400 leading-relaxed font-semibold">
-                          ⚠️ <strong>Lembrete:</strong> Este imposto é apenas uma estimativa aproximada. Ele <strong>NÃO</strong> foi somado ao total geral do seu carrinho e poderá ser cobrado pela alfândega local na chegada do pacote ao país de destino.
+                          ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('cart.taxReminder')}
                         </p>
                       </div>
                     )}
@@ -557,7 +573,7 @@ const Cart: React.FC = () => {
                       <div className="text-right">
                         {discountAmount > 0 && (
                           <p className="text-sm text-muted-foreground line-through">
-                            {formatPrice(baseTotalPrice, currency)}
+                            {formatPrice(summaryBase, currency)}
                           </p>
                         )}
                         <span className="font-black text-2xl text-pink-600">
@@ -565,13 +581,13 @@ const Cart: React.FC = () => {
                         </span>
                         {discountAmount > 0 && (
                           <p className="text-[11px] text-green-600 font-bold mt-0.5">
-                            Você economiza {formatPrice(discountAmount, currency)}
+                            {t('cart.youSave')} {formatPrice(discountAmount, currency)}
                           </p>
                         )}
                         {selectedCountry !== 'Japão' && !discountAmount ? (
-                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">ou até 12x no cartão</p>
+                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{t('cart.installments')}</p>
                         ) : selectedCountry === 'Japão' && !discountAmount ? (
-                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Pague via PayPay ou Depósito</p>
+                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{t('cart.payJapan')}</p>
                         ) : null}
                       </div>
                     </div>
@@ -616,8 +632,8 @@ const Cart: React.FC = () => {
 
                   <p className="text-center text-xs text-muted-foreground">
                     {selectedCountry === 'Japão'
-                      ? '🏠 Envio direto de Hiroshima - Frete rápido e seguro.'
-                      : '✈️ Despachado de Hiroshima com entrega expressa pelos Correios.'
+                      ? `🏠 ${t('cart.shipDirectJp')}`
+                      : `✈️ ${t('cart.shipDirectIntl')}`
                     }
                   </p>
                 </div>

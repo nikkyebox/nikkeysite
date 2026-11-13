@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 // Serviço de afiliados/influencers.
 // Um afiliado tem um CÓDIGO público e reutilizável que dá desconto ao comprador
 // e credita uma comissão ao influencer sobre o valor líquido de cada venda.
@@ -227,8 +228,8 @@ export const affiliateService = {
       if (!ok) return { ok: false, error: 'Falha ao criar afiliado' };
       await updateDoc(doc(db, REQ_COL, req.email), { status: 'approved', code: opts.code.trim().toUpperCase() });
       return { ok: true };
-    } catch (e: any) {
-      return { ok: false, error: e?.message };
+    } catch (e: unknown) {
+      return { ok: false, error: errorMessage(e) };
     }
   },
 
@@ -293,9 +294,9 @@ export const affiliateService = {
       await ensureAdminAuth();
       await deleteDoc(doc(db, COL, normalize(code)));
       return { ok: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       devError('affiliateService.remove falhou:', e);
-      return { ok: false, error: e?.message || String(e) };
+      return { ok: false, error: errorMessage(e) || String(e) };
     }
   },
 

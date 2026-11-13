@@ -1,31 +1,29 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Truck, Package, Calculator, MapPin, Scale } from 'lucide-react';
-import { japanPrefectures, japanShippingRates } from '@/data/japanPrefectures';
+import { japanPrefectures } from '@/data/japanPrefectures';
 import { useCart } from '@/context/CartContext';
 import { convertYen as fxConvert } from '@/services/fxService';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
-import { calculateCartShippingBoxes } from '@/utils/shippingDimensions';
-import { getELightRate, getAirParcelRate, getEmsRate, countryToZone, MAX_WEIGHT_G, MAX_DIM_SUM_CM, type JapanPostZone } from '@/utils/japanPostRates';
+import { countryToZone, MAX_WEIGHT_G, MAX_DIM_SUM_CM, type JapanPostZone } from '@/utils/japanPostRates';
+import { quoteShipping, spaceUsedOf } from '@/utils/shippingQuote';
 import { effectiveYen } from '@/utils/pricing';
 
 interface ShippingCalculatorProps {
   selectedPrefecture?: string;
   onShippingSelect?: (shipping: { carrier: string; cost: number; costYen: number; estimatedDays: string } | null) => void;
   destinationCountry?: string;
-  couponDiscount?: number;
 }
 
 const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
   selectedPrefecture: externalPrefecture,
   onShippingSelect,
   destinationCountry = 'Brasil',
-  couponDiscount = 0
 }) => {
   const [selectedPrefecture, setSelectedPrefecture] = useState<string>(externalPrefecture || '');
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
-  const { getSpaceUsed, items } = useCart();
+  const { items } = useCart();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -37,21 +35,19 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
     setSelectedCarrier(null);
   }, [destinationCountry]);
 
-  const spaceInfo = useMemo(() => getSpaceUsed(), [getSpaceUsed]);
-
-  // Check if there are Custom Request items (Faça seu Pedido) in the cart
-  const hasCustomRequest = items.some(item => item.product?.id?.includes('custom') || item.product?.category === 'custom-request');
+  const spaceInfo = useMemo(() => spaceUsedOf(items), [items]);
 
   const isJapan = destinationCountry === 'Japão';
-  const isEurope = ['Portugal', 'França', 'Itália', 'Espanha'].includes(destinationCountry || '');
   const jpZone: JapanPostZone = countryToZone(destinationCountry || 'Brasil');
   // Moeda de exibição do frete conforme o país (BRL/EUR/USD/JPY)
   const destCurrency = getCurrencyByCountry(destinationCountry || 'Brasil');
 
-  const calculateBoxes = useMemo(
-    () => calculateCartShippingBoxes(items, spaceInfo),
-    [items, spaceInfo]
+  // Cotação: fonte única em utils/shippingQuote (mesma tabela e fórmula do servidor).
+  const quote = useMemo(
+    () => quoteShipping(items, destinationCountry || 'Brasil', { prefecture: selectedPrefecture }),
+    [items, destinationCountry, selectedPrefecture]
   );
+  const calculateBoxes = quote.boxes;
 
   const selectedPref = isJapan
     ? japanPrefectures.find(p => p.name === selectedPrefecture)
@@ -59,151 +55,23 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
 
   const displaySubtotal = useMemo(() => {
     return items.reduce((sum, item) => {
-      const unitPrice = fxConvert(effectiveYen(item.product, item.size), destCurrency);
-      return sum + unitPrice * item.quantity;
+      if (item.freeGift) return sum;
+      return sum + fxConvert(effectiveYen(item.product, item.size), destCurrency) * item.quantity;
     }, 0);
   }, [items, destCurrency]);
 
-  const finalAmountForFreeShipping = displaySubtotal - couponDiscount;
-  const isFreeShipping = isJapan && items.length > 0 && finalAmountForFreeShipping >= 6000;
-
-  const shippingOptions = useMemo(() => {
-    if (items.length === 0) return [];
-
-    if (isJapan) {
-      if (!selectedPref) return [];
-      const zone = selectedPref.zone as 1 | 2 | 3 | 4;
-      const carriers: ('yuubin' | 'yamato' | 'sagawa')[] = ['yuubin', 'yamato', 'sagawa'];
-      const carrierNames = {
-        yuubin: { name: 'Japan Post Local (ゆうパック) ✉️', logo: '📮' },
-        yamato: { name: 'Yamato Transport (宅急便) 🐱', logo: '📦' },
-        sagawa: { name: 'Sagawa Express (飛脚宅配便) 🏃‍♂️', logo: '⚡' }
-      };
-      const deliveryDays = { 1: '1-2', 2: '1-2', 3: '2-3', 4: '3-4' };
-
-      return carriers.map(carrier => {
-        let totalCost = 0;
-        if (calculateBoxes.boxes60 > 0) totalCost += japanShippingRates[carrier]['60'][zone] * calculateBoxes.boxes60;
-        if (calculateBoxes.boxes80 > 0) totalCost += japanShippingRates[carrier]['80'][zone] * calculateBoxes.boxes80;
-        if (totalCost === 0) totalCost = japanShippingRates[carrier]['60'][zone];
-        const cost = isFreeShipping ? 0 : totalCost;
-        return {
-          carrier,
-          ...carrierNames[carrier],
-          cost,
-          costYen: null as number | null,
-          originalCost: isFreeShipping ? totalCost : undefined,
-          estimatedDays: deliveryDays[zone] || '2-3',
-        };
-      }).sort((a, b) => a.cost - b.cost);
-    }
-
-    // International — Japan Post weight-based
-    const weightG = calculateBoxes.totalWeightG;
-    if (weightG <= 0) return [];
-    const currency = destCurrency;
-
-    if (weightG > MAX_WEIGHT_G) return []; // overweight — handled in JSX
-
-    // Prazo estimado por zona Japan Post (e-Light / Air / EMS)
-    const daysByZone: Record<number, { light: string; air: string; ems: string }> = {
-      1: { light: '6-10',  air: '4-7',   ems: '2-4'  }, // China/Coreia/Taiwan
-      2: { light: '7-12',  air: '5-9',   ems: '3-5'  }, // Ásia
-      3: { light: '7-14',  air: '6-10',  ems: '4-7'  }, // Europa/Oceania
-      4: { light: '7-14',  air: '6-10',  ems: '3-6'  }, // EUA
-      5: { light: '20-40', air: '10-15', ems: '18' }, // Brasil/Am.Sul/África
-    };
-    const zd = daysByZone[jpZone] || daysByZone[5];
-
-    const options: Array<{
-      carrier: string; name: string; logo: string;
-      cost: number; costYen: number | null;
-      originalCost: number | undefined; estimatedDays: string;
-      isConsultar?: boolean;
-    }> = [];
-
-    if (weightG <= 2000) {
-      const eLightYen = getELightRate(weightG, jpZone);
-      if (eLightYen) options.push({
-        carrier: 'eraito',
-        name: 'Japan Post E-Light · 国際eパケットライト',
-        logo: '📦',
-        cost: fxConvert(eLightYen, currency),
-        costYen: eLightYen,
-        originalCost: undefined,
-        estimatedDays: zd.light,
-      });
-    } else {
-      const airYen = getAirParcelRate(weightG, jpZone);
-      if (airYen) options.push({
-        carrier: 'kozutsumi-air',
-        name: 'Japan Post Kozutsumi Air · 国際小包 航空便',
-        logo: '📦',
-        cost: fxConvert(airYen, currency),
-        costYen: airYen,
-        originalCost: undefined,
-        estimatedDays: zd.air,
-      });
-    }
-
-    // EMS available for all weight classes
-    const emsYen = getEmsRate(weightG, jpZone);
-    if (emsYen) options.push({
-      carrier: 'ems',
-      name: 'Japan Post EMS · 国際スピード郵便 (via DHL)',
-      logo: '✈️',
-      cost: fxConvert(emsYen, currency),
-      costYen: emsYen,
-      originalCost: undefined,
-      estimatedDays: zd.ems,
-    });
-
-    // Maritime — always show as "Consultar"
-    options.push({
-      carrier: 'maritimo',
-      name: 'Sea Freight · 船便',
-      logo: '🚢',
-      cost: 0,
-      costYen: null,
-      originalCost: undefined,
-      estimatedDays: '60-90',
-      isConsultar: true,
-    });
-
-    // A combinar — frete calculado após pesagem real (only for custom requests)
-    if (hasCustomRequest) {
-      options.push({
-        carrier: 'a-combinar',
-        name: 'A Combinar · 要相談 (Apenas para encomendas fora do site)',
-        logo: '⚖️',
-        cost: 0,
-        costYen: null,
-        originalCost: undefined,
-        estimatedDays: 'A definir',
-        isConsultar: true,
-        isCombinar: true,
-      } as any);
-    }
-
-    return options.sort((a, b) => {
-      if ((a as any).isCombinar) return 1;
-      if ((b as any).isCombinar) return -1;
-      if (a.isConsultar) return 1;
-      if (b.isConsultar) return -1;
-      return a.cost - b.cost;
-    });
-  }, [selectedPref, items, calculateBoxes, isJapan, jpZone, destCurrency, isFreeShipping]);
+  const shippingOptions = quote.options;
 
   useEffect(() => {
     if (onShippingSelect && selectedCarrier && shippingOptions.length > 0) {
       const selected = shippingOptions.find(opt => opt.carrier === selectedCarrier);
       if (selected) {
-        onShippingSelect({ carrier: selected.name, cost: selected.cost, costYen: selected.costYen ?? 0, estimatedDays: selected.estimatedDays });
+        onShippingSelect({ carrier: t(selected.nameKey), cost: selected.cost, costYen: selected.costYen ?? 0, estimatedDays: selected.estimatedDays });
       }
     } else if (onShippingSelect && !selectedCarrier) {
       onShippingSelect(null);
     }
-  }, [selectedCarrier, shippingOptions, onShippingSelect]);
+  }, [selectedCarrier, shippingOptions, onShippingSelect, t]);
 
   const currency = destCurrency;
 
@@ -257,42 +125,23 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
         </div>
       )}
 
+      {quote.unsupportedCountry && (
+        <div className="mb-6 rounded-xl p-4 border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">{t('shipping.unsupportedCountry')}</p>
+        </div>
+      )}
+
       {/* Japan Post international zone info */}
       {!isJapan && (
         <div className="mb-6 bg-blue-50 dark:bg-blue-950/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
           <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
-            🗾 Japan Post Internacional · Zona {jpZone}
+            🗾 {t('calc.intlZone')} {jpZone}
             <span className="text-xs font-normal text-blue-600 dark:text-blue-400">
               — {destinationCountry}
             </span>
           </p>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
             {t('calc.weightService')}
-          </p>
-        </div>
-      )}
-
-      {/* Free Shipping Banner */}
-      {isFreeShipping && items.length > 0 && (
-        <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 rounded-xl p-4 mb-6 border border-emerald-200">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">🌸</span>
-            <h3 className="font-bold text-emerald-800 dark:text-emerald-200">{t('calc.freeShippingBanner')}</h3>
-          </div>
-          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-            {t('calc.freeShippingDesc')}
-          </p>
-        </div>
-      )}
-
-      {isJapan && items.length > 0 && !isFreeShipping && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-4 mb-6 border border-amber-200">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">🌸</span>
-            <h3 className="font-bold text-amber-800 dark:text-amber-200">{t('calc.freeShippingThreshold')}</h3>
-          </div>
-          <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
-            {t('calc.freeShippingRemain').replace('{amount}', formatPrice(6000 - finalAmountForFreeShipping, 'JPY'))}
           </p>
         </div>
       )}
@@ -362,10 +211,10 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
               )}
               {calculateBoxes.usedRealDimensions && (
                 <div className="rounded-lg bg-background/70 border border-border p-2 text-[11px] text-muted-foreground leading-relaxed mt-1">
-                  Calculado com medidas reais de embalagem + margem de +{calculateBoxes.safetyMarginCm} cm.
+                  {t('calc.realDims').replace('{margin}', String(calculateBoxes.safetyMarginCm))}
                   {calculateBoxes.missingDimensionsCount > 0 && (
                     <span className="block text-amber-700 dark:text-amber-300">
-                      {calculateBoxes.missingDimensionsCount} item(ns) sem medida real — peso estimado por padrão.
+                      {t('calc.missingDims').replace('{count}', String(calculateBoxes.missingDimensionsCount))}
                     </span>
                   )}
                 </div>
@@ -387,7 +236,7 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
           <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
             <Truck className="w-4 h-4" />
             {onShippingSelect ? t('calc.selectDelivery') : t('calc.deliveryOptions')}
-            {isJapan && selectedPrefecture && ` para ${selectedPref?.nameJa}`}
+            {isJapan && selectedPrefecture && ` ${t('calc.forPref')} ${selectedPref?.nameJa}`}
           </h3>
 
           {isJapan && !selectedPrefecture && onShippingSelect && (
@@ -395,8 +244,8 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
           )}
 
           {shippingOptions.map((option, index) => {
-            const isConsultar = (option as any).isConsultar;
-            const isCombinar = (option as any).isCombinar;
+            const isConsultar = option.isConsultar;
+            const isCombinar = option.isCombinar;
             // 'A Combinar' é selecionável (tem radio), apesar de não ter preço fixo
             const selectable = !isConsultar || isCombinar;
             return (
@@ -430,37 +279,31 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
                     )}
                     <span className="text-2xl shrink-0">{option.logo}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm text-foreground truncate">{option.name}</p>
+                      <p className="font-bold text-sm text-foreground truncate">{t(option.nameKey)}</p>
                       <p className="text-xs text-muted-foreground truncate">
                         {option.costYen ? `¥${option.costYen.toLocaleString()} · ` : ''}
                         {isCombinar
-                          ? 'Frete calculado após pesagem real do pacote'
+                          ? t('calc.combinarDesc')
                           : isConsultar
                           ? t('calc.variableDeadline')
                           : t('calc.deliveryDays').replace('{days}', option.estimatedDays)}
                       </p>
                       {isCombinar && (
                         <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 leading-tight">
-                          ⚖️ O valor será informado após a pesagem e cobrado separadamente.
+                          ⚖️ {t('calc.combinarNote')}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     {isCombinar ? (
-                      <p className="font-sans text-sm font-black text-amber-600 dark:text-amber-400">A combinar</p>
+                      <p className="font-sans text-sm font-black text-amber-600 dark:text-amber-400">{t('calc.toBeAgreed')}</p>
                     ) : isConsultar ? (
                       <p className="font-sans text-sm font-black text-muted-foreground">{t('calc.consultar')}</p>
                     ) : (
-                      <p className={cn(
-                        "font-sans text-lg font-black whitespace-nowrap",
-                        option.cost === 0 ? "text-green-600" : "text-primary"
-                      )}>
-                        {option.cost === 0 ? t('calc.gratis') : formatPrice(option.cost, currency, true)}
+                      <p className="font-sans text-lg font-black whitespace-nowrap text-primary">
+                        {formatPrice(option.cost, currency, true)}
                       </p>
-                    )}
-                    {option.originalCost && option.originalCost > 0 && (
-                      <p className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(option.originalCost, currency, true)}</p>
                     )}
                     {!onShippingSelect && !isConsultar && index === 0 && (
                       <span className="text-xs text-primary font-bold">{t('calc.bestOption')}</span>
@@ -475,7 +318,7 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
           })}
 
           {!onShippingSelect && (() => {
-            const best = shippingOptions.find(o => !(o as any).isConsultar);
+            const best = shippingOptions.find(o => !('isConsultar' in o && o.isConsultar));
             if (!best) return null;
             return (
               <div className="bg-primary text-primary-foreground rounded-xl p-4 mt-4">

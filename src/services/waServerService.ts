@@ -1,3 +1,4 @@
+import type { AdminOrder, AdminOrderItem } from '@/types/order';
 /**
  * waServerService
  *
@@ -22,8 +23,7 @@ const DEFAULT_CONFIG: WaServerConfig = {
   authToken: 'nikkeybox-whatsapp-token-2024',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type OrderLike = any;
+type OrderLike = AdminOrder;
 
 const getPhone = (order: OrderLike): string =>
   order?.customerPhone || order?.shippingAddress?.phone || order?.phone || '';
@@ -51,7 +51,7 @@ export const msgPreparing = (order: OrderLike): string =>
 /** Mensagem: pedido enviado, com itens e rastreio. */
 export const msgShipped = (order: OrderLike, trackingNumber: string, trackingUrl: string, carrier: string): string => {
   const items = (order.items || [])
-    .map((i: OrderLike) => `• ${i.quantity}x ${i.productName || i.name}${i.size ? ` (${i.size})` : ''}`)
+    .map((i: AdminOrderItem) => `• ${i.quantity}x ${i.productName || i.name}${i.size ? ` (${i.size})` : ''}`)
     .join('\n');
   let msg =
     `Olá ${getFirstName(order)}! ✈️\n\n` +

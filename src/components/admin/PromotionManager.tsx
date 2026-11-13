@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Tag, Trash2, Save, Search, Users, Clock, CalendarClock, ChevronDown, ChevronUp, Plus, FlaskConical, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { convertYen } from '@/services/fxService';
 import { PROMO_TYPES, ActivePromo, ScheduledNextPromo } from '@/types/promotion';
 export type { ActivePromo, ScheduledNextPromo };
-export { PROMO_TYPES };
 
 // ── Bloco de formulário reutilizável (promoção atual e próxima) ──────────────
 interface PromoFormProps {
@@ -173,6 +173,7 @@ const PromotionManager: React.FC = () => {
         }
       }
     }).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- verifica a expiração da promoção só ao montar
   }, []);
 
   // Countdown timer
@@ -210,8 +211,8 @@ const PromotionManager: React.FC = () => {
         setActive(null);
         toast({ title: '✅ Simulação concluída', description: 'Nenhuma próxima promoção configurada — promoção removida.' });
       }
-    } catch (e: any) {
-      toast({ title: 'Erro na simulação', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro na simulação', description: errorMessage(e), variant: 'destructive' });
     } finally { setSaving(false); }
   };
 
@@ -234,8 +235,8 @@ const PromotionManager: React.FC = () => {
       await deleteDoc(doc(db, 'siteContent', 'homePromotion'));
       setActive(null);
       if (!silent) toast({ title: 'Promoção removida.' });
-    } catch (e: any) {
-      if (!silent) toast({ title: 'Erro', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      if (!silent) toast({ title: 'Erro', description: errorMessage(e), variant: 'destructive' });
     } finally { setSaving(false); }
   };
 
@@ -264,8 +265,8 @@ const PromotionManager: React.FC = () => {
       setNextForm(emptyForm());
       setShowNext(false);
       toast({ title: 'Promoção ativada!', description: `${form.productName} — ¥${form.promoPriceYen}` });
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro', description: errorMessage(e), variant: 'destructive' });
     } finally { setSaving(false); }
   };
 
@@ -289,8 +290,8 @@ const PromotionManager: React.FC = () => {
               // Limpa também o navegador local
               Object.keys(localStorage).filter(k => k.startsWith('promo_bought_')).forEach(k => localStorage.removeItem(k));
               toast({ title: '🔄 Limites resetados para todos os clientes', description: 'Contadores anteriores a agora serão ignorados em qualquer dispositivo.' });
-            } catch (e: any) {
-              toast({ title: 'Erro', description: e?.message, variant: 'destructive' });
+            } catch (e: unknown) {
+              toast({ title: 'Erro', description: errorMessage(e), variant: 'destructive' });
             }
           }}>
           <RotateCcw className="w-3.5 h-3.5" /> Resetar limites de compra

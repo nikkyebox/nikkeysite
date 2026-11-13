@@ -22,7 +22,7 @@ export default defineConfig({
     // `shared/` também entra: é o código que api/ e src/ dividem (preço, pontos,
     // texto de promoção), justamente onde uma divergência entre os dois lados
     // passa despercebida.
-    include: ["src/**/*.{test,spec}.{ts,tsx}", "api/**/*.{test,spec}.js", "shared/**/*.{test,spec}.js"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "api/**/*.{test,spec}.js", "shared/**/*.{test,spec}.js", "scripts/**/*.{test,spec}.mjs"],
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

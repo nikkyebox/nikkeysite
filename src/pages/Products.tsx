@@ -28,12 +28,12 @@ const CATEGORY_ICONS: Record<string, string> = {
 const Products: React.FC = () => {
   const { category } = useParams<{ category?: string }>();
   const [searchParams] = useSearchParams();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
   const SORT_OPTIONS = [
-    { key: 'preco-menor' as SortKey, label: t('productsPage.sortPriceAsc') || 'Menor preço' },
-    { key: 'preco-maior' as SortKey, label: t('productsPage.sortPriceDesc') || 'Maior preço' },
+    { key: 'preco-menor' as SortKey, label: t('productsPage.sortPriceAsc') },
+    { key: 'preco-maior' as SortKey, label: t('productsPage.sortPriceDesc') },
     { key: 'az' as SortKey,         label: t('productsPage.sortAZ') },
     { key: 'za' as SortKey,         label: t('productsPage.sortZA') },
     { key: 'vendidos' as SortKey,   label: t('productsPage.sortBestseller') },
@@ -48,39 +48,9 @@ const Products: React.FC = () => {
   const getCategoryLabel = (id: string) =>
     allCategories.find(c => c.id === id)?.label || t(`product.category.${id}`) || id;
   const getCategoryDesc = (id: string) => {
-    const descs: Record<string, Record<string, string>> = {
-      pt: {
-        cosmeticos: 'Os cosméticos, protetores solares e produtos de skin care mais famosos do Japão.',
-        acessorios: 'Action figures originais de anime, luminárias kawaii e organizadores minimalistas.',
-        doces: 'Doces finos de matcha, chás verdes tradicionais orgânicos e guloseimas de Tóquio.',
-        papelaria: 'Canetas gel Sakura de fluxo suave e papelaria japonesa de alta durabilidade.',
-        eletronicos: 'Gadgets, acessórios e eletrônicos japoneses com tecnologia de ponta.',
-        masculino: 'Produtos pensados para o público masculino com estilo e qualidade japonesa.',
-        vestuario: 'Roupas e peças com design e conforto japonês.',
-        higiene: 'Produtos de higiene pessoal e saúde com a qualidade japonesa.',
-      },
-      en: {
-        cosmeticos: 'The most famous Japanese cosmetics, sunscreens and skincare products.',
-        acessorios: 'Original anime figures, kawaii lamps and minimalist organizers.',
-        doces: 'Premium matcha sweets, organic green teas and Tokyo exclusive treats.',
-        papelaria: 'Smooth-flow Sakura gel pens and durable Japanese stationery.',
-        eletronicos: 'Japanese gadgets, accessories and electronics with cutting-edge tech.',
-        masculino: 'Products designed for men with Japanese style and quality.',
-        vestuario: 'Clothing with Japanese design and comfort.',
-        higiene: 'Personal care and health products with Japanese quality.',
-      },
-      ja: {
-        cosmeticos: '日本の人気コスメ・日焼け止め・スキンケア製品。',
-        acessorios: 'アニメオリジナルフィギュア、かわいいランプ、ミニマルオーガナイザー。',
-        doces: '抹茶スイーツ・有機緑茶・東京限定おやつ。',
-        papelaria: 'サクラのゲルペンと高品質の日本文房具。',
-        eletronicos: '最先端技術の日本製ガジェット・アクセサリー・電子機器。',
-        masculino: '日本品質のメンズケア商品。',
-        vestuario: '日本デザインの快適なウェア。',
-        higiene: '日本品質の衛生・健康ケア商品。',
-      },
-    };
-    return descs[language]?.[id] || descs['pt'][id] || '';
+    const key = `productsPage.catDesc.${id}`;
+    const txt = t(key);
+    return txt === key ? '' : txt;
   };
   const { products, loading } = useProducts();
 
@@ -141,10 +111,12 @@ const Products: React.FC = () => {
   const { page, totalPages, pageItems, setPage, rangeStart, rangeEnd, total } =
     usePagination(displayProducts, 12);
 
-  const availableCats = useMemo(() =>
-    Array.from(new Set(visible.map(p => p.category)))
-      .sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b))),
-    [visible, language, allCategories]);
+  const availableCats = useMemo(() => {
+    const labelOf = (id: string) =>
+      allCategories.find(c => c.id === id)?.label || t(`product.category.${id}`) || id;
+    return Array.from(new Set(visible.map(p => p.category)))
+      .sort((a, b) => labelOf(a).localeCompare(labelOf(b)));
+  }, [visible, allCategories, t]);
 
   // Tipos disponíveis (tags) — mostra sempre que existam tags na lista atual
   const availableTypes = useMemo(() => {
@@ -264,7 +236,7 @@ const Products: React.FC = () => {
                 className="w-full flex items-center gap-2 px-4 py-3 rounded-lg border border-border bg-card hover:bg-secondary/50 transition-colors font-semibold"
               >
                 <Menu className="w-5 h-5" />
-                {t('productsPage.filters') || 'Filtros'}
+                {t('productsPage.filters')}
               </button>
 
               {/* Filtro em Modal/Panel Mobile */}
@@ -305,7 +277,7 @@ const Products: React.FC = () => {
                     type="button"
                     onClick={() => { setQuery(''); setPage(1); }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-secondary text-muted-foreground"
-                    aria-label="Limpar busca"
+                    aria-label={t('productsPage.clearSearch')}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -331,7 +303,7 @@ const Products: React.FC = () => {
                     onChange={(e) => { setSort((e.target.value as SortKey) || null); setPage(1); }}
                     className="px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   >
-                    <option value="">{t('productsPage.relevance') || 'Relevância'}</option>
+                    <option value="">{t('productsPage.relevance')}</option>
                     {SORT_OPTIONS.map(opt => (
                       <option key={opt.key} value={opt.key}>{opt.label}</option>
                     ))}
@@ -378,14 +350,14 @@ const Products: React.FC = () => {
                         <div>
                           <p className="text-muted-foreground mb-3">
                             {query
-                              ? <>Nenhum produto encontrado para "<strong className="text-foreground">{query}</strong>".</>
-                              : 'Nenhum produto com esses filtros.'}
+                              ? <>{t('productsPage.noResults1')} "<strong className="text-foreground">{query}</strong>"{t('productsPage.noResults2')}</>
+                              : t('productsPage.noFilterResults')}
                           </p>
                           <button
                             onClick={() => { setQuery(''); clearFilters(); }}
                             className="text-primary font-semibold hover:underline"
                           >
-                            Limpar busca e filtros
+                            {t('productsPage.clearAll')}
                           </button>
                         </div>
                       ) : (

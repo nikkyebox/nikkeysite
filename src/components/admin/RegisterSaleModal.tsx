@@ -202,7 +202,7 @@ const RegisterSaleModal: React.FC<Props> = ({ request, adminName, onClose, onReg
               <label className="text-sm font-semibold block mb-1">Moeda do valor digitado</label>
               <select
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value as any)}
+                onChange={(e) => setCurrency(e.target.value as 'JPY' | 'BRL' | 'EUR' | 'USD')}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
               >
                 <option value="JPY">¥ Ienes (JPY)</option>

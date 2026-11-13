@@ -45,6 +45,27 @@ export interface CustomerStats {
   }>;
 }
 
+
+/** Item de pedido lido do localStorage ou do Firestore. */
+interface CustomerOrderItemInput {
+  name?: string;
+  productName?: string;
+  quantity: number;
+  price?: number;
+}
+
+/** Pedido lido do localStorage ou do Firestore, antes da agregação por cliente. */
+interface CustomerOrderInput {
+  orderNumber?: string;
+  date?: string;
+  orderDate?: string;
+  syncedAt?: string;
+  totalPrice?: number;
+  totalAmount?: number;
+  currency?: string;
+  status?: string;
+  items?: CustomerOrderItemInput[];
+}
 export const customerService = {
   // Obtém todos os clientes com suas estatísticas
   getAllCustomers(): CustomerStats[] {
@@ -81,7 +102,7 @@ export const customerService = {
       const productMap: Record<string, { quantity: number; total: number }> = {};
       const orderHistory: Array<{ orderNumber: string; date: string; total: number; status: string }> = [];
 
-      orders.forEach((order: any) => {
+      orders.forEach((order: CustomerOrderInput) => {
         // Normaliza tudo para ¥ (pedidos podem estar em R$/€) para o painel admin.
         const oc = order.currency;
         totalSpent += toYen(order.totalPrice || 0, oc);
@@ -94,7 +115,7 @@ export const customerService = {
         });
 
         // Conta produtos
-        order.items.forEach((item: any) => {
+        (order.items ?? []).forEach((item: CustomerOrderItemInput) => {
           if (!productMap[item.name]) {
             productMap[item.name] = { quantity: 0, total: 0 };
           }
@@ -216,7 +237,7 @@ export const customerService = {
       
       const usersSnapshot = await getDocs(collection(db, 'users'));
       const localCustomers = this.getAllCustomers();
-      const customerMap = new Map<string, any>();
+      const customerMap = new Map<string, CustomerStats>();
 
       // Add Firestore users
       usersSnapshot.forEach((doc) => {
@@ -225,10 +246,10 @@ export const customerService = {
         const orders = data.orders || [];
 
         let totalSpent = 0;
-        const orderHistory: any[] = [];
+        const orderHistory: CustomerStats['orderHistory'] = [];
         const productMap: Record<string, { quantity: number; total: number }> = {};
 
-        orders.forEach((order: any) => {
+        orders.forEach((order: CustomerOrderInput) => {
           const oc = order.currency;
           totalSpent += toYen(order.totalPrice || order.totalAmount || 0, oc);
           orderHistory.push({
@@ -238,7 +259,7 @@ export const customerService = {
             status: order.status || 'pending',
           });
           if (order.items) {
-            order.items.forEach((item: any) => {
+            (order.items ?? []).forEach((item: CustomerOrderItemInput) => {
               const name = item.name || item.productName;
               if (!productMap[name]) productMap[name] = { quantity: 0, total: 0 };
               productMap[name].quantity += item.quantity;
@@ -276,7 +297,7 @@ export const customerService = {
           const email = order.customerEmail;
           if (email && customerMap.has(email)) {
             const customer = customerMap.get(email);
-            const existingOrder = customer.orderHistory.find((o: any) => o.orderNumber === order.orderNumber);
+            const existingOrder = customer.orderHistory.find((o: CustomerStats['orderHistory'][number]) => o.orderNumber === order.orderNumber);
             if (!existingOrder) {
               customer.totalOrders += 1;
               customer.totalSpent += toYen(order.totalPrice || order.totalAmount || 0, order.currency);
@@ -287,7 +308,7 @@ export const customerService = {
                 status: order.status || 'pending',
               });
               customer.averageOrderValue = customer.totalOrders > 0 ? customer.totalSpent / customer.totalOrders : 0;
-              customer.orderHistory.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+              customer.orderHistory.sort((a: CustomerStats['orderHistory'][number], b: CustomerStats['orderHistory'][number]) => new Date(b.date).getTime() - new Date(a.date).getTime());
               customer.lastOrderDate = customer.orderHistory[0]?.date || null;
             }
           }
@@ -311,7 +332,7 @@ export const customerService = {
   },
 
   // Async customer overview
-  async getCustomerOverviewAsync(): Promise<any> {
+  async getCustomerOverviewAsync() {
     const customers = await this.getAllCustomersAsync();
 
     const totalCustomers = customers.length;

@@ -27,7 +27,7 @@ import { handleSession as adminSessionHandler } from '../admin.js';
 function mockReq(method, body, headers = {}) {
   return {
     method,
-    headers: { origin: 'https://nikkeybox-store.com', ...headers },
+    headers: { origin: 'https://nikkeybox.jp', ...headers },
     body: body ? JSON.stringify(body) : undefined,
     socket: { remoteAddress: '127.0.0.1' },
   };

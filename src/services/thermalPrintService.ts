@@ -1,3 +1,4 @@
+import type { AdminOrder } from '@/types/order';
 /**
  * thermalPrintService
  *
@@ -51,8 +52,7 @@ export const thermalPrintService = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async printOrder(order: any): Promise<{ ok: boolean; error?: string }> {
+  async printOrder(order: AdminOrder): Promise<{ ok: boolean; error?: string }> {
     const cfg = this.getConfig();
     if (!cfg.enabled) return { ok: false, error: 'Impressora não ativada' };
 

@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Smartphone, Download, Share, Plus, X, Check, Wifi, Bell, Zap } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import AnimatedPlaneLogo from '@/components/AnimatedPlaneLogo';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Guia passo a passo para Android / Chrome (modal)
-const AndroidGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+const AndroidGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { t } = useLanguage();
+  return (
   <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
     <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
       <div className="h-1.5 bg-gradient-to-r from-green-400 to-blue-500" />
@@ -13,8 +16,8 @@ const AndroidGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
           <div className="flex items-center gap-3">
             <img src="/icons/icon-72x72.png" alt="" className="w-10 h-10 rounded-xl" />
             <div>
-              <p className="font-bold text-gray-900 text-sm">Instalar no Android / Chrome</p>
-              <p className="text-xs text-gray-500">Via Chrome</p>
+              <p className="font-bold text-gray-900 text-sm">{t('app.android.title')}</p>
+              <p className="text-xs text-gray-500">{t('app.android.via')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
@@ -27,20 +30,20 @@ const AndroidGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
             {
               step: 1,
               icon: <span className="text-sm">⋮</span>,
-              title: 'Toque no menu (⋮)',
-              desc: 'Três pontos no canto superior direito do Chrome',
+              title: t('app.guide.android.s1.title'),
+              desc: t('app.guide.android.s1.desc'),
             },
             {
               step: 2,
               icon: <Plus className="w-4 h-4 text-green-500" />,
-              title: '"Adicionar à tela inicial"',
-              desc: 'Ou "Instalar aplicativo" — role o menu para encontrar',
+              title: t('app.guide.android.s2.title'),
+              desc: t('app.guide.android.s2.desc'),
             },
             {
               step: 3,
               icon: <Check className="w-4 h-4 text-green-500" />,
-              title: 'Toque em "Instalar"',
-              desc: 'O ícone NikkeyBox aparece na tela inicial 🎉',
+              title: t('app.guide.android.s3.title'),
+              desc: t('app.guide.step3.desc'),
             },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
@@ -56,22 +59,25 @@ const AndroidGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
         </div>
 
         <p className="text-[11px] text-gray-400 text-center mt-4">
-          💡 No Android, o Chrome pode mostrar um banner automático de instalação.
+          💡 {t('appdl.androidNote')}
         </p>
 
         <button
           onClick={onClose}
           className="w-full mt-4 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-colors"
         >
-          Entendido!
+          {t('app.guide.gotIt')}
         </button>
       </div>
     </div>
   </div>
-);
+  );
+};
 
 // Guia passo a passo para iOS (modal)
-const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { t } = useLanguage();
+  return (
   <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
     <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
       <div className="h-1.5 bg-gradient-to-r from-pink-400 to-pink-500" />
@@ -80,8 +86,8 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
           <div className="flex items-center gap-3">
             <img src="/icons/icon-72x72.png" alt="" className="w-10 h-10 rounded-xl" />
             <div>
-              <p className="font-bold text-gray-900 text-sm">Instalar no iPhone / iPad</p>
-              <p className="text-xs text-gray-500">Via Safari</p>
+              <p className="font-bold text-gray-900 text-sm">{t('app.ios.title')}</p>
+              <p className="text-xs text-gray-500">{t('app.ios.via')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
@@ -94,20 +100,20 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
             {
               step: 1,
               icon: <Share className="w-4 h-4 text-blue-500" />,
-              title: 'Toque em Compartilhar',
-              desc: 'Ícone na barra inferior do Safari (quadrado com seta para cima)',
+              title: t('app.guide.ios.s1.title'),
+              desc: t('app.guide.ios.s1.desc'),
             },
             {
               step: 2,
               icon: <Plus className="w-4 h-4 text-pink-500" />,
-              title: '"Adicionar à Tela de Início"',
-              desc: 'Role o menu e toque nesta opção',
+              title: t('app.guide.ios.s2.title'),
+              desc: t('app.guide.ios.s2.desc'),
             },
             {
               step: 3,
               icon: <Check className="w-4 h-4 text-green-500" />,
-              title: 'Toque em "Adicionar"',
-              desc: 'O ícone NikkeyBox aparece na tela inicial 🎉',
+              title: t('app.guide.ios.s3.title'),
+              desc: t('app.guide.step3.desc'),
             },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
@@ -123,22 +129,24 @@ const IOSGuide: React.FC<{ onClose: () => void }> = ({ onClose }) => (
         </div>
 
         <p className="text-[11px] text-gray-400 text-center mt-4">
-          ⚠️ Precisa estar no Safari. Chrome/Firefox no iOS não suportam instalação.
+          {t('app.guide.note')}
         </p>
 
         <button
           onClick={onClose}
           className="w-full mt-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm transition-colors"
         >
-          Entendido!
+          {t('app.guide.gotIt')}
         </button>
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const AppDownloadSection: React.FC = () => {
   const { platform, canInstall, isInstalled, install } = usePWAInstall();
+  const { t } = useLanguage();
   const [showIOSGuide, setShowIOSGuide]         = useState(false);
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [justInstalled, setJustInstalled]       = useState(false);
@@ -163,8 +171,8 @@ const AppDownloadSection: React.FC = () => {
               <Check className="w-6 h-6 text-green-600" />
             </div>
             <div className="text-left">
-              <p className="font-bold text-gray-900">App instalado com sucesso!</p>
-              <p className="text-sm text-gray-500">NikkeyBox está na sua tela inicial 🎌</p>
+              <p className="font-bold text-gray-900">{t('app.installed.title')}</p>
+              <p className="text-sm text-gray-500">{t('app.installed.desc')}</p>
             </div>
           </div>
         </div>
@@ -190,27 +198,26 @@ const AppDownloadSection: React.FC = () => {
             {/* Texto */}
             <div className="text-white">
               <div className="inline-flex items-center gap-2 bg-pink-500/20 border border-pink-500/30 text-pink-300 text-xs font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
-                <Smartphone className="w-3.5 h-3.5" /> App Gratuito
+                <Smartphone className="w-3.5 h-3.5" /> {t('appdl.badge')}
               </div>
 
               <h2 className="font-display text-3xl lg:text-4xl font-black text-white leading-tight mb-4">
-                Leve o Japão<br />
+                {t('appdl.title1')}<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-400">
-                  no seu bolso
+                  {t('appdl.title2')}
                 </span>
               </h2>
 
               <p className="text-gray-300 text-base leading-relaxed mb-8">
-                Instale o NikkeyBox direto na sua tela inicial — sem App Store, sem Play Store.
-                Acesse produtos, rastreie pedidos e faça compras em segundos.
+                {t('appdl.desc')}
               </p>
 
               {/* Benefícios */}
               <div className="grid grid-cols-3 gap-3 mb-8">
                 {[
-                  { icon: <Zap className="w-5 h-5 text-yellow-400" />, label: 'Mais rápido', desc: 'Carrega em 1s' },
-                  { icon: <Wifi className="w-5 h-5 text-blue-400" />,   label: 'Leve',        desc: 'Sem ocupar espaço' },
-                  { icon: <Bell className="w-5 h-5 text-green-400" />,  label: 'Notificações', desc: 'Pedidos em tempo real' },
+                  { icon: <Zap className="w-5 h-5 text-yellow-400" />, label: t('appdl.b1.label'), desc: t('appdl.b1.desc') },
+                  { icon: <Wifi className="w-5 h-5 text-blue-400" />,   label: t('appdl.b2.label'),        desc: t('appdl.b2.desc') },
+                  { icon: <Bell className="w-5 h-5 text-green-400" />,  label: t('appdl.b3.label'), desc: t('appdl.b3.desc') },
                 ].map(({ icon, label, desc }) => (
                   <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
                     <div className="flex justify-center mb-1.5">{icon}</div>
@@ -236,8 +243,8 @@ const AppDownloadSection: React.FC = () => {
                     <path d="M13.5 5.7l2.12 2.1 2.38-2.28L15.62 3.6z" fill="#4285F4"/>
                   </svg>
                   <div className="text-left">
-                    <p className="text-[10px] font-normal text-gray-500 leading-none">Disponível no</p>
-                    <p className="text-sm font-bold leading-tight">Android / Chrome</p>
+                    <p className="text-[10px] font-normal text-gray-500 leading-none">{t('app.availableOn')}</p>
+                    <p className="text-sm font-bold leading-tight">{t('app.android.short')}</p>
                   </div>
                   <Download className="w-4 h-4 ml-auto text-gray-400 group-hover:text-gray-600" />
                 </button>
@@ -251,15 +258,15 @@ const AppDownloadSection: React.FC = () => {
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                   </svg>
                   <div className="text-left">
-                    <p className="text-[10px] font-normal text-gray-500 leading-none">Instalar no</p>
-                    <p className="text-sm font-bold leading-tight">iPhone / iPad</p>
+                    <p className="text-[10px] font-normal text-gray-500 leading-none">{t('app.installOn')}</p>
+                    <p className="text-sm font-bold leading-tight">{t('app.ios.short')}</p>
                   </div>
                   <Share className="w-4 h-4 ml-auto text-gray-400 group-hover:text-gray-600" />
                 </button>
               </div>
 
               <p className="text-gray-500 text-xs mt-4">
-                ✓ 100% gratuito · ✓ Sem cadastro na loja de apps · ✓ Acesso rápido pela tela inicial
+                {t('app.perks')}
               </p>
             </div>
 
@@ -280,7 +287,7 @@ const AppDownloadSection: React.FC = () => {
                       loop
                       playsInline
                       preload="none"
-                      aria-label="Hero transition da NikkeyBox"
+                      aria-label={t('app.video.label')}
                       className="h-full w-full object-cover motion-reduce:hidden"
                     />
                     <img

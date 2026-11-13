@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/LanguageContext';
 import { AlertCircle, CreditCard, Loader2 } from 'lucide-react';
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
@@ -13,6 +14,7 @@ interface StripeCardFormProps {
 }
 
 const CheckoutForm: React.FC<Pick<StripeCardFormProps, 'onSuccess'>> = ({ onSuccess }) => {
+  const { t } = useLanguage();
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -25,7 +27,7 @@ const CheckoutForm: React.FC<Pick<StripeCardFormProps, 'onSuccess'>> = ({ onSucc
     setError('');
     const result = await stripe.confirmPayment({ elements, redirect: 'if_required' });
     if (result.error) {
-      setError(result.error.message || 'Não foi possível processar o pagamento.');
+      setError(result.error.message || t('stripe.genericError'));
       setSubmitting(false);
       return;
     }
@@ -33,7 +35,7 @@ const CheckoutForm: React.FC<Pick<StripeCardFormProps, 'onSuccess'>> = ({ onSucc
       onSuccess();
       return;
     }
-    setError('Pagamento não confirmado. Tente novamente.');
+    setError(t('stripe.notConfirmed'));
     setSubmitting(false);
   };
 
@@ -48,18 +50,19 @@ const CheckoutForm: React.FC<Pick<StripeCardFormProps, 'onSuccess'>> = ({ onSucc
       )}
       <Button type="submit" disabled={!stripe || submitting} className="btn-primary w-full gap-2 rounded-xl py-4 text-base font-bold">
         {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
-        {submitting ? 'Processando...' : 'Pagar com Cartão'}
+        {submitting ? t('stripe.processing') : t('stripe.payButton')}
       </Button>
     </form>
   );
 };
 
 const StripeCardForm: React.FC<StripeCardFormProps> = ({ clientSecret, onSuccess }) => {
+  const { t } = useLanguage();
   if (!stripePromise) {
-    return <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">Pagamento com cartão ainda não configurado.</div>;
+    return <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">{t('stripe.notConfigured')}</div>;
   }
   if (!clientSecret) {
-    return <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Preparando pagamento seguro...</div>;
+    return <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {t('stripe.preparing')}</div>;
   }
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>

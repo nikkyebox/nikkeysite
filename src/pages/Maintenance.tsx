@@ -112,7 +112,6 @@ const MaintenancePage: React.FC = () => {
               <path d="M-5,3 L-9,7 L-5,1 Z" />
             </g>
             <animateMotion begin="0s" dur="7s" repeatCount="indefinite" rotate="auto">
-              {/* eslint-disable-next-line react/no-unknown-property */}
               <mpath href="#route" xlinkHref="#route" />
             </animateMotion>
           </g>

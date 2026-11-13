@@ -12,7 +12,6 @@ import {
   doc,
   setDoc,
   updateDoc,
-  increment,
   serverTimestamp,
   deleteField,
   query,
@@ -227,26 +226,6 @@ export const productService = {
       { merge: true }
     );
     invalidateProductCache();
-  },
-
-  /** Decrementa o estoque ao confirmar uma venda. No-op se produto não existe
-   *  ou é ilimitado.
-   *
-   *  `updatedAt` é obrigatório aqui: a sincronização por delta pergunta ao
-   *  Firestore "o que mudou desde X?". Uma venda que não carimbasse a data
-   *  ficaria invisível para todos os clientes com cache, que continuariam
-   *  vendo o estoque antigo — e a loja venderia o que não tem. */
-  async decrementStock(productId: string, qty: number): Promise<void> {
-    if (!db || qty <= 0) return;
-    try {
-      await updateDoc(doc(db, COL, productId), {
-        'stock.quantity': increment(-qty),
-        updatedAt: serverTimestamp(),
-      });
-      invalidateProductCache();
-    } catch {
-      // Produto pode não existir no Firestore (default); ignora silenciosamente
-    }
   },
 
   /** Esconde um produto (soft-delete) — funciona inclusive para os defaults. */

@@ -12,11 +12,11 @@ let _deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 export const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches ||
-  (window.navigator as any).standalone === true;
+  (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 export const detectPlatform = (): PWAPlatform => {
   const ua = navigator.userAgent;
-  if (/iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream) return 'ios';
+  if (/iPad|iPhone|iPod/.test(ua) && !(window as Window & { MSStream?: unknown }).MSStream) return 'ios';
   if (/Android/.test(ua)) return 'android';
   return 'desktop';
 };

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Tag, X, Truck } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useUser, Coupon } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/LanguageContext';
+import { computeCouponDiscount } from '@/utils/couponDiscount';
 
 interface CouponSelectorProps {
   totalPrice: number;
@@ -11,13 +13,6 @@ interface CouponSelectorProps {
   onCouponRemove: () => void;
   appliedCoupon: Coupon | null;
 }
-
-// Desconto a partir de um cupom do perfil (porcentagem ou valor fixo).
-export const computeCouponDiscount = (coupon: Coupon, subtotal: number): number => {
-  if (coupon.freeShipping) return 0;
-  if (coupon.discountType === 'percentage') return subtotal * (coupon.discount / 100);
-  return Math.min(coupon.discount, subtotal);
-};
 
 const CouponSelector: React.FC<CouponSelectorProps> = ({
   totalPrice,
@@ -27,12 +22,15 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
 }) => {
   const { coupons, isAuthenticated } = useUser();
   const { toast } = useToast();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'ja' ? 'ja-JP' : language === 'en' ? 'en-US' : 'pt-BR';
   const [showCoupons, setShowCoupons] = useState(false);
 
-  // Apenas os cupons do PERFIL que estão válidos (não usados, não expirados)
+  // Apenas os cupons do PERFIL que estão válidos (não usados, não expirados).
+  // Cupom de "frete grátis" (freeShipping) não existe mais: não é oferecido.
   const now = new Date();
   const availableCoupons = coupons.filter(
-    (c) => !c.isUsed && new Date(c.expiresAt) > now
+    (c) => !c.isUsed && new Date(c.expiresAt) > now && !c.freeShipping
   );
 
   const handleSelectCoupon = (coupon: Coupon) => {
@@ -40,16 +38,14 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
     onCouponApply(coupon, discount);
     setShowCoupons(false);
     toast({
-      title: 'Cupom aplicado!',
-      description: coupon.freeShipping
-        ? 'Frete grátis aplicado'
-        : `Desconto de ¥${Math.round(discount).toLocaleString()} aplicado`,
+      title: t('coupon.appliedTitle'),
+      description: t('coupon.discountApplied').replace('{amount}', `¥${Math.round(discount).toLocaleString()}`),
     });
   };
 
   const handleRemoveCoupon = () => {
     onCouponRemove();
-    toast({ title: 'Cupom removido', description: 'O desconto foi removido' });
+    toast({ title: t('coupon.removedTitle'), description: t('coupon.removedDesc') });
   };
 
   return (
@@ -58,12 +54,12 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
         <div className="space-y-3">
           <Label className="flex items-center gap-2 text-sm font-medium">
             <Tag className="w-4 h-4" />
-            Meus Cupons
+            {t('coupon.myCoupons')}
           </Label>
 
           {!isAuthenticated ? (
             <p className="text-sm text-muted-foreground">
-              Entre na sua conta para ver e usar seus cupons.
+              {t('coupon.loginPrompt')}
             </p>
           ) : availableCoupons.length > 0 ? (
             <>
@@ -73,16 +69,14 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
                 variant="outline"
                 className="w-full"
               >
-                {showCoupons ? 'Ocultar cupons' : `Ver meus cupons (${availableCoupons.length})`}
+                {showCoupons ? t('coupon.hide') : t('coupon.showCount').replace('{count}', String(availableCoupons.length))}
               </Button>
 
               {showCoupons && (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {availableCoupons.map((coupon) => {
                     const discount = computeCouponDiscount(coupon, totalPrice);
-                    const discountText = coupon.freeShipping
-                      ? 'Frete Grátis'
-                      : coupon.discountType === 'fixed'
+                    const discountText = coupon.discountType === 'fixed'
                       ? `¥${coupon.discount.toLocaleString()}`
                       : `${coupon.discount}%`;
 
@@ -98,22 +92,19 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="font-bold text-primary">{coupon.code}</span>
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center gap-1">
-                                {coupon.freeShipping && <Truck className="w-3 h-3" />}
-                                {coupon.freeShipping ? 'Frete Grátis' : `-${discountText}`}
+                                {`-${discountText}`}
                               </span>
                             </div>
                             <p className="text-sm text-muted-foreground mb-1">{coupon.description}</p>
                             <p className="text-xs text-muted-foreground">
-                              Válido até {new Date(coupon.expiresAt).toLocaleDateString('pt-BR')}
+                              {t('coupon.validUntil').replace('{date}', new Date(coupon.expiresAt).toLocaleDateString(dateLocale))}
                             </p>
                           </div>
-                          {!coupon.freeShipping && (
-                            <div className="text-right ml-2">
-                              <p className="text-sm font-bold text-green-600 dark:text-green-400">
-                                -¥{Math.round(discount).toLocaleString()}
-                              </p>
-                            </div>
-                          )}
+                          <div className="text-right ml-2">
+                            <p className="text-sm font-bold text-green-600 dark:text-green-400">
+                              -¥{Math.round(discount).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
                       </button>
                     );
@@ -123,7 +114,7 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Você não tem cupons disponíveis no momento.
+              {t('coupon.none')}
             </p>
           )}
         </div>

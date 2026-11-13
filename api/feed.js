@@ -11,13 +11,14 @@
 // Produtos são públicos no Firestore (allow read: if true) — lê via REST sem auth.
 
 import { detectBrand } from '../shared/brand.js';
-import { packedWeightG } from '../shared/weight.js';
+import { packedWeightG, parcelWeightG, productPackedWeightG } from '../shared/weight.js';
+import { emsRateYen } from './_lib/commerce.js';
 import { minEffectiveYen, variantPrices } from '../shared/pricing.js';
 import { taxDisclosure } from '../shared/tax-disclosure.js';
 import { fetchProducts, escapeXml, isVisibleInternationally } from './_lib/firestore-products.js';
 import { convertYen as convertYenFx, getFxRates } from './_lib/fx.js';
 
-const SITE_URL = 'https://www.nikkeybox-store.com';
+const SITE_URL = 'https://www.nikkeybox.jp';
 
 // Idioma do aviso por região do feed. `eu` é o feed em euro, servido em
 // português porque Portugal encabeça REGION_COUNTRIES.eu.
@@ -76,8 +77,12 @@ function getAirParcelRate(weightG, zone) {
 }
 
 // Frete mais barato disponível para o peso (¥). Peso é o real do produto + overhead.
-function cheapestShippingYen(weightG, zone) {
+function cheapestShippingYen(weightG, zone, iso = '') {
   const billable = Math.max(100, weightG); // peso real já cadastrado
+  // EUA: desde 15/10/2026 mercadoria só sai com imposto pré-pago (DDP), e o
+  // checkout só oferece EMS para lá (`api/_lib/commerce.js`). O feed precisa
+  // anunciar o mesmo frete que a página cobra.
+  if (iso === 'US' || zone === 4) return emsRateYen(billable, 4);
   const opts = [];
   const eLight = getELightRate(billable, zone);
   if (eLight != null) opts.push(eLight);
@@ -92,8 +97,8 @@ function cheapestShippingYen(weightG, zone) {
 // saíam com preço menor do que o site cobra.
 // Peso usado para frete: weightGrams + embalagem real, ou estimativa por tamanho
 function productWeightG(p) {
-  if (p.weightGrams && p.weightGrams > 0) return packedWeightG(p.weightGrams);
-  return packedWeightG(500);
+  const unidade = p.weightGrams && p.weightGrams > 0 ? productPackedWeightG(p) : packedWeightG(500);
+  return parcelWeightG(unidade); // pacote com uma unidade: + a caixa
 }
 
 // Países de destino por região do feed (ISO Merchant + zona Japan Post).
@@ -242,7 +247,7 @@ function buildCatalog(products, region, rates) {
       // Frete por país de destino da região (cada país tem sua zona/preço)
       const shippingByCountry = (REGION_COUNTRIES[region] || []).map(c => ({
         iso: c.iso,
-        priceLocal: convertYenFx(cheapestShippingYen(weightG, c.zone) || 0, currency, rates),
+        priceLocal: convertYenFx(cheapestShippingYen(weightG, c.zone, c.iso) || 0, currency, rates),
       }));
 
       const classification = classifyMerchantProduct(p, region);

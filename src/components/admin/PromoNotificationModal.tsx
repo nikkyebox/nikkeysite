@@ -10,7 +10,7 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { authenticatedFetch } from '@/services/authenticatedFetch';
 import { promoOffer } from '../../../shared/promo-offer.js';
 
-const STORE_URL = 'https://nikkeybox-store.com';
+const STORE_URL = 'https://nikkeybox.jp';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -257,7 +257,7 @@ const PromoNotificationModal: React.FC<Props> = ({ onClose }) => {
       <a class="cta" href="${ctaUrl}">${ctaLabel}</a>
     </div>
     <div class="footer">
-      NikkeyBox · <a href="${STORE_URL}">nikkeybox-store.com</a><br>
+      NikkeyBox · <a href="${STORE_URL}">nikkeybox.jp</a><br>
       <span style="font-size:11px;margin-top:6px;display:inline-block">Você está recebendo este e-mail por estar cadastrado em nossa loja.</span>
     </div>
   </div>

@@ -152,6 +152,7 @@ describe('pontos com benefício na taxa de personal shopper', () => {
       negotiation: { type: 'shipping', status: 'approved', approvedBy: 'admin-uid', approvedDiscountYen: 500 },
     });
     expect(q.redeemPoints).toBe(2000);
-    expect(q.shippingYen).toBe(4600);
+    // 2 × (300 g + 200 g de embalagem) + 100 g de caixa = 1100 g → EMS 1250 g (5850 ¥) − 500 ¥ negociados.
+    expect(q.shippingYen).toBe(5350);
   });
 });

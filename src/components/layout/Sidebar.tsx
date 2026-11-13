@@ -87,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar menu"
+            aria-label={t('shell.menu.close')}
             className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -99,8 +99,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <form onSubmit={handleSearch} className="mb-6 flex gap-2 overflow-hidden rounded-xl border border-border bg-secondary/40">
           <input
             type="text"
-            placeholder={t('nav.search') || 'Buscar...'}
-            aria-label={t('nav.search') || 'Buscar produtos'}
+            placeholder={t('nav.search')}
+            aria-label={t('nav.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
@@ -108,22 +108,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            aria-label={t('nav.products.all') || 'Categoria'}
+            aria-label={t('sidebar.category')}
             className="cursor-pointer border-l border-border bg-transparent px-2 text-xs outline-none"
           >
-            <option value="all">{t('nav.products.all') || 'Todos'}</option>
+            <option value="all">{t('sidebar.allCategories')}</option>
             {categoriesWithProducts.map((c) => (
               <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
             ))}
           </select>
-          <button type="submit" className="flex items-center justify-center bg-primary px-3 text-primary-foreground" aria-label={t('nav.search') || 'Buscar'}>
+          <button type="submit" className="flex items-center justify-center bg-primary px-3 text-primary-foreground" aria-label={t('nav.search')}>
             <Search className="h-4 w-4" />
           </button>
         </form>
       )}
 
       {!isAdminPage && (
-        <nav className="mb-6 flex flex-col gap-1" aria-label="Navegação principal">
+        <nav className="mb-6 flex flex-col gap-1" aria-label={t('shell.menu.main')}>
           {navItems.map((item) => (
             <Link
               key={item.label}
@@ -148,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         {!isAdminPage && (
           <Link to="/carrinho" className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary/70 hover:text-foreground">
             <ShoppingCart className="h-4 w-4" />
-            {t('nav.cart') || 'Carrinho'}
+            {t('nav.cart')}
             {totalItems > 0 && (
               <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                 {totalItems}
@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         {isAdmin && (
           <Link to={isAdminPage ? '/' : '/admin'} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10">
             <UserCircle className="h-4 w-4" />
-            {isAdminPage ? 'Ver Loja' : t('nav.admin')}
+            {isAdminPage ? t('sidebar.viewStore') : t('nav.admin')}
           </Link>
         )}
       </div>
@@ -178,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {!isAdminPage && (
         <aside
           className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r border-border bg-background px-6 py-6 md:flex"
-          aria-label="Menu"
+          aria-label={t('shell.menu.label')}
         >
           {content(false)}
         </aside>
@@ -206,7 +206,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               className="fixed inset-y-0 left-0 z-[70] flex w-[86vw] max-w-sm flex-col overflow-y-auto border-r border-border bg-background px-6 py-6 md:hidden"
               role="dialog"
               aria-modal="true"
-              aria-label="Menu"
+              aria-label={t('shell.menu.label')}
             >
               {content(true)}
             </motion.aside>

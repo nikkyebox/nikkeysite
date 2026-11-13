@@ -1,5 +1,12 @@
-import { Product } from '@/types';
 import { products as baseProducts } from '@/data/products';
+
+/** Campos do produto que a tradução para inglês usa. Aceita tanto o `Product` do catálogo quanto o do carrinho. */
+interface ProductNameSource {
+  id: string | number;
+  name: string;
+  description?: string;
+  flavor?: string;
+}
 
 const hasJapanese = (s: string) => /[぀-ヿ㐀-鿿]/.test(s || '');
 
@@ -11,7 +18,7 @@ const hasPortugueseProductWords = (s: string) => {
   return /\b(limpeza|profunda|protetor|solar|locao|hidratante|oleo|sabonete|creme|essencia|clareador|maquiagem|acido|hialuronico|vitamina|pele|cabelo)\b/.test(n);
 };
 
-const knownEnglishName = (p: Product): string => {
+const knownEnglishName = (p: ProductNameSource): string => {
   const base = baseProducts.find((item) => item.id === p.id)?.name || '';
   if (base) return base;
 
@@ -50,11 +57,11 @@ const knownEnglishName = (p: Product): string => {
   return '';
 };
 
-export const productEnglishName = (p: Product): string => {
+export const productEnglishName = (p: ProductNameSource): string => {
   const current = p.name || '';
   const known = knownEnglishName(p);
 
   if (known && (hasJapanese(current) || hasPortugueseProductWords(current))) return known;
   if (!current && known) return known;
-  return current || known || p.id;
+  return current || known || String(p.id);
 };

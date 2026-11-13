@@ -1,7 +1,7 @@
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '@/config/firebase';
 
-export type CheckoutPaymentMethod = 'bank' | 'paypay' | 'yucho' | 'wise' | 'pix' | 'card';
+export type CheckoutPaymentMethod = 'pix' | 'card';
 
 export interface CheckoutDraft {
   orderId: string;

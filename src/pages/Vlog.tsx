@@ -247,14 +247,14 @@ const Vlog: React.FC = () => {
             <button
               onClick={() => setPlayingVideo(null)}
               className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 hover:text-primary transition-all"
-              aria-label="Close video"
+              aria-label={t('vlog.aria.close')}
             >
               <X className="w-5 h-5" />
             </button>
             <div className="aspect-video w-full bg-black">
               <iframe
                 src={`https://www.youtube.com/embed/${playingVideo}?autoplay=1&rel=0`}
-                title="Video Player"
+                title={t('vlog.iframeTitle')}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen

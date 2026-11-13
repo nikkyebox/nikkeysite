@@ -1,3 +1,4 @@
+import type { AdminOrder, AdminOrderItem } from '@/types/order';
 import { safeStorage } from '@/utils/storage';
 import { Review, ProductRating } from '@/types/review';
 
@@ -77,8 +78,8 @@ export const reviewService = {
     if (!ordersData) return false;
     try {
       const orders = JSON.parse(ordersData);
-      return orders.some((order: any) =>
-        (order.items || []).some((item: any) => item.productName === productName)
+      return orders.some((order: AdminOrder) =>
+        (order.items || []).some((item: AdminOrderItem) => item.productName === productName)
       );
     } catch {
       return false;

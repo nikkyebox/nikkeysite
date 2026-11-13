@@ -136,7 +136,7 @@ export function buildDashboardAnalytics(orders, products = [], now = new Date())
     const method = order?.paymentMethod === 'paypay' ? 'PayPay'
       : order?.paymentMethod === 'pix' ? 'PIX'
       : order?.paymentMethod === 'wise' ? 'Wise'
-      : order?.paymentMethod === 'yucho' ? 'Yucho'
+      : order?.paymentMethod === 'yucho' ? 'Transferência (método antigo)'
       : order?.paymentMethod === 'card' ? 'Cartão'
       : 'Outro';
     paymentRevenue.set(method, (paymentRevenue.get(method) || 0) + revenue);

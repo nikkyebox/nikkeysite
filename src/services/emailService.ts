@@ -15,10 +15,11 @@ const devWarn = isDev ? console.warn.bind(console) : () => {};
 const devError = isDev ? console.error.bind(console) : () => {};
 
 // O e-mail chega no Brasil: WhatsApp precisa do DDI, senão a discagem falha.
-// O PayPay é a exceção — app japonês que identifica a conta pelo número local,
-// e o formato internacional simplesmente não encontra a loja.
 const WHATSAPP = COMPANY_PROFILE.whatsapp.international;
-const PAYPAY_ID = COMPANY_PROFILE.whatsapp.domestic;
+
+// Rótulo do método de pagamento no e-mail (texto em português, como o resto do e-mail).
+const ROTULO_METODO: Record<string, string> = { pix: 'PIX', card: 'Cartão de crédito' };
+const rotuloMetodo = (metodo: string): string => ROTULO_METODO[metodo] ?? 'Outro';
 
 
 interface EmailData {
@@ -259,7 +260,7 @@ export const emailService = {
             ${items.map((item: CartItem) => `
               <div class="product-item">
                 <div>
-                  <strong>${productEnglishName(item.product as any)}</strong><br>
+                  <strong>${productEnglishName(item.product)}</strong><br>
                   <small>Tamanho: ${item.size} | Quantidade: ${item.quantity}</small>
                 </div>
                 <div style="text-align: right;">
@@ -304,42 +305,22 @@ export const emailService = {
 
           <div class="section">
             <h2>💳 Pagamento</h2>
-            <p><strong>Método:</strong> ${paymentMethod === 'bank' ? 'Depósito Bancário' : 'PayPay'}</p>
-            ${paymentMethod === 'bank' ? `
+            <p><strong>Método:</strong> ${rotuloMetodo(paymentMethod)}</p>
+            ${paymentMethod === 'pix' ? `
               <div class="info-box">
-                <p><strong>Por favor, realize o depósito para:</strong></p>
-                <p style="margin: 10px 0;">
-                  <strong>Banco:</strong> ゆうちょ銀行 (Japan Post Bank)<br>
-                  <strong>記号 (Kigou):</strong> 12260<br>
-                  <strong>番号 (Bangou):</strong> 33664351<br>
-                  <strong>名義:</strong> ロドリゲス シオカワ ミリアン パウラ
-                </p>
-                <p style="margin: 10px 0; padding: 10px; background: #f0f7ff; border-left: 3px solid #2196f3;">
-                  <strong>📌 振込用 (Transferência de outros bancos):</strong><br>
-                  金融機関コード: 9900<br>
-                  店名: 二二八店 (228)<br>
-                  口座番号: 3366435 (普通)
-                </p>
-                <p style="color: #856404; margin-top: 10px;">
-                  ⚠️ <strong>Importante:</strong> Envie o comprovante via WhatsApp: ${WHATSAPP}
-                </p>
-              </div>
-            ` : `
-              <div class="info-box">
-                <p><strong>Envie o pagamento via PayPay para:</strong></p>
-                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">${PAYPAY_ID}</p>
+                <p><strong>Pague via PIX com a chave informada na tela de pagamento.</strong></p>
                 <p style="color: #856404;">
-                  ⚠️ <strong>Importante:</strong> Após o pagamento, envie a confirmação via WhatsApp
+                  ⚠️ <strong>Importante:</strong> Após o pagamento, envie o comprovante via WhatsApp: ${WHATSAPP}
                 </p>
               </div>
-            `}
+            ` : ''}
           </div>
 
           <hr style="margin: 30px 0; border: none; border-top: 2px solid #ddd;">
 
           <!-- SHIPPING LABEL FOR STORE OWNER -->
           <div class="info-box no-print" style="background: #fff3cd; border-color: #ffc107;">
-            <h2 style="margin-top: 0; color: #856404;">📋 Para a Loja (Paula Shiokawa)</h2>
+            <h2 style="margin-top: 0; color: #856404;">📋 Para a Loja (NikkeyBox)</h2>
             <p><strong>Esta seção contém a etiqueta de envio para imprimir e colar no pacote.</strong></p>
           </div>
 
@@ -491,7 +472,7 @@ export const emailService = {
             ${items.map((item: CartItem) => `
               <div class="product-item">
                 <div>
-                  <strong>${productEnglishName(item.product as any)}</strong><br>
+                  <strong>${productEnglishName(item.product)}</strong><br>
                   <small>Tamanho: ${item.size} | Quantidade: ${item.quantity}</small>
                 </div>
                 <div style="text-align: right;">
@@ -535,35 +516,15 @@ export const emailService = {
 
           <div class="section">
             <h2>💳 Pagamento</h2>
-            <p><strong>Método:</strong> ${paymentMethod === 'bank' ? 'Depósito Bancário' : 'PayPay'}</p>
-            ${paymentMethod === 'bank' ? `
+            <p><strong>Método:</strong> ${rotuloMetodo(paymentMethod)}</p>
+            ${paymentMethod === 'pix' ? `
               <div class="info-box">
-                <p><strong>Por favor, realize o depósito para:</strong></p>
-                <p style="margin: 10px 0;">
-                  <strong>Banco:</strong> ゆうちょ銀行 (Japan Post Bank)<br>
-                  <strong>記号 (Kigou):</strong> 12260<br>
-                  <strong>番号 (Bangou):</strong> 33664351<br>
-                  <strong>名義:</strong> ロドリゲス シオカワ ミリアン パウラ
-                </p>
-                <p style="margin: 10px 0; padding: 10px; background: #f0f7ff; border-left: 3px solid #2196f3;">
-                  <strong>📌 振込用 (Transferência de outros bancos):</strong><br>
-                  金融機関コード: 9900<br>
-                  店名: 二二八店 (228)<br>
-                  口座番号: 3366435 (普通)
-                </p>
-                <p style="color: #856404; margin-top: 10px;">
-                  ⚠️ <strong>Importante:</strong> Envie o comprovante via WhatsApp: ${WHATSAPP}
-                </p>
-              </div>
-            ` : `
-              <div class="info-box">
-                <p><strong>Envie o pagamento via PayPay para:</strong></p>
-                <p style="font-size: 24px; font-weight: bold; margin: 10px 0;">${PAYPAY_ID}</p>
+                <p><strong>Pague via PIX com a chave informada na tela de pagamento.</strong></p>
                 <p style="color: #856404;">
-                  ⚠️ <strong>Importante:</strong> Após o pagamento, envie a confirmação via WhatsApp
+                  ⚠️ <strong>Importante:</strong> Após o pagamento, envie o comprovante via WhatsApp: ${WHATSAPP}
                 </p>
               </div>
-            `}
+            ` : ''}
           </div>
 
           <div class="section">

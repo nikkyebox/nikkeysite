@@ -7,29 +7,15 @@ import { Trash2, Plus, Megaphone, Users, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
-export interface MarketingExpense {
-  id?: string;
-  date: string;
-  amount: number;
-  currency: 'BRL' | 'JPY';
-  type: 'ads' | 'influencer';
-  platform: string;
-  description?: string;
-  createdAt?: string;
-}
+import type { MarketingExpense } from '@/services/marketingExpenseService';
+import { getMarketingExpenses, MARKETING_EXPENSES_COLLECTION } from '@/services/marketingExpenseService';
+
+export type { MarketingExpense };
 
 const PLATFORMS_ADS = ['Instagram Ads', 'Facebook Ads', 'TikTok Ads', 'Google Ads', 'YouTube Ads', 'Outro'];
 const PLATFORMS_INF = ['Instagram', 'TikTok', 'YouTube', 'Facebook', 'X (Twitter)', 'Outro'];
 
-const COL = 'marketing_expenses';
-
-export async function getMarketingExpenses(): Promise<MarketingExpense[]> {
-  if (!db) return [];
-  try {
-    const snap = await getDocs(query(collection(db, COL), orderBy('date', 'desc')));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as MarketingExpense));
-  } catch { return []; }
-}
+const COL = MARKETING_EXPENSES_COLLECTION;
 
 const empty = (): Omit<MarketingExpense, 'id' | 'createdAt'> => ({
   date: new Date().toISOString().slice(0, 10),

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, ShieldCheck, Sparkles, Truck, Building2, ExternalLink } from 'lucide-react';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
+import { useLanguage } from '@/context/LanguageContext';
 
 const WHATSAPP_NUMBER = COMPANY_PROFILE.whatsapp.digits;
 
@@ -13,34 +14,35 @@ interface WhatsAppOption {
 }
 
 export const FloatingWhatsAppWidget: React.FC = () => {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
   const options: WhatsAppOption[] = [
     {
       icon: <MessageCircle className="w-5 h-5 text-emerald-500" />,
-      title: 'Tirar Dúvidas & Suporte',
-      desc: 'Fale direto com nossa equipe no Japão em português',
-      message: 'Olá NikkeyBox! Gostaria de tirar uma dúvida sobre os produtos e envios do Japão.',
+      title: t('wa.opt1.title'),
+      desc: t('wa.opt1.desc'),
+      message: t('wa.opt1.msg'),
     },
     {
       icon: <Sparkles className="w-5 h-5 text-purple-500" />,
-      title: 'Personal Shopper / Encomendas',
-      desc: 'Quer um produto que não está no site? Nós compramos para você!',
-      message: 'Olá! Gostaria de fazer uma encomenda personalizada de um produto específico do Japão.',
+      title: t('wa.opt2.title'),
+      desc: t('wa.opt2.desc'),
+      message: t('wa.opt2.msg'),
       internalLink: '/faca-seu-pedido',
     },
     {
       icon: <Truck className="w-5 h-5 text-blue-500" />,
-      title: 'Consultar Frete & Prazos',
-      desc: 'Simule o envio Japan Post com código de rastreamento',
-      message: 'Olá! Gostaria de consultar informações sobre prazo de entrega e frete para o Brasil.',
+      title: t('wa.opt3.title'),
+      desc: t('wa.opt3.desc'),
+      message: t('wa.opt3.msg'),
       internalLink: '/frete',
     },
     {
       icon: <Building2 className="w-5 h-5 text-amber-500" />,
-      title: 'Atacado & Revenda (B2B)',
-      desc: 'Condições especiais para salões de beleza, clínicas e lojistas',
-      message: 'Olá! Tenho interesse em compras no atacado/revenda de cosméticos e produtos japoneses.',
+      title: t('wa.opt4.title'),
+      desc: t('wa.opt4.desc'),
+      message: t('wa.opt4.msg'),
       internalLink: '/empresas',
     },
   ];
@@ -64,9 +66,9 @@ export const FloatingWhatsAppWidget: React.FC = () => {
                 <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-400" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-900 leading-tight">Atendimento NikkeyBox</h3>
+                <h3 className="text-sm font-bold text-gray-900 leading-tight">{t('whatsapp.title')}</h3>
                 <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Online direto do Japão
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> {t('whatsapp.online')}
                 </p>
               </div>
             </div>
@@ -74,14 +76,14 @@ export const FloatingWhatsAppWidget: React.FC = () => {
               type="button"
               onClick={() => setIsOpen(false)}
               className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              aria-label="Fechar"
+              aria-label={t('shell.close')}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-            Como podemos te ajudar hoje? Selecione um assunto para iniciar o atendimento no WhatsApp:
+            {t('wa.intro')}
           </p>
 
           {/* Action List */}
@@ -109,9 +111,9 @@ export const FloatingWhatsAppWidget: React.FC = () => {
 
           <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400">
             <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Atendimento 100% em Português
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> {t('whatsapp.ptOnly')}
             </span>
-            <span>Mie-ken, Japão</span>
+            <span>{`${language === 'pt' ? COMPANY_PROFILE.fulfillmentOrigin.shortPt : COMPANY_PROFILE.fulfillmentOrigin.short}, ${t('wa.country')}`}</span>
           </div>
         </div>
       )}
@@ -120,7 +122,7 @@ export const FloatingWhatsAppWidget: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Falar no WhatsApp com NikkeyBox"
+        aria-label={t('whatsapp.open')}
         className="group relative flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-3.5 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300"
       >
         <span className="relative flex h-6 w-6 items-center justify-center">
@@ -131,7 +133,7 @@ export const FloatingWhatsAppWidget: React.FC = () => {
           </span>
         </span>
         <span className="hidden sm:inline-block text-xs font-black tracking-wide pr-1">
-          WhatsApp Japão
+          {t('wa.button')}
         </span>
       </button>
     </div>

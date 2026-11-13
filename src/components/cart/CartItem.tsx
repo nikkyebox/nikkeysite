@@ -33,7 +33,7 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
 
   const finalPrice = unitPrice * item.quantity;
   const stockMax = item.product.stock && !item.product.stock.unlimited ? item.product.stock.quantity : Infinity;
-  const promoMax = isPromo ? ((item.product as any).promoLimit ?? 1) : Infinity;
+  const promoMax = isPromo ? (item.product.promoLimit ?? 1) : Infinity;
   const maxQty = Math.min(stockMax, promoMax);
   const atStockLimit = item.quantity >= maxQty;
   const atPromoLimit = isPromo && item.quantity >= promoMax;
@@ -48,22 +48,22 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
             <span className="text-4xl">🎁</span>
           )}
           <div className="absolute inset-0 bg-purple-600/20 flex items-end justify-center pb-1">
-            <span className="text-[9px] font-black text-white bg-purple-600 px-1.5 rounded">GRÁTIS</span>
+            <span className="text-[9px] font-black text-white bg-purple-600 px-1.5 rounded">{t('cartItem.free')}</span>
           </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <span className="inline-block text-[10px] font-bold text-purple-700 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded-full mb-1">🎁 Presente da promoção</span>
+              <span className="inline-block text-[10px] font-bold text-purple-700 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded-full mb-1">🎁 {t('cartItem.promoGift')}</span>
               <h3 className="font-display font-semibold text-foreground truncate">{productName}</h3>
               <p className="text-sm text-muted-foreground">{productFlavor}</p>
             </div>
           </div>
           <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-purple-600 font-semibold">Qtd: {item.quantity}</span>
+            <span className="text-xs text-purple-600 font-semibold">{t('cartItem.qty')} {item.quantity}</span>
             <div className="text-right">
               <p className="text-sm line-through text-gray-400">{formatPrice(finalPrice, currency)}</p>
-              <p className="font-sans text-lg font-extrabold text-green-600">GRÁTIS</p>
+              <p className="font-sans text-lg font-extrabold text-green-600">{t('cartItem.free')}</p>
             </div>
           </div>
         </div>
@@ -98,7 +98,7 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
             </p>
             {isPromo ? (
               <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700">
-                ✨ Preço Promocional
+                ✨ {t('cartItem.promoPrice')}
               </span>
             ) : (
               <span className={`
@@ -108,8 +108,8 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
                   : 'bg-primary/10 text-primary'
                 }
               `}>
-                {item.product.category === 'premium' ? 'Premium' :
-                 item.product.category === 'artesanal' ? 'Artesanal' :
+                {item.product.category === 'premium' ? t('cartItem.premium') :
+                 item.product.category === 'artesanal' ? t('cartItem.artesanal') :
                  item.product.category.toUpperCase()}
               </span>
             )}
@@ -144,7 +144,7 @@ const CartItemComponent: React.FC<CartItemProps> = ({ item, couponDiscount = 0 }
             </div>
             {atPromoLimit && (
               <p className="text-[10px] text-pink-600 font-semibold leading-tight">
-                Limite promocional atingido ({promoMax}x/pessoa)
+                {t('cartItem.promoLimit').replace('{max}', String(promoMax))}
               </p>
             )}
           </div>

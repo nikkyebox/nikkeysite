@@ -1,9 +1,10 @@
 import { earnedPointsForOrder, pointsMultiplierForSpend } from '../../shared/points.js';
 import { LOYALTY_POINTS_ENABLED } from '../../shared/featureFlags.js';
-import { packedWeightG } from '../../shared/weight.js';
+import { packedWeightG, parcelWeightG, productPackedWeightG } from '../../shared/weight.js';
 import { roundYen } from '../../shared/pricing.js';
 import { HttpError } from './http.js';
-import { convertYen, currencyForCountry } from './fx.js';
+import { currencyForCountry } from './fx.js';
+import { convertYen, normalizeMoney, couponDiscountYen as couponDiscountYenOf, settleCheckout } from '../../shared/checkout-totals.js';
 
 const E_LIGHT = {
   1: [720,820,920,1020,1120,1220,1320,1420,1520,1620,1720,1820,1920,2020,2120,2220,2320,2420,2520,2620],
@@ -24,7 +25,7 @@ const EMS = {
   1: [1450,1600,1750,1900,2050,2200,2500,2800,3100,3400,3900,4400,4900,5400,5900,6400,6900,7400,8200,9000,9800,10600,11400,12200,13000,13800,14600,15400,16200,17000,17800,18600,19400,20200,21000,21800,22600,23400,24200,25000,25800,26600],
   2: [1900,2150,2400,2650,2900,3150,3500,3850,4200,4550,5150,5750,6350,6950,7550,8150,8750,9350,10350,11350,12350,13350,14350,15350,16350,17350,18350,19350,20350,21350,22350,23350,24350,25350,26350,27350,28350,29350,30350,31350,32350,33350],
   3: [3150,3400,3650,3900,4150,4400,5000,5550,6150,6700,7750,8800,9850,10900,11950,13000,14050,15100,17200,19300,21400,23500,25600,27700,29800,31900,34000,36100,38200,40300,42400,44500,46600,48700,50800,52900,55000,57100,59200,61300,63400,65500],
-  4: [3900,4180,4460,4740,5020,5300,5990,6600,7290,7900,9100,10300,11500,12700,13900,15100,16300,17500,19900,22300,24700,27100,39100,39100,39100,39100,39100,51100,51100,51100,51100,51100,63100,63100,63100,63100,63100,75100,75100,75100,75100,75100,75100,75100],
+  4: [3900,4180,4460,4740,5020,5300,5990,6600,7290,7900,9100,10300,11500,12700,13900,15100,16300,17500,19900,22300,24700,27100,29500,31900,34300,36700,39100,41500,43900,46300,48700,51100,53500,55900,58300,60700,63100,65500,67900,70300,72700,75100],
   5: [3600,3900,4200,4500,4800,5100,5850,6600,7350,8100,9600,11100,12600,14100,15600,17100,18600,20100,22500,24900,27300,29700,32100,34500,36900,39300,41700,44100,46500,48900,51300,53700,56100,58500,60900,63300,65700,68100,70500,72900,75300,77700],
 };
 const DOMESTIC_RATES = {
@@ -32,11 +33,13 @@ const DOMESTIC_RATES = {
   yamato: { 60: { 1: 930, 2: 1040, 3: 1150, 4: 1480 }, 80: { 1: 1150, 2: 1260, 3: 1370, 4: 1810 } },
   sagawa: { 60: { 1: 880, 2: 990, 3: 1100, 4: 1430 }, 80: { 1: 1100, 2: 1210, 3: 1430, 4: 1760 } },
 };
+// Zonas por distância em linha reta a partir de Tsu-shi (Mie-ken). Espelho de
+// src/data/japanPrefectures.ts: mesma prefeitura, mesma zona nos dois lados.
 const DOMESTIC_ZONE = new Map([
-  ...['Hiroshima','Okayama','Yamaguchi','Tottori','Shimane','Ehime'].map((name) => [name, 1]),
-  ...['Kagawa','Tokushima','Kochi','Hyogo','Osaka','Kyoto','Nara','Shiga','Wakayama','Fukuoka','Saga','Nagasaki','Kumamoto','Oita'].map((name) => [name, 2]),
-  ...['Miyazaki','Kagoshima','Mie','Aichi','Gifu','Shizuoka','Nagano','Fukui','Ishikawa','Toyama','Niigata','Yamanashi','Tokyo','Kanagawa','Saitama','Chiba','Ibaraki','Tochigi','Gunma'].map((name) => [name, 3]),
-  ...['Miyagi','Fukushima','Yamagata','Iwate','Akita','Aomori','Hokkaido','Okinawa'].map((name) => [name, 4]),
+  ...['Mie','Aichi','Gifu','Shiga','Kyoto','Nara','Osaka','Hyogo','Wakayama'].map((name) => [name, 1]),
+  ...['Fukui','Shizuoka','Ishikawa','Toyama','Yamanashi','Nagano','Tottori','Okayama','Kagawa','Tokushima'].map((name) => [name, 2]),
+  ...['Tokyo','Kanagawa','Saitama','Chiba','Gunma','Tochigi','Ibaraki','Niigata','Hiroshima','Shimane','Yamaguchi','Ehime','Kochi'].map((name) => [name, 3]),
+  ...['Fukuoka','Saga','Nagasaki','Kumamoto','Oita','Miyazaki','Kagoshima','Fukushima','Yamagata','Miyagi','Akita','Iwate','Aomori','Hokkaido','Okinawa'].map((name) => [name, 4]),
 ]);
 const COUNTRY_CONFIG = new Map([
   ['Brasil', { currency: 'BRL', zone: 5, vat: .17 }],
@@ -129,7 +132,7 @@ function shippingShape(items) {
   let maxSum = 0;
   for (const item of items) {
     const dims = dimensions(item.product);
-    const weight = packedWeightG(item.product.weightGrams);
+    const weight = productPackedWeightG(item.product);
     if (weight > 0) totalWeightG += weight * item.quantity;
     else {
       const estimatedWeight = dims
@@ -146,7 +149,8 @@ function shippingShape(items) {
     maxSum = Math.max(maxSum, padded.reduce((sum, value) => sum + value, 0));
     volume += padded.reduce((product, value) => product * value, 1) * item.quantity;
   }
-  totalWeightG = Math.max(100, Math.round(totalWeightG));
+  // Mais a caixa com plástico-bolha, uma vez por pacote (igual ao carrinho).
+  totalWeightG = Math.max(100, parcelWeightG(totalWeightG));
   let boxes60 = 0;
   let boxes80 = 0;
   if (knownQuantity === 0) {
@@ -168,18 +172,22 @@ function shippingShape(items) {
   return { totalWeightG, boxes60, boxes80, maxSum };
 }
 
+/** Tarifa EMS (¥) para o peso já embalado. `null` acima de 30 kg. */
+export function emsRateYen(weightG, zone) {
+  const index = EMS_BRACKETS.findIndex((bracket) => weightG <= bracket);
+  return index >= 0 ? (EMS[zone]?.[index] ?? null) : null;
+}
+
 function internationalZone(country) {
   const config = COUNTRY_CONFIG.get(country);
   if (!config) throw new HttpError(400, 'unsupported_country');
   return config.zone;
 }
 
-function shippingYen(items, country, prefecture, carrier, productSubtotalYen, freeShipping) {
+function shippingYen(items, country, prefecture, carrier) {
   const shape = shippingShape(items);
   if (shape.totalWeightG > 30000 || shape.maxSum > 150) throw new HttpError(409, 'shipping_unavailable');
-  if (freeShipping) return { amount: 0, weightG: shape.totalWeightG };
   if (country === 'Japão') {
-    if (productSubtotalYen >= 6000) return { amount: 0, weightG: shape.totalWeightG };
     const zone = DOMESTIC_ZONE.get(prefecture);
     const rates = DOMESTIC_RATES[carrier];
     if (!zone || !rates) throw new HttpError(400, 'invalid_shipping');
@@ -187,13 +195,13 @@ function shippingYen(items, country, prefecture, carrier, productSubtotalYen, fr
     return { amount, weightG: shape.totalWeightG };
   }
   const zone = internationalZone(country);
+  // EUA: mercadoria só sai com imposto pré-pago (DDP), e o único serviço com
+  // DDP confirmado para lojas é o EMS. Air Packet e Kozutsumi ficam de fora.
+  if (country === 'Estados Unidos' && carrier !== 'ems') throw new HttpError(409, 'shipping_unavailable');
   let amount = null;
   if (carrier === 'eraito' && shape.totalWeightG <= 2000) amount = E_LIGHT[zone][Math.ceil(shape.totalWeightG / 100) - 1];
   if (carrier === 'kozutsumi-air' && shape.totalWeightG > 2000) amount = AIR_PARCEL[zone][Math.ceil(shape.totalWeightG / 1000) - 1];
-  if (carrier === 'ems') {
-    const index = EMS_BRACKETS.findIndex((bracket) => shape.totalWeightG <= bracket);
-    amount = index >= 0 ? EMS[zone][index] : null;
-  }
+  if (carrier === 'ems') amount = emsRateYen(shape.totalWeightG, zone);
   if (!(amount > 0)) throw new HttpError(400, 'invalid_shipping');
   return { amount, weightG: shape.totalWeightG };
 }
@@ -209,9 +217,6 @@ function displayTax(amount, country, state) {
   return amount * config.vat;
 }
 
-function normalizeMoney(value, currency) {
-  return currency === 'JPY' ? Math.round(value) : Math.round(value * 100) / 100;
-}
 
 export function buildQuote({ requestedItems, products, country, prefecture, state, carrier, paymentMethod, coupon, redeemPoints, negotiation, campaign, homePromotion, rates, recentSpendYen = 0, psFeeWaived = false }) {
   const now = Date.now();
@@ -260,59 +265,43 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
 
   const productSubtotalYen = lineItems.reduce((sum, item) => sum + item.unitYen * item.quantity, 0);
   const regularSubtotalYen = lineItems.filter((item) => !item.homePromo && !item.freeGift).reduce((sum, item) => sum + item.unitYen * item.quantity, 0);
-  let couponDiscountYen = 0;
-  if (coupon) {
-    if (coupon.minOrderValue && productSubtotalYen < Number(coupon.minOrderValue)) throw new HttpError(409, 'coupon_minimum_not_met');
-    if (!coupon.freeShipping) {
-      const percentage = coupon.discountPercent != null ? Number(coupon.discountPercent) : Number(coupon.discount || 0);
-      couponDiscountYen = coupon.discountType === 'fixed' || coupon.type === 'fixed'
-        ? Math.min(regularSubtotalYen, Number(coupon.discount || 0))
-        : Math.min(regularSubtotalYen, Math.round(regularSubtotalYen * percentage / 100));
-    }
-  }
-  // Ponto paga mercadoria, e só. O teto é o subtotal dos produtos já sem o
-  // cupom — frete e taxa do personal shopper ficam de fora por construção:
-  // entram no total depois, sem passar por aqui. Resgatar ¥99.999 num pedido
-  // de ¥10.000 zera os produtos e não tira um iene do frete.
-  const points = Math.max(0, Math.floor(Number(redeemPoints || 0)));
-  const pointsDiscountYen = Math.min(points, Math.max(0, productSubtotalYen - couponDiscountYen));
-  const afterBenefitsYen = Math.max(0, productSubtotalYen - couponDiscountYen - pointsDiscountYen);
-  const paymentDiscountYen = paymentMethod === 'card' || paymentMethod === 'pix'
-    ? Math.floor(afterBenefitsYen * 0.05)
-    : 0;
-  const netProductsYen = Math.max(0, afterBenefitsYen - paymentDiscountYen);
+  if (coupon && coupon.minOrderValue && productSubtotalYen < Number(coupon.minOrderValue)) throw new HttpError(409, 'coupon_minimum_not_met');
+  const couponDiscountYen = couponDiscountYenOf(regularSubtotalYen, coupon);
 
-  const psFeeYen = lineItems.filter((item) => !item.freeGift && !item.product.noPsFee).reduce((sum, item) => sum + item.quantity * 1000, 0);
   const approved = negotiation?.status === 'approved'
     && negotiation.approvedBy
     && negotiation.approvedBy !== 'auto'
     && (!negotiation.expiresAt || new Date(negotiation.expiresAt).getTime() > now);
-  const negotiatedPsDiscountYen = approved && negotiation.type === 'ps_fee'
-    ? Math.min(psFeeYen, Number(negotiation.approvedDiscountYen || 0))
+  const negotiatedPsDiscountRaw = approved && negotiation.type === 'ps_fee'
+    ? Number(negotiation.approvedDiscountYen || 0)
     : 0;
-  // Só o caso extremo bloqueia o desconto da taxa: pontos cobriram toda a
-  // mercadoria após o cupom. Com resgate parcial, negociação e oferta de saída
-  // continuam válidas. Quando cobriu tudo, a taxa cheia preserva o custo mínimo
-  // de separar e despachar o pedido.
-  const pointsCoverAllProducts = productSubtotalYen > 0
-    && pointsDiscountYen > 0
-    && afterBenefitsYen === 0;
-  const psFeeWaiverApplied = Boolean(psFeeWaived && psFeeYen > 0 && !pointsCoverAllProducts);
-  const psDiscountYen = pointsCoverAllProducts
-    ? 0
-    : psFeeWaiverApplied ? psFeeYen : negotiatedPsDiscountYen;
-  const shipping = shippingYen(lineItems, country, prefecture, carrier, productSubtotalYen - couponDiscountYen, coupon?.freeShipping === true);
+  const shipping = shippingYen(lineItems, country, prefecture, carrier);
   const shippingDiscountYen = approved && negotiation.type === 'shipping' ? Math.min(shipping.amount, Number(negotiation.approvedDiscountYen || 0)) : 0;
   const finalShippingYen = Math.max(0, shipping.amount - shippingDiscountYen);
   const currency = currencyForCountry(country);
 
-  // O total e as parcelas que o compõem ficam EXATAMENTE como eram: este achado
-  // é de conta que não fecha na tela, não de preço. Passar tudo pelo cushion de
-  // uma vez "arrumaria" a soma, mas subiria ~0,9% o valor cobrado de todo
-  // pedido (medido: R$416,11 → R$419,94), o que é decisão de preço, não de bug.
-  const productsDisplay = normalizeMoney(convertYen(netProductsYen, currency, rates), currency);
-  const shippingDisplay = normalizeMoney(convertYen(finalShippingYen, currency, rates), currency);
-  const psFeeDisplay = normalizeMoney(convertYen(psFeeYen - psDiscountYen, currency, rates, { exact: true }), currency);
+  // A conta do dinheiro fica em shared/checkout-totals.js (mesma do cliente).
+  const settled = settleCheckout({
+    lines: lineItems.map((item) => ({ unitYen: item.unitYen, quantity: item.quantity, freeGift: item.freeGift, homePromo: item.homePromo, noPsFee: item.product.noPsFee })),
+    couponDiscountYen,
+    redeemPoints,
+    paymentMethod,
+    currency,
+    rates,
+    finalShippingYen,
+    psFeeWaived,
+    negotiatedPsDiscountYen: negotiatedPsDiscountRaw,
+  });
+  const {
+    netProductsYen,
+    pointsDiscountYen,
+    psFeeWaiverApplied,
+    total,
+    totalYen,
+    display,
+  } = settled;
+  const psFeeYenCharged = settled.psFeeYenCharged;
+  const productsDisplay = display.products;
   // Imposto de importação é estimado só para informar o cliente — é cobrado
   // pela alfândega/transportadora na entrega, nunca pela loja. Por isso NÃO
   // entra no total cobrado (Stripe usa `total` como valor da cobrança em
@@ -320,27 +309,7 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
   // ("Ele NÃO foi somado ao total pago no site") mas o servidor cobrava com
   // imposto embutido mesmo assim — overcharge silencioso.
   const taxDisplay = country === 'Japão' ? 0 : normalizeMoney(displayTax(productsDisplay, country, state || prefecture), currency);
-  const total = normalizeMoney(productsDisplay + shippingDisplay + psFeeDisplay, currency);
   if (!(total > 0)) throw new HttpError(400, 'invalid_total');
-
-  // O defeito era só nas linhas de cima da conta: subtotal saía com cushion e
-  // os descontos com a taxa exata, então "subtotal − descontos" não dava o valor
-  // de produtos que entrou no total — sobravam ~4% do desconto (uns R$2 num
-  // cupom de ¥1.500). Agora os descontos usam a MESMA taxa efetiva que produziu
-  // `productsDisplay`, e o subtotal é derivado de volta a partir dele.
-  const taxaEfetiva = netProductsYen > 0 ? productsDisplay / netProductsYen : 0;
-  const linha = (valorYen) => normalizeMoney(valorYen * taxaEfetiva, currency);
-  const couponDiscountDisplay = linha(couponDiscountYen);
-  const pointsDiscountDisplay = linha(pointsDiscountYen);
-  const paymentDiscountDisplay = linha(paymentDiscountYen);
-  // O subtotal absorve o arredondamento porque é a única linha da conta que não
-  // é uma promessa: mexer num desconto faria a tela anunciar um abatimento
-  // diferente do que foi de fato aplicado, e mexer em produtos quebraria a soma
-  // com o total.
-  const subtotalDisplay = normalizeMoney(
-    productsDisplay + couponDiscountDisplay + pointsDiscountDisplay + paymentDiscountDisplay,
-    currency,
-  );
 
   // Pontos da campanha "Compre e Ganhe pontos". Até 04/08/2026 o
   // `fulfillment.js` somava `order.promoPoints` no saldo, mas ninguém gravava
@@ -360,7 +329,7 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
   return {
     currency,
     total,
-    totalYen: netProductsYen + finalShippingYen + (psFeeYen - psDiscountYen),
+    totalYen,
     productSubtotalYen,
     netProductsYen,
     couponDiscountYen,
@@ -371,7 +340,7 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
     promoPoints,
     shippingYen: finalShippingYen,
     shippingWeightG: shipping.weightG,
-    psFeeYen: psFeeYen - psDiscountYen,
+    psFeeYen: psFeeYenCharged,
     psFeeWaiverApplied,
     tax: normalizeMoney(taxDisplay, currency),
     // A conta decomposta, com as linhas já coerentes entre si:
@@ -382,13 +351,13 @@ export function buildQuote({ requestedItems, products, country, prefecture, stat
     // momento da compra — sem isso, uma variação de câmbio depois torna
     // impossível reconstruir a conta numa contestação.
     display: {
-      subtotal: subtotalDisplay,
-      couponDiscount: couponDiscountDisplay,
-      pointsDiscount: pointsDiscountDisplay,
-      paymentDiscount: paymentDiscountDisplay,
-      products: productsDisplay,
-      shipping: shippingDisplay,
-      psFee: psFeeDisplay,
+      subtotal: display.subtotal,
+      couponDiscount: display.couponDiscount,
+      pointsDiscount: display.pointsDiscount,
+      paymentDiscount: display.paymentDiscount,
+      products: display.products,
+      shipping: display.shipping,
+      psFee: display.psFee,
       tax: taxDisplay,
     },
     homePromoQuantity,

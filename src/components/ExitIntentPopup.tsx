@@ -11,6 +11,7 @@ import { safeStorage } from '@/utils/storage';
 import { effectiveYen } from '@/utils/pricing';
 import type { CartItem } from '@/types';
 import { SIGNUP_POPUPS_ENABLED } from '@/config/featureFlags';
+import { useLanguage } from '@/context/LanguageContext';
 
 // A oferta de isenção da taxa PS ("reservar Personal Shopper") é o variant
 // `ps_offer` abaixo — desativada junto com o popup de cadastro, mesmo pedido.
@@ -55,7 +56,9 @@ const Shell: React.FC<{ label: string; onClose: () => void; children: React.Reac
   label,
   onClose,
   children,
-}) => (
+}) => {
+  const { t } = useLanguage();
+  return (
   <div
     className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
     role="dialog"
@@ -65,7 +68,7 @@ const Shell: React.FC<{ label: string; onClose: () => void; children: React.Reac
     <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
       <button
         onClick={onClose}
-        aria-label="Fechar"
+        aria-label={t('shell.close')}
         className="absolute right-3 top-3 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
       >
         <X className="w-5 h-5" />
@@ -73,7 +76,8 @@ const Shell: React.FC<{ label: string; onClose: () => void; children: React.Reac
       {children}
     </div>
   </div>
-);
+  );
+};
 
 /**
  * Popup de saída (exit-intent). Dispara NO MÁXIMO uma vez por sessão e NUNCA reabre
@@ -96,6 +100,7 @@ const ExitIntentPopup: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const [open, setOpen] = useState(false);
   const [variant, setVariant] = useState<Variant>('guide');
@@ -237,25 +242,25 @@ const ExitIntentPopup: React.FC = () => {
     setWaiverLoading(true);
     try {
       const issued = await requestPsFeeWaiver();
-      if (!psFeeWaiver.grant(issued.token, issued.expiresAt)) throw new Error('Não foi possível guardar a autorização.');
+      if (!psFeeWaiver.grant(issued.token, issued.expiresAt)) throw new Error(t('exit.error.save'));
       close();
       if (!inFunnel(location.pathname)) navigate('/checkout');
     } catch (error) {
       toast({
-        title: 'Não foi possível liberar a taxa',
-        description: error instanceof Error ? error.message : 'Tente novamente.',
+        title: t('exit.toast.waiverError'),
+        description: error instanceof Error ? error.message : t('profile.error.retry'),
         variant: 'destructive',
       });
     } finally {
       setWaiverLoading(false);
     }
-  }, [close, location.pathname, navigate, toast, waiverLoading]);
+  }, [close, location.pathname, navigate, toast, waiverLoading, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) {
-      toast({ title: 'E-mail inválido', description: 'Digite um e-mail válido para receber o guia.' });
+      toast({ title: t('exit.toast.invalidTitle'), description: t('exit.toast.invalidDesc') });
       return;
     }
     setStatus('loading');
@@ -272,12 +277,12 @@ const ExitIntentPopup: React.FC = () => {
   // ----- Ponto 1: retenção no checkout -----
   if (variant === 'retention') {
     return (
-      <Shell label="Finalize seu pedido" onClose={close}>
+      <Shell label={t('exit.retention.label')} onClose={close}>
         <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
           <ShoppingBag className="w-10 h-10 mx-auto mb-2" />
-          <h2 className="text-xl font-black leading-tight">Seu pedido está quase pronto!</h2>
+          <h2 className="text-xl font-black leading-tight">{t('exit.retention.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
-            Falta só um passo para concluir. Não perca os itens que você já escolheu.
+            {t('exit.retention.desc')}
           </p>
         </div>
         <div className="p-6 space-y-3">
@@ -285,9 +290,9 @@ const ExitIntentPopup: React.FC = () => {
             onClick={close}
             className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
           >
-            Voltar ao pedido
+            {t('exit.retention.back')}
           </button>
-          <p className="text-[11px] text-center text-gray-400">Seus itens continuam guardados no carrinho.</p>
+          <p className="text-[11px] text-center text-gray-400">{t('exit.retention.kept')}</p>
         </div>
       </Shell>
     );
@@ -296,14 +301,12 @@ const ExitIntentPopup: React.FC = () => {
   // ----- Aviso: sair do checkout invalida a isenção já aceita -----
   if (variant === 'waiver_warning') {
     return (
-      <Shell label="Isenção válida só para finalização imediata" onClose={close}>
+      <Shell label={t('exit.warn.label')} onClose={close}>
         <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
           <Gift className="w-10 h-10 mx-auto mb-2" />
-          <h2 className="text-xl font-black leading-tight">Sua isenção vale só agora!</h2>
+          <h2 className="text-xl font-black leading-tight">{t('exit.warn.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
-            A <strong>Taxa de Personal Shopper</strong>{psFeeYen > 0 && <> de <strong>¥ {psFeeYen.toLocaleString()}</strong></>} está
-            isenta <strong>apenas para fechamento imediato</strong>. Se sair desta página agora,
-            a isenção perde a validade e a taxa volta a ser cobrada.
+            {t('exit.warn.body').replace('{fee}', psFeeYen > 0 ? t('exit.warn.feeAmount').replace('{valor}', psFeeYen.toLocaleString()) : '')}
           </p>
         </div>
         <div className="p-6 space-y-3">
@@ -311,9 +314,9 @@ const ExitIntentPopup: React.FC = () => {
             onClick={close}
             className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity"
           >
-            Voltar e finalizar agora
+            {t('exit.warn.back')}
           </button>
-          <p className="text-[11px] text-center text-gray-400">Conclua o pedido para garantir a isenção.</p>
+          <p className="text-[11px] text-center text-gray-400">{t('exit.warn.note')}</p>
         </div>
       </Shell>
     );
@@ -322,13 +325,12 @@ const ExitIntentPopup: React.FC = () => {
   // ----- Ponto 2: oferta de isenção da taxa PS fora do checkout -----
   if (variant === 'ps_offer') {
     return (
-      <Shell label="Oferta: taxa de Personal Shopper grátis" onClose={close}>
+      <Shell label={t('exit.ps.label')} onClose={close}>
         <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
           <Gift className="w-10 h-10 mx-auto mb-2" />
-          <h2 className="text-xl font-black leading-tight">Finalize agora e a taxa sai de graça!</h2>
+          <h2 className="text-xl font-black leading-tight">{t('exit.ps.title')}</h2>
           <p className="text-sm text-white/90 mt-1">
-            Conclua seu pedido <strong>agora, nesta visita</strong>, e nós <strong>isentamos a Taxa de
-            Personal Shopper</strong>{psFeeYen > 0 && <> de <strong>¥ {psFeeYen.toLocaleString()}</strong></>}.
+            {t('exit.ps.body').replace('{fee}', psFeeYen > 0 ? t('exit.warn.feeAmount').replace('{valor}', psFeeYen.toLocaleString()) : '')}
           </p>
         </div>
         <div className="p-6 space-y-3">
@@ -338,17 +340,17 @@ const ExitIntentPopup: React.FC = () => {
             className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {waiverLoading
-              ? <><Loader2 className="w-4 h-4 animate-spin" /> Liberando...</>
-              : psFeeYen > 0 ? `Finalizar agora e economizar ¥ ${psFeeYen.toLocaleString()}` : 'Finalizar agora'}
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('exit.ps.loading')}</>
+              : psFeeYen > 0 ? t('exit.ps.ctaSave').replace('{valor}', psFeeYen.toLocaleString()) : t('exit.ps.cta')}
           </button>
           <button
             onClick={close}
             className="w-full text-sm text-gray-500 dark:text-gray-400 font-medium py-2 hover:underline"
           >
-            Agora não
+            {t('exit.notNow')}
           </button>
           <p className="text-[11px] text-center text-gray-400">
-            Isenção válida só para fechamento imediato — ao sair da página, ela perde a validade.
+            {t('exit.ps.note')}
           </p>
         </div>
       </Shell>
@@ -364,14 +366,14 @@ const ExitIntentPopup: React.FC = () => {
   };
 
   return (
-    <Shell label="Cadastre-se e ganhe recompensas" onClose={close}>
+    <Shell label={t('exit.guide.label')} onClose={close}>
       <div className="bg-gradient-to-br from-pink-600 to-amber-500 p-6 text-center text-white">
         <Gift className="w-10 h-10 mx-auto mb-2" />
         <h2 className="text-xl font-black leading-tight">
-          Cadastre e ganhe pontos e cupons de desconto
+          {t('exit.guide.title')}
         </h2>
         <p className="text-sm text-white/90 mt-1">
-          Crie sua conta agora e receba imediatamente: cupom de boas-vindas 10% OFF + pontos de fidelidade para próximas compras.
+          {t('exit.guide.desc')}
         </p>
       </div>
       <div className="p-6 space-y-3">
@@ -379,15 +381,15 @@ const ExitIntentPopup: React.FC = () => {
           onClick={handleCadastro}
           className="w-full bg-gradient-to-r from-pink-600 to-amber-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
-          Cadastrar agora
+          {t('exit.guide.cta')}
         </button>
         <button
           onClick={close}
           className="w-full text-sm text-gray-500 dark:text-gray-400 font-medium py-2 hover:underline"
         >
-          Agora não
+          {t('exit.notNow')}
         </button>
-        <p className="text-[11px] text-center text-gray-400">Leva menos de 1 minuto. Sem cartão de crédito.</p>
+        <p className="text-[11px] text-center text-gray-400">{t('exit.guide.note')}</p>
       </div>
     </Shell>
   );

@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useEffect, useState } from 'react';
 import { db } from '@/config/firebase';
 import {
@@ -17,27 +18,13 @@ export interface Employee {
   createdAt?: string;
 }
 
-export interface EmployeePayment {
-  id?: string;
-  employeeId: string;
-  employeeName: string;
-  date: string;
-  amount: number;
-  currency: 'BRL' | 'JPY';
-  description?: string;
-  createdAt?: string;
-}
+import type { EmployeePayment } from '@/services/employeePaymentService';
+import { EMPLOYEE_PAYMENTS_COLLECTION } from '@/services/employeePaymentService';
+
+export type { EmployeePayment };
 
 const COL_EMP = 'employees';
-const COL_PAY = 'employee_payments';
-
-export async function getEmployeePayments(): Promise<EmployeePayment[]> {
-  if (!db) return [];
-  try {
-    const snap = await getDocs(query(collection(db, COL_PAY), orderBy('date', 'desc')));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as EmployeePayment));
-  } catch { return []; }
-}
+const COL_PAY = EMPLOYEE_PAYMENTS_COLLECTION;
 
 const emptyEmp = (): Omit<Employee, 'id' | 'createdAt'> => ({
   name: '', phone: '', birthDate: '', address: '', role: '',
@@ -96,8 +83,8 @@ const EmployeeManager: React.FC = () => {
       toast({ title: 'Funcionário cadastrado!' });
       setEmpForm(emptyEmp());
       load();
-    } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao salvar', description: errorMessage(e), variant: 'destructive' });
     }
     setSaving(false);
   };
@@ -125,8 +112,8 @@ const EmployeeManager: React.FC = () => {
       toast({ title: 'Pagamento registrado!' });
       setPayForm(f => ({ ...f, amount: 0, description: '' }));
       load();
-    } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao salvar', description: errorMessage(e), variant: 'destructive' });
     }
     setSaving(false);
   };

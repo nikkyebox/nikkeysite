@@ -12,7 +12,7 @@ import { productEnglishName } from '@/utils/productName';
 /** Carrossel "Visto Recentemente" — baseado no histórico local do navegador (sem login necessário). */
 const RecentlyViewed: React.FC = () => {
   const { products, loading } = useProducts();
-  const { selectedCountry } = useLanguage();
+  const { t, selectedCountry } = useLanguage();
   const currency = getCurrencyByCountry(selectedCountry);
 
   const ids = recentlyViewed.getIds();
@@ -30,7 +30,7 @@ const RecentlyViewed: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-2 mb-6">
           <History className="w-5 h-5 text-muted-foreground" />
-          <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">Visto Recentemente</h2>
+          <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">{t('recent.title')}</h2>
         </div>
 
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">

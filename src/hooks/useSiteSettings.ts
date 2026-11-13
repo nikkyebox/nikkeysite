@@ -11,7 +11,9 @@ export function useSiteSettings() {
     try {
       const cached = localStorage.getItem('je_site_settings');
       if (cached) setSettings({ ...DEFAULT, ...JSON.parse(cached) });
-    } catch {}
+    } catch {
+      // Falha de leitura/escrita do cache local: segue com o valor padrão.
+    }
     siteContentService.getSettings().then(setSettings).catch(() => {});
   }, []);
 

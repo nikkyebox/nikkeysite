@@ -8,7 +8,7 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser, UserProfile } from '@/context/UserContext';
+import { useUser, UserProfile, Order } from '@/context/UserContext';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { prefectures } from '@/data/prefectures';
@@ -91,18 +91,18 @@ const Profile: React.FC = () => {
         if (res.ok) {
           setPushSubscribed(false);
           updateProfile({ pushEnabled: false });
-          toast({ title: 'Notificações desativadas', description: 'Você não vai mais receber push neste dispositivo.' });
+          toast({ title: t('profile.toast.pushOffTitle'), description: t('profile.toast.pushOffDesc') });
         } else {
-          toast({ title: 'Erro ao desativar', description: res.error, variant: 'destructive' });
+          toast({ title: t('profile.toast.pushOffError'), description: res.error, variant: 'destructive' });
         }
       } else {
         const res = await pushService.subscribe({ email: user.email, name: user.name });
         if (res.ok) {
           setPushSubscribed(true);
           updateProfile({ pushEnabled: true });
-          toast({ title: '🔔 Notificações ativadas!', description: 'Você vai receber promoções e novidades por push.' });
+          toast({ title: t('profile.toast.pushOnTitle'), description: t('profile.toast.pushOnDesc') });
         } else {
-          toast({ title: 'Não foi possível ativar', description: res.error, variant: 'destructive' });
+          toast({ title: t('profile.toast.pushOnError'), description: res.error, variant: 'destructive' });
         }
       }
     } finally {
@@ -131,20 +131,20 @@ const Profile: React.FC = () => {
     setEmailNews(r.subscribed);
     setEmailNewsBusy(false);
     if (!r.ok) {
-      toast({ title: 'Não foi possível salvar', description: r.error, variant: 'destructive' });
+      toast({ title: t('profile.toast.saveError'), description: r.error, variant: 'destructive' });
       return;
     }
     toast({
-      title: novo ? '✅ Inscrição ativada' : 'Inscrição cancelada',
+      title: novo ? t('profile.toast.subOn') : t('profile.toast.subOff'),
       description: novo
-        ? 'Você vai receber novidades e promoções por e-mail.'
-        : 'Você não vai mais receber e-mail de divulgação. Confirmação de pedido e rastreio continuam chegando.',
+        ? t('profile.toast.emailOnDesc')
+        : t('profile.toast.emailOffDesc'),
     });
   };
 
   // País do ENDEREÇO (independente do idioma do site). Define qual busca de CEP
   // e qual lista de estados/províncias usar.
-  const addressCountry = (editedUser.address as any)?.country || selectedCountry || 'Brasil';
+  const addressCountry = editedUser.address?.country || selectedCountry || 'Brasil';
   const EUROPE = ['Portugal', 'França', 'Itália', 'Espanha', 'Alemanha'];
   const isJapanAddress = addressCountry === 'Japão';
   const isBrazilAddress = addressCountry === 'Brasil';
@@ -162,7 +162,7 @@ const Profile: React.FC = () => {
         'delivered',
         { customerConfirmation: true }
       );
-      if (!confirmed) throw new Error('Não foi possível confirmar o recebimento.');
+      if (!confirmed) throw new Error(t('profile.error.confirm'));
 
       const now = new Date().toISOString();
 
@@ -191,10 +191,10 @@ const Profile: React.FC = () => {
       safeStorage.setItem('sakura_orders', JSON.stringify(updatedSakura));
 
       refreshOrders();
-      toast({ title: '✅ Recebimento confirmado!', description: 'Obrigado por confirmar. Que aproveite!' });
+      toast({ title: t('profile.toast.receivedTitle'), description: t('profile.toast.receivedDesc') });
     } catch (error) {
-      const description = error instanceof Error ? error.message : 'Tente novamente.';
-      toast({ title: 'Erro ao confirmar', description, variant: 'destructive' });
+      const description = error instanceof Error ? error.message : t('profile.error.retry');
+      toast({ title: t('profile.toast.confirmError'), description, variant: 'destructive' });
     } finally {
       setConfirmingOrderId(null);
     }
@@ -212,6 +212,7 @@ const Profile: React.FC = () => {
 
   // Negociações do usuário
   // Refresh orders from localStorage on mount so tracking updates from admin are visible
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- atualiza os pedidos do localStorage só ao montar
   useEffect(() => { void refreshOrders(); }, []);
 
   const [negotiations, setNegotiations] = useState<Negotiation[]>([]);
@@ -232,21 +233,21 @@ const Profile: React.FC = () => {
     const res = await affiliateService.requestAffiliate(user.name || '', user.email);
     setRequesting(false);
     if (res.ok) {
-      toast({ title: '✅ Solicitação enviada!', description: 'Nossa equipe vai analisar e te avisar. Obrigado pelo interesse! 🎉' });
+      toast({ title: t('profile.toast.affReqTitle'), description: t('profile.toast.affReqDesc') });
       setAffRequest({ email: user.email.toLowerCase(), name: user.name || '', status: 'pending', requestedAt: new Date().toISOString() });
     } else {
-      toast({ title: 'Não foi possível enviar', description: res.error, variant: 'destructive' });
+      toast({ title: t('profile.toast.affReqError'), description: res.error, variant: 'destructive' });
     }
   };
 
   // Função para recomprar um pedido
-  const handleReorder = (order: any) => {
+  const handleReorder = (order: Order) => {
     clearCart();
     
     let itemsAdded = 0;
     
     // Adiciona todos os itens do pedido ao carrinho
-    order.items.forEach((item: any) => {
+    order.items.forEach((item: Order['items'][number]) => {
       // Busca o produto original pelo nome
       const product = products.find(p => p.name === item.productName);
       
@@ -258,16 +259,16 @@ const Profile: React.FC = () => {
     
     if (itemsAdded > 0) {
       toast({
-        title: "Itens adicionados ao carrinho!",
-        description: `${itemsAdded} produto(s) do pedido #${order.orderNumber}`,
+        title: t('profile.toast.reorderTitle'),
+        description: t('profile.toast.reorderDesc').replace('{qtd}', String(itemsAdded)).replace('{pedido}', order.orderNumber),
       });
       
       // Navega para o carrinho
       navigate('/carrinho');
     } else {
       toast({
-        title: "Erro ao adicionar itens",
-        description: "Alguns produtos podem não estar mais disponíveis",
+        title: t('profile.toast.reorderError'),
+        description: t('profile.toast.reorderErrorDesc'),
         variant: "destructive",
       });
     }
@@ -331,7 +332,7 @@ const Profile: React.FC = () => {
               ...prev,
               address: { ...prev.address, postalCode: formatted, prefecture: prefecture?.name || '', city: cityDisplay },
             }));
-            toast({ title: "Endereço encontrado!", description: "Província e cidade preenchidos automaticamente." });
+            toast({ title: t('profile.toast.addrFound'), description: t('profile.toast.addrFoundDesc') });
           }
         } catch (error) {
           devError('Erro ao buscar CEP japonês:', error);
@@ -356,9 +357,9 @@ const Profile: React.FC = () => {
               ...prev,
               address: { ...prev.address, postalCode: formatted, prefecture: data.uf || '', city: data.localidade || '', address: addr || prev.address?.address || '' },
             }));
-            toast({ title: "CEP encontrado!", description: `${data.localidade} - ${data.uf}` });
+            toast({ title: t('profile.toast.cepFound'), description: `${data.localidade} - ${data.uf}` });
           } else {
-            toast({ title: "Erro no CEP", description: "Não foi possível localizar este CEP.", variant: "destructive" });
+            toast({ title: t('profile.toast.cepError'), description: t('profile.toast.cepNotFound'), variant: "destructive" });
           }
         } catch (error) {
           devError('Erro ao buscar CEP:', error);
@@ -370,15 +371,15 @@ const Profile: React.FC = () => {
   const handleSaveProfile = () => {
     // Valida antes de salvar
     if (editedUser.name !== undefined && !isNonEmpty(editedUser.name, 2)) {
-      toast({ title: 'Nome inválido', description: 'Informe seu nome completo.', variant: 'destructive' });
+      toast({ title: t('profile.toast.nameInvalid'), description: t('profile.toast.nameInvalidDesc'), variant: 'destructive' });
       return;
     }
     if (editedUser.email !== undefined && !isValidEmail(editedUser.email)) {
-      toast({ title: 'E-mail inválido', description: 'Verifique o endereço de e-mail.', variant: 'destructive' });
+      toast({ title: t('profile.toast.emailInvalid'), description: t('profile.toast.emailInvalidDesc'), variant: 'destructive' });
       return;
     }
     if (editedUser.phone !== undefined && editedUser.phone !== '' && !isValidPhone(editedUser.phone)) {
-      toast({ title: 'Telefone inválido', description: 'Use 10 a 11 dígitos.', variant: 'destructive' });
+      toast({ title: t('profile.toast.phoneInvalid'), description: t('profile.toast.phoneInvalidDesc'), variant: 'destructive' });
       return;
     }
     // Validação de CPF/CNPJ apenas quando endereço é Brasil
@@ -386,12 +387,12 @@ const Profile: React.FC = () => {
       const isPJ = editedUser.personType === 'PJ';
       if (isPJ) {
         if (editedUser.cnpj !== undefined && editedUser.cnpj !== '' && !isValidCNPJ(editedUser.cnpj)) {
-          toast({ title: 'CNPJ inválido', description: 'Verifique o número digitado.', variant: 'destructive' });
+          toast({ title: t('profile.toast.cnpjInvalid'), description: t('profile.toast.docInvalidDesc'), variant: 'destructive' });
           return;
         }
       } else {
         if (editedUser.cpf !== undefined && editedUser.cpf !== '' && !isValidCPF(editedUser.cpf)) {
-          toast({ title: 'CPF inválido', description: 'Verifique o número digitado.', variant: 'destructive' });
+          toast({ title: t('profile.toast.cpfInvalid'), description: t('profile.toast.docInvalidDesc'), variant: 'destructive' });
           return;
         }
       }
@@ -402,10 +403,10 @@ const Profile: React.FC = () => {
     updateProfile(editedUser);
     setIsEditing(false);
     toast({
-      title: "Perfil atualizado!",
+      title: t('profile.toast.profileUpdated'),
       description: turnedOnMarketing
-        ? "✅ Você foi inscrito para receber novidades e promoções."
-        : "Suas informações foram salvas com sucesso.",
+        ? t('profile.toast.marketingOn')
+        : t('profile.toast.profileSaved'),
     });
   };
 
@@ -413,8 +414,8 @@ const Profile: React.FC = () => {
     logout();
     navigate('/');
     toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
+      title: t('profile.toast.logoutTitle'),
+      description: t('profile.toast.logoutDesc'),
     });
   };
 
@@ -447,7 +448,7 @@ const Profile: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-wide text-white/90">{t('profile.points.title')}</p>
-                  <p className="font-display text-5xl font-extrabold mt-1">{user?.points || 0} <span className="text-2xl font-bold">pts</span></p>
+                  <p className="font-display text-5xl font-extrabold mt-1">{user?.points || 0} <span className="text-2xl font-bold">{t('profile.points.unit')}</span></p>
                   <p className="text-sm text-white/90 mt-1">{t('profile.points.desc')}</p>
                 </div>
                 <div className="text-7xl opacity-80">🎁</div>
@@ -567,7 +568,7 @@ const Profile: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t('profile.field.email')}</Label>
                     <Input
                       id="email"
                       name="email"
@@ -682,7 +683,7 @@ const Profile: React.FC = () => {
                       onChange={(e) => setEditedUser(prev => ({
                         ...prev,
                         // Troca o país e limpa estado/cidade pra evitar mistura de listas.
-                        address: { ...prev.address, country: e.target.value, prefecture: '', city: '' } as any,
+                        address: { ...prev.address, country: e.target.value, prefecture: '', city: '' },
                       }))}
                       className="w-full p-3 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                     >
@@ -714,7 +715,7 @@ const Profile: React.FC = () => {
                         name="address.prefecture"
                         value={editedUser.address?.prefecture || ''}
                         onChange={handleInputChange}
-                        placeholder="Ex.: Lisboa, Île-de-France..."
+                        placeholder={t('profile.field.state.placeholder.eu')}
                       />
                     ) : (
                       <select
@@ -747,7 +748,7 @@ const Profile: React.FC = () => {
                       onChange={handleInputChange}
                       readOnly={isBrazilAddress || isJapanAddress}
                       className={isBrazilAddress || isJapanAddress ? 'bg-secondary/50' : ''}
-                      placeholder={isEuropeAddress ? 'Digite a cidade' : undefined}
+                      placeholder={isEuropeAddress ? t('profile.field.city.placeholderEu') : undefined}
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
@@ -781,7 +782,7 @@ const Profile: React.FC = () => {
                   <div className="space-y-2">
                     <Label className="text-muted-foreground flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      Email
+                      {t('profile.field.email')}
                     </Label>
                     <p className="font-medium text-foreground">{user.email}</p>
                   </div>
@@ -810,7 +811,7 @@ const Profile: React.FC = () => {
                             : 'border-green-300 text-green-600 hover:bg-green-50'
                         }`}
                       >
-                        {emailNewsBusy ? 'Aguarde…' : emailNews ? t('profile.marketing.disable') : t('profile.marketing.enable')}
+                        {emailNewsBusy ? t('profile.busy') : emailNews ? t('profile.marketing.disable') : t('profile.marketing.enable')}
                       </button>
                     </div>
                   </div>
@@ -828,10 +829,10 @@ const Profile: React.FC = () => {
                           const novo = !user.whatsappMarketing;
                           updateProfile({ whatsappMarketing: novo });
                           toast({
-                            title: novo ? '✅ Inscrição ativada' : 'Inscrição cancelada',
+                            title: novo ? t('profile.toast.subOn') : t('profile.toast.subOff'),
                             description: novo
-                              ? 'Você vai receber novidades e promoções no WhatsApp.'
-                              : 'Você não vai mais receber novidades no WhatsApp.',
+                              ? t('profile.toast.waOnDesc')
+                              : t('profile.toast.waOffDesc'),
                           });
                         }}
                         className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
@@ -847,12 +848,12 @@ const Profile: React.FC = () => {
                   <div className="space-y-2">
                     <Label className="text-muted-foreground flex items-center gap-2">
                       <Bell className="w-4 h-4" />
-                      Notificações Push
+                      {t('profile.label.push')}
                     </Label>
                     {pushService.isSupported() ? (
                       <div className="flex items-center gap-3 flex-wrap">
                         <p className="font-medium text-foreground">
-                          {pushSubscribed ? 'Ativadas neste dispositivo' : 'Desativadas'}
+                          {pushSubscribed ? t('profile.push.onDevice') : t('profile.push.off')}
                         </p>
                         <button
                           onClick={togglePush}
@@ -863,12 +864,12 @@ const Profile: React.FC = () => {
                               : 'border-green-300 text-green-600 hover:bg-green-50'
                           }`}
                         >
-                          {pushBusy ? 'Aguarde…' : pushSubscribed ? 'Desativar' : 'Ativar'}
+                          {pushBusy ? t('profile.busy') : pushSubscribed ? t('profile.marketing.disable') : t('profile.marketing.enable')}
                         </button>
                       </div>
                     ) : (
                       <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <BellOff className="w-3.5 h-3.5" /> Não suportado neste navegador
+                        <BellOff className="w-3.5 h-3.5" /> {t('profile.push.unsupported')}
                       </p>
                     )}
                   </div>
@@ -1066,17 +1067,17 @@ const Profile: React.FC = () => {
                   parece pedido perdido. */}
               {ordersOffline && (
                 <div className="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200">
-                  <p className="font-semibold text-amber-800">Não conseguimos carregar seus pedidos do servidor</p>
+                  <p className="font-semibold text-amber-800">{t('profile.orders.offlineTitle')}</p>
                   <p className="text-sm text-amber-700/90 mt-1">
-                    O que aparece abaixo está salvo neste navegador e pode estar
-                    incompleto ou desatualizado. Seus pedidos <strong>não foram perdidos</strong> —
-                    tente recarregar a página em instantes.
+                    {t('profile.orders.offlineDesc1')}
+                    {t('profile.orders.offlineDesc2')} <strong>{t('profile.orders.offlineDesc3')}</strong>{t('profile.orders.offlineDesc4')}
+                    {t('profile.orders.offlineDesc5')}
                   </p>
                   <button
                     onClick={() => { void refreshOrders(); }}
                     className="mt-3 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-colors"
                   >
-                    Tentar novamente
+                    {t('profile.orders.retry')}
                   </button>
                 </div>
               )}
@@ -1087,7 +1088,7 @@ const Profile: React.FC = () => {
                     // Pago = admin confirmou (paymentConfirmed) OU status já avançou além de pending.
                     // Se o pedido está em confirmed/packing/shipped/delivered, o pagamento já foi recebido.
                     const advancedStatuses = ['confirmed', 'processing', 'packing', 'shipped', 'delivered'];
-                    const isPaid = !!(order as any).paymentConfirmed || advancedStatuses.includes(order.status as string);
+                    const isPaid = !!order.paymentConfirmed || advancedStatuses.includes(order.status as string);
                     return (
                     <div
                       key={order.id}
@@ -1108,9 +1109,9 @@ const Profile: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-lg text-foreground">
-                            {((order as any).grandTotalYen || (order as any).totalYen) && (order as any).currency !== 'JPY'
-                              ? `${formatPrice(order.totalAmount, (order as any).currency || 'BRL', true)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
-                              : formatPrice(order.totalAmount, (order as any).currency || 'JPY')}
+                            {(order.grandTotalYen || order.totalYen) && order.currency !== 'JPY'
+                              ? `${formatPrice(order.totalAmount, order.currency || 'BRL', true)} (¥ ${((order.grandTotalYen || order.totalYen) as number).toLocaleString()})`
+                              : formatPrice(order.totalAmount, order.currency || 'JPY')}
                           </p>
                           <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                             order.status === 'delivered' ? 'bg-green-100 text-green-800' :
@@ -1123,7 +1124,7 @@ const Profile: React.FC = () => {
                           }`}>
                             {order.status === 'delivered' ? t('profile.orders.status.delivered') :
                              order.status === 'shipped' ? t('profile.orders.status.shipped') :
-                             (order.status as string) === 'packing' ? 'Preparando Pacote' :
+                             (order.status as string) === 'packing' ? t('profile.orders.status.packing') :
                              (order.status as string) === 'processing' ? t('profile.orders.status.processing') :
                              order.status === 'confirmed' ? t('profile.orders.status.confirmed') :
                              order.status === 'cancelled' ? t('profile.orders.status.cancelled') : t('profile.orders.status.pending')}
@@ -1133,9 +1134,9 @@ const Profile: React.FC = () => {
 
                       {/* Acompanhamento do pedido — sempre visível */}
                       {(() => {
-                        const hasTracking = !!(order as any).trackingNumber;
+                        const hasTracking = !!order.trackingNumber;
                         const st = order.status as string;
-                        const steps = ['Pagamento', 'Preparando', 'Enviado', 'Entregue'];
+                        const steps = [t('profile.step.payment'), t('profile.step.preparing'), t('profile.step.shipped'), t('profile.step.delivered')];
                         // Estado de cada etapa: 'done' (✓) | 'active' (atual) | 'pending' (futura).
                         // IMPORTANTE: 'Pagamento confirmado' NÃO significa 'Preparando'. No Personal
                         // Shopper, o preparo só começa quando o admin clica 'Preparando' (pode levar
@@ -1151,7 +1152,7 @@ const Profile: React.FC = () => {
                           <div className="mt-2 p-3 rounded-xl bg-muted/40 border border-border">
                             <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
                               <Package className="w-3.5 h-3.5" />
-                              Acompanhamento do Pedido
+                              {t('profile.orders.tracking.heading')}
                             </p>
                             <div className="flex items-center gap-1 mb-2">
                               {steps.map((label, i) => {
@@ -1176,9 +1177,9 @@ const Profile: React.FC = () => {
                             </div>
                             {!hasTracking && (
                               <p className="text-[11px] text-muted-foreground">
-                                {st === 'pending' ? 'Aguardando confirmação do pagamento.'
-                                  : st === 'confirmed' ? '✅ Pagamento confirmado! O preparo do seu pedido começa em até 2-3 dias úteis (serviço Personal Shopper).'
-                                  : 'Seu pedido está sendo preparado. O código de rastreio aparecerá aqui após o envio.'}
+                                {st === 'pending' ? t('profile.orders.awaitPayment')
+                                  : st === 'confirmed' ? t('profile.orders.confirmedNote')
+                                  : t('profile.orders.preparingNote')}
                               </p>
                             )}
                           </div>
@@ -1189,24 +1190,24 @@ const Profile: React.FC = () => {
                       {order.status === 'shipped' && (
                         <div className="mb-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between gap-3 flex-wrap">
                           <div>
-                            <p className="text-sm font-semibold text-green-800 dark:text-green-200">📦 Produto chegou?</p>
-                            <p className="text-xs text-green-700 dark:text-green-400">Confirme o recebimento para encerrar o pedido.</p>
+                            <p className="text-sm font-semibold text-green-800 dark:text-green-200">{t('profile.orders.arrived')}</p>
+                            <p className="text-xs text-green-700 dark:text-green-400">{t('profile.orders.arrivedDesc')}</p>
                           </div>
                           <button
                             onClick={() => handleConfirmReceived(order.orderNumber)}
                             disabled={confirmingOrderId === order.orderNumber}
                             className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
                           >
-                            {confirmingOrderId === order.orderNumber ? 'Confirmando…' : '✅ Confirmar Recebimento'}
+                            {confirmingOrderId === order.orderNumber ? t('profile.orders.confirming') : t('profile.orders.confirmBtn')}
                           </button>
                         </div>
                       )}
 
                       {/* Tracking Info — shown whenever a tracking number exists */}
-                      {(order as any).trackingNumber && (() => {
-                        const trackingNumber = ((order as any).trackingNumber as string).trim();
-                        const savedUrl = (order as any).trackingUrl || '';
-                        let carrierRaw = (order as any).carrier || (order as any).shipping?.carrier || '';
+                      {order.trackingNumber && (() => {
+                        const trackingNumber = (order.trackingNumber as string).trim();
+                        const savedUrl = order.trackingUrl || '';
+                        let carrierRaw = order.carrier || order.shipping?.carrier || '';
 
                         // Detect carrier from saved URL if not set
                         if (!carrierRaw && savedUrl) {
@@ -1311,7 +1312,7 @@ const Profile: React.FC = () => {
                                   </button>
                                 )
                               )}
-                              <span className="font-medium shrink-0">{formatPrice(item.price * item.quantity, (order as any).currency || 'JPY')}</span>
+                              <span className="font-medium shrink-0">{formatPrice(item.price * item.quantity, order.currency || 'JPY')}</span>
                             </div>
                           );
                         })}
@@ -1320,12 +1321,12 @@ const Profile: React.FC = () => {
                       {/* Order breakdown: subtotal, coupon, shipping, total */}
                       {(() => {
                         const itemsSubtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-                        const discount = (order as any).couponDiscount || (itemsSubtotal > order.totalAmount ? itemsSubtotal - order.totalAmount : 0);
-                        const shippingData = (order as any).shipping;
+                        const discount = order.couponDiscount || (itemsSubtotal > order.totalAmount ? itemsSubtotal - order.totalAmount : 0);
+                        const shippingData = order.shipping;
                         const shippingCost = shippingData?.cost ?? null;
                         const carrierName = shippingData?.carrier || '';
-                        const couponCode = (order as any).couponCode || (order as any).appliedCoupon?.code || '';
-                        const oc = (order as any).currency || 'JPY';
+                        const couponCode = order.couponCode || order.appliedCoupon?.code || '';
+                        const oc = order.currency || 'JPY';
 
                         return (
                           <div className="mt-2 pt-2 border-t border-border space-y-1 text-sm">
@@ -1354,8 +1355,8 @@ const Profile: React.FC = () => {
                             <div className="flex justify-between font-semibold pt-1 border-t border-border">
                               <span>{t('profile.orders.total')}</span>
                               <span className="text-primary">
-                                {((order as any).grandTotalYen || (order as any).totalYen) && oc !== 'JPY'
-                                  ? `${formatPrice(order.totalAmount, oc, true)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
+                                {(order.grandTotalYen || order.totalYen) && oc !== 'JPY'
+                                  ? `${formatPrice(order.totalAmount, oc, true)} (¥ ${((order.grandTotalYen || order.totalYen) as number).toLocaleString()})`
                                   : formatPrice(order.totalAmount, oc)}
                               </span>
                             </div>
@@ -1373,18 +1374,18 @@ const Profile: React.FC = () => {
                               {order.paymentMethod === 'pix' ? 'PIX'
                                 : order.paymentMethod === 'wise' ? 'Wise'
                                 : order.paymentMethod === 'paypay' ? 'PayPay'
-                                : order.paymentMethod === 'yucho' ? 'Yucho'
-                                : order.paymentMethod === 'card' ? 'Cartão de Crédito'
+                                : order.paymentMethod === 'yucho' ? t('legacy.bankTransfer')
+                                : order.paymentMethod === 'card' ? t('profile.orders.payment.card')
                                 : order.paymentMethod === 'bank' ? t('profile.orders.payment.bank')
-                                : order.paymentMethod || 'N/A'}
+                                : order.paymentMethod || t('profile.orders.na')}
                             </span>
                             {isPaid ? (
                               <span className="text-xs font-bold text-green-600 flex items-center gap-1">
-                                ✅ Pago
+                                {t('profile.orders.paid')}
                               </span>
                             ) : (
                               <span className="text-xs font-bold text-pink-600 flex items-center gap-1">
-                                ⏳ Pendente
+                                {t('profile.orders.unpaid')}
                               </span>
                             )}
                           </div>
@@ -1396,13 +1397,13 @@ const Profile: React.FC = () => {
                               const printWindow = window.open('', '', 'width=800,height=600');
                               if (printWindow) {
                                 printWindow.document.write(`
-                                  <html><head><title>Comprovante ${order.orderNumber}</title></head><body>
-                                  <h1>Comprovante de Pedido</h1>
-                                  <p><strong>Número:</strong> ${order.orderNumber}</p>
-                                  <p><strong>Data:</strong> ${new Date(order.date).toLocaleDateString('pt-BR')}</p>
-                                  <p><strong>Total:</strong> ${formatPrice(order.totalAmount, (order as any).currency || 'JPY')}</p>
-                                  <p><strong>Status do Pagamento:</strong> ${isPaid ? '✅ Pago' : '⏳ Pendente'}</p>
-                                  <button onclick="window.print()">Imprimir</button>
+                                  <html><head><title>${t('profile.receipt.short')} ${order.orderNumber}</title></head><body>
+                                  <h1>${t('profile.receipt.heading')}</h1>
+                                  <p><strong>${t('profile.receipt.number')}</strong> ${order.orderNumber}</p>
+                                  <p><strong>${t('profile.receipt.date')}</strong> ${new Date(order.date).toLocaleDateString('pt-BR')}</p>
+                                  <p><strong>${t('profile.receipt.total')}</strong> ${formatPrice(order.totalAmount, order.currency || 'JPY')}</p>
+                                  <p><strong>${t('profile.receipt.paymentStatus')}</strong> ${isPaid ? t('profile.orders.paid') : t('profile.orders.unpaid')}</p>
+                                  <button onclick="window.print()">${t('profile.receipt.print')}</button>
                                   </body></html>
                                 `);
                                 printWindow.document.close();
@@ -1413,7 +1414,7 @@ const Profile: React.FC = () => {
                             className="gap-2 text-primary hover:bg-primary/10"
                           >
                             <FileText className="w-3 h-3" />
-                            Comprovante
+                            {t('profile.receipt.short')}
                           </Button>
                           <Button
                             onClick={() => handleReorder(order)}
@@ -1467,15 +1468,15 @@ const Profile: React.FC = () => {
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Handshake className="w-5 h-5 text-primary" />
                 </div>
-                <h2 className="font-display text-2xl font-semibold text-foreground">Negociações</h2>
+                <h2 className="font-display text-2xl font-semibold text-foreground">{t('profile.neg.title')}</h2>
               </div>
               {negotiations.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-3">
                     <Handshake className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <p className="text-muted-foreground text-sm">Nenhuma negociação ainda.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Use o botão "Negociar" no checkout para solicitar desconto na taxa ou no frete.</p>
+                  <p className="text-muted-foreground text-sm">{t('profile.neg.none')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('profile.neg.hint')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1501,7 +1502,7 @@ const Profile: React.FC = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2 mb-1">
                               <span className="font-semibold text-sm text-foreground">
-                                {neg.type === 'ps_fee' ? '🤝 Taxa Personal Shopper' : '🚚 Frete'}
+                                {neg.type === 'ps_fee' ? t('profile.neg.psFee') : t('profile.neg.shipping')}
                               </span>
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${
                                 isPending ? 'bg-pink-100 text-pink-700 border-pink-300'
@@ -1509,19 +1510,19 @@ const Profile: React.FC = () => {
                                 : isUsed ? 'bg-blue-100 text-blue-700 border-blue-300'
                                 : 'bg-red-100 text-red-700 border-red-300'
                               }`}>
-                                {isPending && <><Hourglass className="w-3 h-3" /> Aguardando</>}
-                                {isApproved && <><CheckCircle2 className="w-3 h-3" /> Aprovado</>}
-                                {isUsed && <><CheckCircle2 className="w-3 h-3" /> Finalizado</>}
-                                {isRejected && <><XCircle className="w-3 h-3" /> Recusado</>}
-                                {isExpired && <><XCircle className="w-3 h-3" /> Expirado</>}
+                                {isPending && <><Hourglass className="w-3 h-3" /> {t('profile.neg.waiting')}</>}
+                                {isApproved && <><CheckCircle2 className="w-3 h-3" /> {t('profile.neg.approved')}</>}
+                                {isUsed && <><CheckCircle2 className="w-3 h-3" /> {t('profile.neg.finished')}</>}
+                                {isRejected && <><XCircle className="w-3 h-3" /> {t('profile.neg.rejected')}</>}
+                                {isExpired && <><XCircle className="w-3 h-3" /> {t('profile.neg.expired')}</>}
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Desconto pedido: ¥{neg.requestedDiscountYen.toLocaleString()} em ¥{neg.originalAmountYen.toLocaleString()}
+                              {t('profile.neg.requested')} ¥{neg.requestedDiscountYen.toLocaleString()} {t('profile.neg.of')} ¥{neg.originalAmountYen.toLocaleString()}
                             </p>
                             {(isApproved || isUsed) && neg.approvedDiscountYen != null && (
                               <p className={`text-xs font-semibold mt-1 ${isUsed ? 'text-blue-600' : 'text-green-600'}`}>
-                                ✅ Desconto aprovado: ¥{neg.approvedDiscountYen.toLocaleString()} — Valor final: ¥{(neg.originalAmountYen - neg.approvedDiscountYen).toLocaleString()}
+                                ✅ {t('profile.neg.approvedLabel')} ¥{neg.approvedDiscountYen.toLocaleString()} — {t('profile.neg.finalLabel')} ¥{(neg.originalAmountYen - neg.approvedDiscountYen).toLocaleString()}
                               </p>
                             )}
                             {neg.adminNote && (
@@ -1539,7 +1540,7 @@ const Profile: React.FC = () => {
                               }}
                               className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
                             >
-                              Continuar pedido
+                              {t('profile.neg.continue')}
                             </button>
                           )}
                         </div>

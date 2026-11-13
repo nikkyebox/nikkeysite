@@ -36,13 +36,13 @@ function writeBought(key: string, count: number) {
   localStorage.setItem(key, JSON.stringify({ count, setAt: Date.now() }));
 }
 
-function useCountdown(expiresAt: number | null | undefined) {
+function useCountdown(expiresAt: number | null | undefined, endedLabel: string) {
   const [label, setLabel] = useState('');
   useEffect(() => {
     if (!expiresAt) { setLabel(''); return; }
     const update = () => {
       const diff = expiresAt - Date.now();
-      if (diff <= 0) { setLabel('Encerrada'); return; }
+      if (diff <= 0) { setLabel(endedLabel); return; }
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
@@ -52,7 +52,7 @@ function useCountdown(expiresAt: number | null | undefined) {
     update();
     const t = setInterval(update, 1000);
     return () => clearInterval(t);
-  }, [expiresAt]);
+  }, [expiresAt, endedLabel]);
   return label;
 }
 
@@ -71,8 +71,8 @@ const Promotion: React.FC = () => {
   const { addToCart, items: cartItems } = useCart();
   const { products } = useProducts();
   const { toast } = useToast();
-  const { selectedCountry } = useLanguage();
-  const countdown = useCountdown(promo?.expiresAt);
+  const { t, selectedCountry } = useLanguage();
+  const countdown = useCountdown(promo?.expiresAt, t('promo.endedShort'));
 
   useEffect(() => {
     if (!db) { setPromo(null); return; }
@@ -105,9 +105,9 @@ const Promotion: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 py-24 text-center space-y-4">
         <Sparkles className="w-12 h-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl font-bold">Nenhuma promoção ativa no momento.</h1>
-        <p className="text-muted-foreground">Volte em breve para ofertas exclusivas!</p>
-        <Button asChild variant="outline"><Link to="/produtos"><ArrowLeft className="w-4 h-4 mr-2" />Ver produtos</Link></Button>
+        <h1 className="text-2xl font-bold">{t('promo.noneActive')}</h1>
+        <p className="text-muted-foreground">{t('promo.comeBack')}</p>
+        <Button asChild variant="outline"><Link to="/produtos"><ArrowLeft className="w-4 h-4 mr-2" />{t('shippingPage.viewProducts')}</Link></Button>
       </div>
     </Layout>
   );
@@ -116,7 +116,8 @@ const Promotion: React.FC = () => {
   const currency = getCurrencyByCountry(selectedCountry);
   const promoPriceLocal = convertYen(promo.promoPriceYen, currency);
   const originalPriceLocal = convertYen(promo.originalPriceYen, currency);
-  const typeLabel = PROMO_TYPES.find(t => t.value === promo.type)?.label ?? promo.type;
+  const promoType = PROMO_TYPES.find(pt => pt.value === promo.type);
+  const typeLabel = promoType?.labelKey ? t(promoType.labelKey) : (promoType?.label ?? promo.type);
   const discount = promo.discountPct > 0 ? promo.discountPct : (promo.originalPriceYen > 0 ? Math.round((1 - promo.promoPriceYen / promo.originalPriceYen) * 100) : 0);
 
   const boughtKey = BOUGHT_KEY(promo.productId);
@@ -139,14 +140,14 @@ const Promotion: React.FC = () => {
   const totalLocal = promoPriceLocal * promoQty + originalPriceLocal * overflowQty;
 
   const handleAddToCart = () => {
-    if (isExpired) { toast({ title: 'Promoção encerrada', variant: 'destructive' }); return; }
-    if (isSoldOut) { toast({ title: '😔 Estoque esgotado', description: 'Todas as unidades promocionais já foram vendidas.', variant: 'destructive' }); return; }
+    if (isExpired) { toast({ title: t('promo.ended'), variant: 'destructive' }); return; }
+    if (isSoldOut) { toast({ title: `😔 ${t('promo.soldOut')}`, description: t('promo.soldOutDesc'), variant: 'destructive' }); return; }
 
     // Se o limite já foi atingido entre pedidos anteriores + carrinho atual, tudo vai como regular
     if (remaining === 0 && inCartPromoQty > 0) {
       toast({
-        title: 'Limite promocional atingido',
-        description: `Você já tem ${inCartPromoQty}x no carrinho com preço promocional. Para comprar mais, o preço será o normal.`,
+        title: t('promo.limitReached'),
+        description: t('promo.limitInCart').replace('{qty}', String(inCartPromoQty)),
         variant: 'destructive',
       });
       if (product) addToCart(product, 'small', qty);
@@ -174,7 +175,7 @@ const Promotion: React.FC = () => {
         discountPercent: 0,
         promoLimit: promo.limitPerPerson, // max qty no carrinho para este item promo
       };
-      addToCart(promoItem as any, 'small', promoQty);
+      addToCart(promoItem as Parameters<typeof addToCart>[0], 'small', promoQty);
     }
 
     // Adiciona excedente com preço original
@@ -182,17 +183,17 @@ const Promotion: React.FC = () => {
       addToCart(product, 'small', overflowQty);
       if (promoQty > 0) {
         toast({
-          title: `✨ ${promoQty}x no preço promocional + ${overflowQty}x no preço original`,
-          description: `O excedente ao limite (${promo.limitPerPerson}x/pessoa) foi adicionado com o preço normal.`,
+          title: `✨ ${t('promo.mixedTitle').replace('{promo}', String(promoQty)).replace('{regular}', String(overflowQty))}`,
+          description: t('promo.overflowDesc').replace('{limit}', String(promo.limitPerPerson)),
         });
       } else {
         toast({
-          title: 'Adicionado ao carrinho',
-          description: `${overflowQty}x ${promo.productName} ao preço original — limite da promoção já atingido.`,
+          title: t('promo.addedTitle'),
+          description: t('promo.overflowOnly').replace('{qty}', String(overflowQty)).replace('{name}', promo.productName),
         });
       }
     } else if (promoQty > 0) {
-      toast({ title: 'Adicionado ao carrinho! 🎉', description: `${promoQty}x ${promo.productName}` });
+      toast({ title: `${t('promo.addedExcl')} 🎉`, description: `${promoQty}x ${promo.productName}` });
     }
   };
 
@@ -207,7 +208,7 @@ const Promotion: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 py-10 max-w-5xl">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
-          <ArrowLeft className="w-4 h-4" /> Voltar para a loja
+          <ArrowLeft className="w-4 h-4" /> {t('promo.backToStore')}
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-10 items-start">
@@ -244,9 +245,9 @@ const Promotion: React.FC = () => {
 
             {/* Countdown */}
             {promo.expiresAt && countdown && (
-              <div className={`flex items-center gap-2 text-sm font-semibold ${isExpired || countdown === 'Encerrada' ? 'text-red-600' : 'text-pink-600'}`}>
+              <div className={`flex items-center gap-2 text-sm font-semibold ${isExpired || countdown === t('promo.endedShort') ? 'text-red-600' : 'text-pink-600'}`}>
                 <Clock className="w-4 h-4 shrink-0" />
-                {countdown === 'Encerrada' ? 'Promoção encerrada' : `Encerra em: ${countdown}`}
+                {countdown === t('promo.endedShort') ? t('promo.ended') : `${t('promo.endsIn')} ${countdown}`}
               </div>
             )}
 
@@ -254,8 +255,8 @@ const Promotion: React.FC = () => {
             {promo.maxProducts != null && (
               <div className={`rounded-xl p-3 border text-sm font-semibold flex flex-col gap-1 ${isSoldOut ? 'bg-red-50 border-red-300 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
                 <div className="flex items-center justify-between">
-                  <span>{isSoldOut ? '😔 Estoque esgotado — todas as unidades foram vendidas' : `📦 Restam apenas ${stockLeft} unidade(s) promocional(is)`}</span>
-                  <span className="text-xs font-normal opacity-70">{promo.soldCount ?? 0}/{promo.maxProducts} vendidos</span>
+                  <span>{isSoldOut ? `😔 ${t('promo.soldOutAll')}` : `📦 ${t('promo.stockLeft').replace('{qty}', String(stockLeft))}`}</span>
+                  <span className="text-xs font-normal opacity-70">{promo.soldCount ?? 0}/{promo.maxProducts} {t('promo.sold')}</span>
                 </div>
                 {!isSoldOut && (
                   <div className="h-2 bg-amber-200 rounded-full overflow-hidden">
@@ -270,16 +271,16 @@ const Promotion: React.FC = () => {
             <div className="space-y-1">
               {originalPriceLocal > 0 && (
                 <div className="text-sm text-muted-foreground line-through">
-                  De: {formatPrice(originalPriceLocal, currency, true)}{(promo.originalPriceYen ?? 0) > 0 && ` (¥${(promo.originalPriceYen ?? 0).toLocaleString()})`}
+                  {t('promo.was')} {formatPrice(originalPriceLocal, currency, true)}{(promo.originalPriceYen ?? 0) > 0 && ` (¥${(promo.originalPriceYen ?? 0).toLocaleString()})`}
                 </div>
               )}
               <div className="text-4xl font-black text-green-600">
-                {promoPriceLocal > 0 ? formatPrice(promoPriceLocal, currency, true) : 'Preço indisponível'}
+                {promoPriceLocal > 0 ? formatPrice(promoPriceLocal, currency, true) : t('promo.priceUnavailable')}
                 {(promo.promoPriceYen ?? 0) > 0 && <span className="text-base font-normal text-muted-foreground ml-2">(¥{(promo.promoPriceYen ?? 0).toLocaleString()})</span>}
               </div>
               {discount > 0 && (
                 <div className="inline-block bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">
-                  Economia de {formatPrice(originalPriceLocal - promoPriceLocal, currency, true)}
+                  {t('promo.saving')} {formatPrice(originalPriceLocal - promoPriceLocal, currency, true)}
                 </div>
               )}
             </div>
@@ -287,19 +288,19 @@ const Promotion: React.FC = () => {
             {/* Limite por pessoa */}
             <div className={`flex items-start gap-2 text-sm p-3 rounded-lg border ${remaining > 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
               {remaining > 0
-                ? <><CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /><span>Preço promocional para as primeiras <strong>{promo.limitPerPerson}</strong> unidade(s) por pessoa. O excedente entra no carrinho pelo preço original.</span></>
+                ? <><CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /><span>{t('promo.firstUnits1')} <strong>{promo.limitPerPerson}</strong> {t('promo.firstUnits2')}</span></>
                 : <div className="flex-1 flex flex-col gap-1.5">
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>
                         {inCartPromoQty > 0
-                          ? `Você já tem ${inCartPromoQty}x no carrinho com preço promocional (limite: ${promo.limitPerPerson}x). Adicionar mais irá usar o preço original.`
-                          : `Você já atingiu o limite de ${promo.limitPerPerson}x desta promoção. Você ainda pode comprar mais unidades pelo preço original.`
+                          ? t('promo.inCartNote').replace('{qty}', String(inCartPromoQty)).replace('{limit}', String(promo.limitPerPerson))
+                          : t('promo.limitHit').replace('{limit}', String(promo.limitPerPerson))
                         }
                       </span>
                     </div>
                     {inCartPromoQty === 0 && (
-                      <button onClick={resetPromoLimit} className="self-start text-[11px] underline text-red-500 hover:text-red-700">Sou um cliente diferente / resetar limite</button>
+                      <button onClick={resetPromoLimit} className="self-start text-[11px] underline text-red-500 hover:text-red-700">{t('promo.resetLimit')}</button>
                     )}
                   </div>
               }
@@ -308,16 +309,16 @@ const Promotion: React.FC = () => {
             {/* Preview do pedido quando excede limite */}
             {overflowQty > 0 && !isExpired && (
               <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 text-sm space-y-1">
-                <div className="flex items-center gap-1.5 font-semibold text-pink-700"><Info className="w-4 h-4" /> Resumo do pedido</div>
-                {promoQty > 0 && <div className="text-pink-700">{promoQty}x a {formatPrice(promoPriceLocal, currency, true)} <span className="text-xs">(preço promo)</span></div>}
-                <div className="text-pink-700">{overflowQty}x a {formatPrice(originalPriceLocal, currency, true)} <span className="text-xs">(preço original)</span></div>
-                <div className="font-bold text-orange-800 border-t border-pink-200 pt-1">Total: {formatPrice(totalLocal, currency, true)}</div>
+                <div className="flex items-center gap-1.5 font-semibold text-pink-700"><Info className="w-4 h-4" /> {t('promo.orderSummary')}</div>
+                {promoQty > 0 && <div className="text-pink-700">{promoQty}x {t('promo.at')} {formatPrice(promoPriceLocal, currency, true)} <span className="text-xs">{t('promo.promoPriceTag')}</span></div>}
+                <div className="text-pink-700">{overflowQty}x {t('promo.at')} {formatPrice(originalPriceLocal, currency, true)} <span className="text-xs">{t('promo.originalPriceTag')}</span></div>
+                <div className="font-bold text-orange-800 border-t border-pink-200 pt-1">{t('cart.total')}: {formatPrice(totalLocal, currency, true)}</div>
               </div>
             )}
 
             {/* Seletor de quantidade */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium">Quantidade:</span>
+              <span className="text-sm font-medium">{t('promo.quantity')}</span>
               <div className="flex items-center border border-border rounded-lg overflow-hidden">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-3 py-2 hover:bg-secondary transition-colors text-lg font-bold">−</button>
                 <span className="px-4 py-2 font-semibold min-w-[3rem] text-center">{qty}</span>
@@ -325,17 +326,17 @@ const Promotion: React.FC = () => {
               </div>
             </div>
 
-            <Button size="lg" onClick={handleAddToCart} disabled={isExpired || countdown === 'Encerrada' || isSoldOut} className="w-full gap-2 text-base font-bold">
+            <Button size="lg" onClick={handleAddToCart} disabled={isExpired || countdown === t('promo.endedShort') || isSoldOut} className="w-full gap-2 text-base font-bold">
               <ShoppingCart className="w-5 h-5" />
-              {isExpired || countdown === 'Encerrada'
-                ? 'Promoção encerrada'
+              {isExpired || countdown === t('promo.endedShort')
+                ? t('promo.ended')
                 : isSoldOut
-                  ? '😔 Estoque esgotado'
-                  : `Adicionar ao carrinho — ${formatPrice(totalLocal, currency, true)}`}
+                  ? t('ui.promo.soldOut')
+                  : `${t('promo.addToCart')} — ${formatPrice(totalLocal, currency, true)}`}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              * Preço promocional válido apenas nesta página e limitado a {promo.limitPerPerson}x por pessoa. No catálogo o produto aparece com o preço original.
+              * {t('promo.footnote').replace('{limit}', String(promo.limitPerPerson))}
             </p>
           </div>
         </div>

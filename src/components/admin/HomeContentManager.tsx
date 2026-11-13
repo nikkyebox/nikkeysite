@@ -1,3 +1,4 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Save, Loader2, Video, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,8 +41,8 @@ const HomeContentManager: React.FC = () => {
       await siteContentService.saveHome(clean);
       setContent(clean);
       toast({ title: '✅ Home atualizada!', description: 'Os vídeos já estão no ar.' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao salvar', description: errorMessage(e), variant: 'destructive' });
     } finally {
       setSaving(false);
     }

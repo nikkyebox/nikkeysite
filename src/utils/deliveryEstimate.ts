@@ -35,7 +35,7 @@ export function getDeliveryEstimate(country: string): DeliveryEstimate {
   return ZONE_ESTIMATES[zone];
 }
 
-export function formatDeliveryRange(est: DeliveryEstimate): string {
-  if (est.minDays === est.maxDays) return `${est.minDays} dias úteis`;
-  return `${est.minDays}–${est.maxDays} dias úteis`;
+export function formatDeliveryRange(est: DeliveryEstimate, t: (key: string) => string): string {
+  if (est.minDays === est.maxDays) return t('util.delivery.days').replace('{dias}', String(est.minDays));
+  return t('util.delivery.range').replace('{min}', String(est.minDays)).replace('{max}', String(est.maxDays));
 }

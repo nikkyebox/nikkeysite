@@ -1,20 +1,13 @@
 import { useEffect, type ReactNode } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
+import { setActiveLenis } from '@/lib/lenisInstance';
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let activeLenis: Lenis | null = null;
-
-/**
- * Instância ativa do Lenis, para scroll programático que respeita o smooth
- * scroll (ex.: botão de rolar do Hero). `null` quando o Lenis não
- * está rodando (prefers-reduced-motion).
- */
-export const getLenis = () => activeLenis;
 
 /**
  * SmoothScroll
@@ -37,7 +30,7 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       touchMultiplier: 1.4,
     });
 
-    activeLenis = lenis;
+    setActiveLenis(lenis);
 
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
@@ -45,7 +38,7 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
 
     return () => {
       gsap.ticker.remove(raf);
-      activeLenis = null;
+      setActiveLenis(null);
       lenis.destroy();
     };
   }, []);

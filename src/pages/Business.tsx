@@ -153,7 +153,7 @@ const Business: React.FC = () => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold block mb-1">{t('business.form.email')}</label>
-                  <input value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="comercial@empresa.com"
+                  <input value={form.email} onChange={(e) => set('email', e.target.value)} placeholder={t('business.form.emailPlaceholder')}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
                 </div>
                 <div>

@@ -39,7 +39,8 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import type { AuthProvider, ConfirmationResult } from 'firebase/auth';
+import type { AuthProvider, ConfirmationResult, User } from 'firebase/auth';
+import type { QueryConstraint } from 'firebase/firestore';
 
 import { auth, db, firebaseConfigReady } from '@/config/firebase';
 
@@ -75,7 +76,7 @@ const getEmailActionSettings = () => {
   const origin =
     typeof window !== 'undefined' && window.location?.origin
       ? window.location.origin
-      : 'https://nikkeybox-store.com';
+      : 'https://nikkeybox.jp';
 
   return {
     url: `${origin}/login?verified=1`,
@@ -85,28 +86,33 @@ const getEmailActionSettings = () => {
 
 const ensureFirebaseReady = () => {
   if (!firebaseConfigReady || !auth || !db) {
-    const error: any = new Error('Firebase not configured');
-    error.code = 'auth/configuration-not-found';
+    const error = Object.assign(new Error('Firebase not configured'), {
+      code: 'auth/configuration-not-found',
+    });
     throw error;
   }
 };
 
 // Helper to remove undefined values
-const sanitizeData = (data: any): any => {
+const sanitizeValue = (data: unknown): unknown => {
   if (data === null || data === undefined) return null;
-  if (Array.isArray(data)) return data.map(sanitizeData);
+  if (Array.isArray(data)) return data.map(sanitizeValue);
   if (typeof data === 'object' && data !== null) {
     if (data instanceof Date) return data.toISOString(); // Convert Dates to string
-    return Object.keys(data).reduce((acc, key) => {
-      const value = sanitizeData(data[key]);
+    const source = data as Record<string, unknown>;
+    return Object.keys(source).reduce<Record<string, unknown>>((acc, key) => {
+      const value = sanitizeValue(source[key]);
       if (value !== undefined) {
         acc[key] = value;
       }
       return acc;
-    }, {} as any);
+    }, {});
   }
   return data;
 };
+
+// Mantém o tipo de entrada: quem chama continua enxergando os campos do objeto.
+const sanitizeData = <T,>(data: T): T => sanitizeValue(data) as T;
 
 type DataRecord = Record<string, unknown>;
 
@@ -217,7 +223,25 @@ const userUpdatePayload = (
 
 export type OrderPageCursor = string;
 
-export interface OrderPage<T = any> {
+/** Documento de pedido vindo do Firestore ou montado pelo cliente. */
+export interface OrderRecord {
+  id?: string;
+  orderNumber?: string;
+  orderDate?: string;
+  date?: string;
+  createdAt?: string;
+  syncedAt?: string;
+  [key: string]: unknown;
+}
+
+/** Cupom guardado no perfil do cliente (`users/{id}.coupons`). */
+interface CouponRecord {
+  id?: string;
+  code: string;
+  isUsed?: boolean;
+}
+
+export interface OrderPage<T = OrderRecord> {
   items: T[];
   nextCursor: OrderPageCursor | null;
   hasMore: boolean;
@@ -247,10 +271,10 @@ const decodeOrderCursor = (cursor?: OrderPageCursor | null): OrderCursorPayload 
   }
 };
 
-const orderDateOf = (order: any): string =>
+const orderDateOf = (order: OrderRecord): string =>
   String(order.orderDate || order.date || order.createdAt || order.syncedAt || '');
 
-const compareOrdersDescending = (left: any, right: any): number => {
+const compareOrdersDescending = (left: OrderRecord, right: OrderRecord): number => {
   const dateComparison = orderDateOf(right).localeCompare(orderDateOf(left));
   if (dateComparison !== 0) return dateComparison;
   return String(right.id || right.orderNumber || '').localeCompare(
@@ -334,7 +358,7 @@ export const firebaseSyncService = {
     try {
       await ensureAdminAuth();
       ensureFirebaseReady();
-      const u: any = await this.getUserByEmail(email);
+      const u = await this.getUserByEmail(email);
       if (!u?.id) return { success: false, error: 'Cliente não encontrado no Firestore' };
       const userRef = doc(db, 'users', u.id);
       const total = await runTransaction(db, async (transaction) => {
@@ -346,9 +370,9 @@ export const firebaseSyncService = {
         return next;
       });
       return { success: true, total };
-    } catch (error: any) {
+    } catch (error: unknown) {
       devError('❌ [FIREBASE] addPointsToUserByEmail:', error);
-      return { success: false, error: error?.message };
+      return { success: false, error: error instanceof Error ? error.message : undefined };
     }
   },
 
@@ -370,16 +394,16 @@ export const firebaseSyncService = {
       await updateDoc(doc(db, 'users', u.id), { [`socialFollows.${network}`]: follow });
       devLog('✅ [FIREBASE] Social follow updated:', email, network, follow);
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       devError('❌ [FIREBASE] setSocialFollowByEmail:', error);
-      return { success: false, error: error?.message };
+      return { success: false, error: error instanceof Error ? error.message : undefined };
     }
   },
 
   /**
    * Sincroniza pedido para Firestore
    */
-  async syncOrderToFirestore(userId: string, order: any) {
+  async syncOrderToFirestore(userId: string, order: OrderRecord) {
     try {
       ensureFirebaseReady();
       const orderRef = doc(db, 'orders', order.orderNumber);
@@ -430,7 +454,7 @@ export const firebaseSyncService = {
 
       const snapshots = await Promise.all(sources.map(async (source) => {
         const position = previous.positions[source.key];
-        const constraints: any[] = [
+        const constraints: QueryConstraint[] = [
           where(source.field, '==', source.value),
           orderBy('orderDate', 'desc'),
           orderBy(documentId(), 'desc'),
@@ -444,7 +468,7 @@ export const firebaseSyncService = {
           // Anotado porque o spread de `DocumentData` colapsava para
           // `{ id: string }`, e o acesso a `orderNumber` mais abaixo não
           // compilava.
-          docs: snapshot.docs.map((document): Record<string, any> => ({
+          docs: snapshot.docs.map((document): OrderRecord => ({
             id: document.id,
             ...document.data(),
           })),
@@ -455,7 +479,7 @@ export const firebaseSyncService = {
         .flatMap(({ source, docs }) => docs.map((order) => ({ source, order })))
         .sort((left, right) => compareOrdersDescending(left.order, right.order));
       const positions = { ...previous.positions };
-      const items: any[] = [];
+      const items: OrderRecord[] = [];
       const seen = new Set<string>();
       let consumed = 0;
 
@@ -497,7 +521,7 @@ export const firebaseSyncService = {
       ensureFirebaseReady();
       const size = normalizedPageSize(pageSize);
       const position = decodeOrderCursor(cursor).positions.admin;
-      const constraints: any[] = [
+      const constraints: QueryConstraint[] = [
         orderBy('orderDate', 'desc'),
         orderBy(documentId(), 'desc'),
       ];
@@ -665,7 +689,7 @@ export const firebaseSyncService = {
    * para que ele apareça em "Meus Cupons" em qualquer dispositivo.
    * Não duplica um código ativo já existente.
    */
-  async grantCouponToUserByEmail(email: string, coupon: any) {
+  async grantCouponToUserByEmail(email: string, coupon: CouponRecord) {
     try {
       await ensureAdminAuth();
       ensureFirebaseReady();
@@ -676,7 +700,7 @@ export const firebaseSyncService = {
 
       let granted = 0;
       for (const d of snap.docs) {
-        const data = d.data() as { coupons?: any[] };
+        const data = d.data() as { coupons?: CouponRecord[] };
         const existing = Array.isArray(data.coupons) ? data.coupons : [];
         const already = existing.some(
           (c) => (c.code || '').toUpperCase() === coupon.code.toUpperCase() && !c.isUsed
@@ -695,7 +719,7 @@ export const firebaseSyncService = {
   /**
    * Concede um cupom a TODOS os clientes do Firestore.
    */
-  async grantCouponToAllUsers(coupon: any) {
+  async grantCouponToAllUsers(coupon: CouponRecord) {
     try {
       await ensureAdminAuth();
       ensureFirebaseReady();
@@ -703,7 +727,7 @@ export const firebaseSyncService = {
       let granted = 0;
       await Promise.all(
         snap.docs.map(async (d) => {
-          const data = d.data() as { coupons?: any[] };
+          const data = d.data() as { coupons?: CouponRecord[] };
           const existing = Array.isArray(data.coupons) ? data.coupons : [];
           const already = existing.some(
             (c) => (c.code || '').toUpperCase() === coupon.code.toUpperCase() && !c.isUsed
@@ -735,7 +759,7 @@ export const firebaseSyncService = {
       // Verification is sent by UserContext through /api/send-email.
       
       return userCredential.user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       devError('❌ [FIREBASE AUTH] Registration error:', error);
       throw error;
     }
@@ -827,7 +851,7 @@ export const firebaseSyncService = {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       devLog('✅ [FIREBASE AUTH] User logged in:', userCredential.user.uid);
       return userCredential.user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       devError('❌ [FIREBASE AUTH] Login error:', error);
       throw error;
     }
@@ -887,7 +911,7 @@ export const firebaseSyncService = {
   /**
    * Observa mudanças de autenticação
    */
-  onAuthChange(callback: (user: any) => void) {
+  onAuthChange(callback: (user: User | null) => void) {
     if (!firebaseConfigReady || !auth) {
       devWarn('⚠️ [FIREBASE AUTH] onAuthChange skipped: Firebase not configured');
       return () => undefined;

@@ -1,3 +1,4 @@
+import type { AdminOrder, AdminOrderItem } from '@/types/order';
 import { safeStorage } from '@/utils/storage';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -76,7 +77,7 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
   const { user, permissions, authReady } = useUser();
   const { toast } = useToast();
-  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<AdminOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersCursor, setOrdersCursor] = useState<OrderPageCursor | null>(null);
   const [ordersHasMore, setOrdersHasMore] = useState(false);
@@ -87,8 +88,8 @@ const Admin: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
-  const [cn23Order, setCn23Order] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+  const [cn23Order, setCn23Order] = useState<AdminOrder | null>(null);
   const [promoModalOpen, setPromoModalOpen] = useState(false);
   const [pendingNegotiationsCount, setPendingNegotiationsCount] = useState(0);
   // Sem sessão no Firebase (expirada, ou nunca aberta neste navegador): nenhuma
@@ -160,6 +161,7 @@ const Admin: React.FC = () => {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', debouncedRefresh);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- listeners de foco e visibilidade dependem só de user/authReady; loadOrders é recriado a cada render
   }, [user, navigate, authReady]);
 
   useEffect(() => {
@@ -175,7 +177,8 @@ const Admin: React.FC = () => {
   const loadOrders = async (append = false) => {
     if (append && (!ordersHasMore || ordersLoadingMore)) return;
 
-    append ? setOrdersLoadingMore(true) : setOrdersLoading(true);
+    if (append) setOrdersLoadingMore(true);
+    else setOrdersLoading(true);
     try {
       const page = await orderService.getOrdersPage(20, append ? ordersCursor : null);
       setAllOrders((current) => {
@@ -200,7 +203,8 @@ const Admin: React.FC = () => {
         variant: 'destructive',
       });
     } finally {
-      append ? setOrdersLoadingMore(false) : setOrdersLoading(false);
+      if (append) setOrdersLoadingMore(false);
+      else setOrdersLoading(false);
     }
   };
 
@@ -307,7 +311,7 @@ const Admin: React.FC = () => {
 
   // Envia notificação WhatsApp ao cliente (silencioso; mostra toast com o resultado).
   const notifyWhatsApp = async (
-    order: any,
+    order: AdminOrder,
     type: 'paymentConfirmed' | 'preparing' | 'shipped',
     extra?: { trackingNumber: string; trackingUrl: string; carrier: string }
   ) => {
@@ -496,7 +500,7 @@ _This is an automated test message_
     }
   };
 
-  const printOrder = (order: any) => {
+  const printOrder = (order: AdminOrder) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -515,10 +519,10 @@ _This is an automated test message_
       boleto: '📄 Boleto Bancário',
       wise: '💸 Wise (Transferência)',
       paypal: '🅿️ PayPal',
-      yucho: '🏦 Banco Yucho',
+      yucho: '🏦 Transferência (método antigo)',
     };
 
-    const itemsSubtotal = order.items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);
+    const itemsSubtotal = order.items.reduce((s: number, i: AdminOrderItem) => s + i.price * i.quantity, 0);
     const discount = order.couponDiscount || (itemsSubtotal > order.totalPrice ? itemsSubtotal - order.totalPrice : 0);
     const shippingCostYen = order.shipping?.cost ?? null;
     const orderCurrency = order.currency || 'BRL';
@@ -526,9 +530,9 @@ _This is an automated test message_
       ? (shippingCostYen === 0 ? 'Grátis' : formatPrice(order.priceBreakdown?.shipping ?? convertYen(shippingCostYen, orderCurrency), orderCurrency))
       : 'N/A';
     const grandTotal = order.totalPrice ?? order.total ?? 0;
-    const grandTotalYen = (order as any).grandTotalYen || (order as any).totalYen;
+    const grandTotalYen = order.grandTotalYen || order.totalYen;
 
-    const itemsHtml = order.items.map((item: any) => `
+    const itemsHtml = order.items.map((item: AdminOrderItem) => `
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;">${item.productName || item.name}${item.size ? ` <span style="color:#888;font-size:12px;">(${item.size})</span>` : ''}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td>
@@ -647,7 +651,7 @@ _This is an automated test message_
   </div>
 
   <div class="footer">
-    NikkeyBox · www.nikkeybox-store.com · Impresso em ${new Date().toLocaleString('pt-BR')}
+    NikkeyBox · www.nikkeybox.jp · Impresso em ${new Date().toLocaleString('pt-BR')}
   </div>
 </body>
 </html>`;
@@ -656,7 +660,7 @@ _This is an automated test message_
     printWindow.document.close();
   };
 
-  const printShippingLabel = (order: any) => {
+  const printShippingLabel = (order: AdminOrder) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -698,7 +702,7 @@ _This is an automated test message_
 
           <div class="section">
             <h3>📦 PRODUTOS</h3>
-            ${order.items.map((item: any) => `
+            ${order.items.map((item: AdminOrderItem) => `
               <p>• ${item.productName} (${item.size}) x${item.quantity} - R$${(item.price * item.quantity).toLocaleString()}</p>
             `).join('')}
             <p class="strong" style="margin-top: 10px;">Total: R$${(order.totalPrice ?? order.totalAmount ?? 0).toLocaleString()}</p>
@@ -744,11 +748,6 @@ _This is an automated test message_
     printWindow.document.write(html);
     printWindow.document.close();
   };
-
-  // Bypassed for demo testing
-  if (false) {
-    return null;
-  }
 
   // Abas desativadas a pedido — ficam fora do menu lateral, mas o código/rota
   // de cada uma continua no projeto (ver renderização de `activeTab` abaixo)
@@ -818,7 +817,7 @@ _This is an automated test message_
               🔐 Painel Administrativo
             </h1>
             <p className="text-muted-foreground text-lg">
-              Gestão de Pedidos - Paula Shiokawa
+              Gestão de Pedidos
             </p>
 
             <div className="mt-4 flex flex-wrap justify-center gap-3">
@@ -1031,7 +1030,7 @@ _This is an automated test message_
                           💳 {order.paymentMethod === 'pix' ? 'PIX'
                             : order.paymentMethod === 'wise' ? 'Wise'
                             : order.paymentMethod === 'paypay' ? 'PayPay'
-                            : order.paymentMethod === 'yucho' ? 'Yucho'
+                            : order.paymentMethod === 'yucho' ? 'Transferência (método antigo)'
                             : order.paymentMethod === 'card' ? 'Cartão de Crédito'
                             : order.paymentMethod === 'boleto' ? 'Boleto Bancário'
                             : order.paymentMethod || 'N/A'}
@@ -1115,14 +1114,14 @@ _This is an automated test message_
                           Produtos
                         </h4>
                         <div className="space-y-2">
-                          {order.items.map((item: any, i: number) => (
+                          {order.items.map((item: AdminOrderItem, i: number) => (
                             <div key={i} className="flex justify-between text-sm">
                                <span>{item.productName || item.name} ({item.size}) x{item.quantity}</span>
                                <span className="font-semibold font-mono">{formatPrice(item.price * item.quantity, order.currency || 'BRL')}</span>
                             </div>
                           ))}
                           {(() => {
-                            const itemsSubtotal = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+                            const itemsSubtotal = order.items.reduce((sum: number, item: AdminOrderItem) => sum + item.price * item.quantity, 0);
                             // Detect coupon discount: saved field OR inferred from items sum vs totalPrice
                             const discount = order.couponDiscount || (itemsSubtotal > order.totalPrice ? itemsSubtotal - order.totalPrice : 0);
                             const shippingCostYen = order.shipping?.cost ?? null;
@@ -1192,8 +1191,8 @@ _This is an automated test message_
                                 <div className="flex justify-between font-bold pt-1 border-t border-border text-base">
                                   <span>Total Geral</span>
                                   <span className="text-primary font-mono">
-                                    {order.currency !== 'JPY' && ((order as any).grandTotalYen || (order as any).totalYen)
-                                      ? `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)} (¥ ${(((order as any).grandTotalYen || (order as any).totalYen) as number).toLocaleString()})`
+                                    {order.currency !== 'JPY' && (order.grandTotalYen || order.totalYen)
+                                      ? `R$ ${(order.totalPrice ?? order.total ?? 0).toFixed(2)} (¥ ${((order.grandTotalYen || order.totalYen) as number).toLocaleString()})`
                                       : formatPrice(order.totalPrice ?? order.total ?? 0, cardCurrency)}
                                   </span>
                                 </div>

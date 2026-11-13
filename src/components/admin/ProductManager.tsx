@@ -1,5 +1,6 @@
+import { errorMessage } from '@/utils/errors';
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Image as ImageIcon, Loader2, PackageOpen, Sparkles, GripVertical, Save, Gift, Infinity, Search, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Image as ImageIcon, Loader2, PackageOpen, Sparkles, GripVertical, Save, Gift, Infinity as InfinityIcon, Search, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Product, ProductVariant } from '@/types';
@@ -336,7 +337,7 @@ const ProductManager: React.FC = () => {
           ])
         ) as Product['i18n'];
         const incomingI18n = Object.fromEntries(
-          Object.entries(data.i18n).map(([lang, value]: [string, any]) => [
+          Object.entries(data.i18n).map(([lang, value]: [string, { description?: string }]) => [
             lang,
             { description: value?.description || '' },
           ])
@@ -414,8 +415,8 @@ const ProductManager: React.FC = () => {
           ? `${data.images.length} foto(s) · ${descSourceLabel} · custo ¥${data.costYen?.toLocaleString() || '–'} · venda ¥${data.sellingPriceYen?.toLocaleString() || '–'}`
           : `${descSourceLabel} · custo ¥${data.costYen?.toLocaleString() || '–'} · venda ¥${data.sellingPriceYen?.toLocaleString() || '–'}`,
       });
-    } catch (e: any) {
-      toast({ title: 'Erro ao enriquecer produto', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao enriquecer produto', description: errorMessage(e), variant: 'destructive' });
     } finally {
       setEnriching(false);
     }
@@ -481,8 +482,8 @@ const ProductManager: React.FC = () => {
       const url = await cloudinaryService.uploadVideoFile(file, folder);
       setEditing((prev) => (prev ? { ...prev, video: url } : prev));
       toast({ title: '✅ Vídeo enviado' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao enviar vídeo', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao enviar vídeo', description: errorMessage(e), variant: 'destructive' });
     } finally {
       setUploadingVideo(false);
       if (videoRef.current) videoRef.current.value = '';
@@ -524,7 +525,7 @@ const ProductManager: React.FC = () => {
           }
           return await cloudinaryService.uploadDataUrl(dataUrl, folder);
         } catch (e) {
-          imageWarnings.push(e instanceof Error ? e.message : String(e));
+          imageWarnings.push(e instanceof Error ? errorMessage(e) : String(e));
           return imgStr;
         }
       };
@@ -545,7 +546,7 @@ const ProductManager: React.FC = () => {
           );
           thumbnailUrl = await cloudinaryService.uploadDataUrl(thumbData, folder);
         } catch (e) {
-          imageWarnings.push(e instanceof Error ? e.message : String(e));
+          imageWarnings.push(e instanceof Error ? errorMessage(e) : String(e));
         }
       }
 
@@ -588,8 +589,8 @@ const ProductManager: React.FC = () => {
         variant: imageWarnings.length > 0 ? 'destructive' : undefined,
       });
       close();
-    } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao salvar', description: errorMessage(e), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -601,8 +602,8 @@ const ProductManager: React.FC = () => {
       await productService.remove(p.id);
       await refresh();
       toast({ title: '🗑️ Produto removido', description: p.name });
-    } catch (e: any) {
-      toast({ title: 'Erro ao remover', description: e?.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Erro ao remover', description: errorMessage(e), variant: 'destructive' });
     }
   };
 
@@ -1063,7 +1064,7 @@ const ProductManager: React.FC = () => {
                   <label className="text-sm font-semibold block">Restrição de venda por destino</label>
                   <select
                     value={editing.deliveryRestrict || ''}
-                    onChange={e => setEditing({ ...editing, deliveryRestrict: (e.target.value as any) || undefined })}
+                    onChange={e => setEditing({ ...editing, deliveryRestrict: (e.target.value || undefined) as 'exterior-only' | 'japan-only' | undefined })}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
                   >
                     <option value="">Sem restrição (vende em qualquer destino)</option>
@@ -1189,7 +1190,7 @@ const ProductManager: React.FC = () => {
               {/* Estoque */}
               <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
                 <label className="text-sm font-semibold flex items-center gap-1.5 mb-2">
-                  <Infinity className="w-4 h-4 text-slate-500" /> Estoque
+                  <InfinityIcon className="w-4 h-4 text-slate-500" /> Estoque
                 </label>
                 <div className="flex gap-4 mb-3">
                   {(['unlimited', 'limited'] as const).map((type) => {

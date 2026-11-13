@@ -19,6 +19,12 @@ const mocks = vi.hoisted(() => ({
   onAuthChange: vi.fn((callback: (user: unknown) => void) => { callback(null); return () => undefined; }),
 }));
 
+// UserProvider lê as mensagens pelo t(); aqui usamos o dicionário pt, como no site em português.
+vi.mock('@/context/LanguageContext', async () => {
+  const { translations } = await import('@/data/translations');
+  return { useLanguage: () => ({ t: (key: string) => translations.pt[key] ?? key }) };
+});
+
 vi.mock('@/config/firebase', () => ({
   app: null,
   auth: { currentUser: null },

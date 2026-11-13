@@ -55,7 +55,6 @@ por `true` na flag correspondente:
 | Flag | O que liga de volta | Onde é usada |
 |---|---|---|
 | `PWA_INSTALL_ENABLED` | Prompt de instalar o app (banner "Instalar") e a seção "Leve o Japão no seu bolso" da home. Também volta a registrar o Service Worker do PWA. | `src/components/InstallPrompt.tsx`, `src/components/AppDownloadSection.tsx` (renderizado em `src/pages/Index.tsx`), `src/main.tsx` (registro do Service Worker) |
-| `KIMICLAW_ENABLED` | Assistente de chat flutuante (bolinha no canto da tela) | `src/components/layout/Layout.tsx` |
 | `LANGUAGE_SWITCH_ENABLED` | Seletor de idioma (PT/EN/JA). Hoje a loja fica travada em português mesmo se o storage tiver outro idioma salvo. | `src/context/LanguageContext.tsx` (trava o idioma), componente `src/components/LanguageSwitcher.tsx` (não é renderizado em lugar nenhum hoje — precisa voltar a importar/renderizar em `src/components/layout/Sidebar.tsx`, `src/pages/Login.tsx`, `src/pages/Register.tsx` e `src/pages/Maintenance.tsx` se quiser o seletor de volta) |
 | `COUPONS_ENABLED` | Campo de aplicar cupom no Carrinho, Checkout, Revisão do Pedido, o card "Meus Cupons" na página do cliente, e no admin: os botões "Dar cupom a todos" (Ações em Massa) e "Dar cupom" (por cliente) + o modal de conceder cupom, na tela Clientes | `src/pages/Cart.tsx`, `src/pages/Checkout.tsx` (componente `CouponSelector`), `src/pages/OrderReview.tsx`, `src/pages/Profile.tsx`, `src/components/admin/CustomerList.tsx` (botão em massa, botão por cliente e o modal `grantTarget`) |
 | `ORDER_CONFIRMATION_EMAIL_ENABLED` | E-mail automático de confirmação, disparado ao fechar um pedido (pagamento que não é cartão) | `src/pages/OrderReview.tsx` (linha que chama `emailServiceSimple.sendOrderConfirmation`) |
@@ -207,7 +206,7 @@ na função `content()`, onde antes ficava (perto do link de admin).
 
 | Preciso reativar... | Abra este arquivo |
 |---|---|
-| Idioma, PWA, KimiClaw, cupons, e-mail de confirmação, Google login, popups de cadastro, botões do topo do admin | `src/config/featureFlags.ts` |
+| Idioma, PWA, cupons, e-mail de confirmação, Google login, popups de cadastro, botões do topo do admin | `src/config/featureFlags.ts` |
 | Pontos de fidelidade | `shared/featureFlags.js` |
 | Oferta de isenção da taxa PS (popup de saída) | `src/components/ExitIntentPopup.tsx` (`PS_OFFER_POPUP_ENABLED`) |
 | Itens do menu do admin (afiliados, cupons, vlog, etc.) | `src/pages/Admin.tsx` (`DISABLED_TAB_IDS`) |

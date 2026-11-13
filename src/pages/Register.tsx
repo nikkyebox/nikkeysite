@@ -17,7 +17,7 @@ const Register: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { register: registerUser, isAuthenticated, authReady } = useUser();
-  const redirectTo = (location.state as any)?.from || '/perfil';
+  const redirectTo = (location.state as { from?: string } | null)?.from || '/perfil';
   const { t, selectedCountry } = useLanguage();
 
   const [formData, setFormData] = useState({
@@ -75,17 +75,17 @@ const Register: React.FC = () => {
     const phoneDigits = formData.phone.replace(/\D/g, '');
     const isPJ = formData.personType === 'PJ';
     const fieldErrors = runValidations({
-      name: () => (isNonEmpty(formData.name, 2) ? null : 'Informe seu nome completo.'),
-      email: () => (isValidEmail(formData.email) ? null : 'E-mail inválido.'),
+      name: () => (isNonEmpty(formData.name, 2) ? null : t('register.validate.name')),
+      email: () => (isValidEmail(formData.email) ? null : t('register.validate.email')),
       phone: () =>
         phoneDigits.length >= 6 && phoneDigits.length <= 13
           ? null
-          : 'Telefone inválido (digite o número sem o código do país).',
-      password: () => (formData.password.length >= 6 ? null : 'A senha deve ter ao menos 6 caracteres.'),
+          : t('register.validate.phone'),
+      password: () => (formData.password.length >= 6 ? null : t('register.validate.password')),
       confirmPassword: () =>
-        formData.password === formData.confirmPassword ? null : 'As senhas não coincidem.',
-      razaoSocial: () => (!isPJ || isNonEmpty(formData.razaoSocial, 2) ? null : 'Informe a razão social.'),
-      cnpj: () => (!isPJ || isValidCNPJ(formData.cnpj) ? null : 'CNPJ inválido.'),
+        formData.password === formData.confirmPassword ? null : t('register.validate.confirm'),
+      razaoSocial: () => (!isPJ || isNonEmpty(formData.razaoSocial, 2) ? null : t('register.validate.razao')),
+      cnpj: () => (!isPJ || isValidCNPJ(formData.cnpj) ? null : t('register.validate.cnpj')),
     });
     setErrors(fieldErrors);
     return Object.keys(fieldErrors).length === 0;
@@ -96,8 +96,8 @@ const Register: React.FC = () => {
 
     if (!validateForm()) {
       toast({
-        title: 'Confira os campos',
-        description: 'Alguns dados precisam de correção.',
+        title: t('register.toast.checkFields'),
+        description: t('register.toast.checkFieldsDesc'),
         variant: 'destructive',
       });
       return;
@@ -132,13 +132,13 @@ const Register: React.FC = () => {
         const verificationEmailSent = result.verificationEmailSent !== false;
         if (verificationEmailSent) {
           toast({
-            title: "Confirme seu e-mail",
-            description: "Enviamos um link de confirmação. Clique no link antes de fazer login.",
+            title: t('register.toast.confirmTitle'),
+            description: t('register.toast.confirmDesc'),
           });
         } else {
           toast({
-            title: "Conta criada",
-            description: "Nao conseguimos enviar o link automaticamente. Tente fazer login para reenviar ou avise a loja.",
+            title: t('register.toast.accountCreated'),
+            description: t('register.toast.accountCreatedDesc'),
             variant: "destructive",
           });
         }
@@ -150,8 +150,8 @@ const Register: React.FC = () => {
         // E-mail já cadastrado mas não confirmado → reenviamos o link.
         // Não é erro: leva pro login com o aviso amigável.
         toast({
-          title: "Link reenviado",
-          description: result.error || "Reenviamos o link de confirmação. Verifique sua caixa de entrada e o spam.",
+          title: t('register.toast.resent'),
+          description: result.error || t('register.toast.resentDesc'),
         });
         navigate('/login', {
           replace: true,
@@ -159,15 +159,15 @@ const Register: React.FC = () => {
         });
       } else {
         toast({
-          title: "Erro no cadastro",
-          description: result.error || "Não foi possível criar sua conta. Tente novamente.",
+          title: t('register.toast.errorTitle'),
+          description: result.error || t('register.toast.errorDesc'),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Erro no cadastro",
-        description: "Ocorreu um erro ao criar sua conta. Tente novamente.",
+        title: t('register.toast.errorTitle'),
+        description: t('register.toast.errorGeneric'),
         variant: "destructive",
       });
     } finally {
@@ -223,10 +223,10 @@ const Register: React.FC = () => {
                 {formData.personType === 'PJ' && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="razaoSocial">Razão Social</Label>
+                      <Label htmlFor="razaoSocial">{t('register.legalName')}</Label>
                       <Input id="razaoSocial" name="razaoSocial" value={formData.razaoSocial}
                         onChange={(e) => setFormData((p) => ({ ...p, razaoSocial: e.target.value }))}
-                        placeholder="Nome da empresa" aria-invalid={!!errors.razaoSocial}
+                        placeholder={t('register.companyPlaceholder')} aria-invalid={!!errors.razaoSocial}
                         className={errors.razaoSocial ? 'border-destructive' : ''} />
                       {errors.razaoSocial && <p className="text-xs text-destructive">{errors.razaoSocial}</p>}
                     </div>
@@ -238,7 +238,7 @@ const Register: React.FC = () => {
                         className={`font-mono ${errors.cnpj ? 'border-destructive' : ''}`} />
                       {errors.cnpj && <p className="text-xs text-destructive">{errors.cnpj}</p>}
                       <p className="text-xs text-muted-foreground">
-                        Compras em atacado/volume? Conheça a página <Link to="/empresas" className="text-primary font-semibold hover:underline">Empresas</Link>.
+                        {t('register.wholesale1')} <Link to="/empresas" className="text-primary font-semibold hover:underline">{t('register.companiesLink')}</Link>{t('register.wholesale2')}
                       </p>
                     </div>
                   </>
@@ -253,7 +253,7 @@ const Register: React.FC = () => {
                     id="name"
                     name="name"
                     type="text"
-                    placeholder="山田 太郎"
+                    placeholder={t('register.namePlaceholder')}
                     value={formData.name}
                     onChange={handleInputChange}
                     aria-invalid={!!errors.name}
@@ -272,7 +272,7 @@ const Register: React.FC = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="exemplo@email.com"
+                    placeholder={t('login.placeholder.emailExample')}
                     value={formData.email}
                     onChange={handleInputChange}
                     aria-invalid={!!errors.email}
@@ -292,7 +292,7 @@ const Register: React.FC = () => {
                       value={dialCode}
                       onChange={(e) => setDialCode(e.target.value)}
                       className="px-2 py-2 rounded-lg border border-input bg-background text-sm font-medium focus:ring-2 focus:ring-primary focus:border-primary"
-                      aria-label="Código do país"
+                      aria-label={t('register.aria.dialCode')}
                     >
                       {COUNTRY_DIAL_CODES.map((c) => (
                         <option key={c.country} value={c.code}>
@@ -331,7 +331,7 @@ const Register: React.FC = () => {
                       <button
                         key={opt.value}
                         type="button"
-                        onClick={() => setFormData(p => ({ ...p, gender: p.gender === opt.value ? '' : opt.value as any }))}
+                        onClick={() => setFormData(p => ({ ...p, gender: p.gender === opt.value ? '' : opt.value as '' | 'masculino' | 'feminino' | 'outro' }))}
                         className={`py-2 rounded-lg border-2 text-xs font-semibold transition-colors ${formData.gender === opt.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-gray-300'}`}
                       >
                         {opt.label}
@@ -386,7 +386,7 @@ const Register: React.FC = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      aria-label={showPassword ? t('login.aria.hidePassword') : t('login.aria.showPassword')}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -415,7 +415,7 @@ const Register: React.FC = () => {
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+                      aria-label={showConfirmPassword ? t('login.aria.hidePassword') : t('login.aria.showPassword')}
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -437,7 +437,7 @@ const Register: React.FC = () => {
                 {GOOGLE_LOGIN_ENABLED && (
                   <div className="relative py-1">
                     <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">{t('login.or')}</span></div>
                   </div>
                 )}
                 <SocialLoginButtons disabled={isLoading} mode="register" />

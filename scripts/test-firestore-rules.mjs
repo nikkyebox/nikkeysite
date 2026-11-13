@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  serverTimestamp,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
@@ -154,14 +155,30 @@ try {
   await succeeds(getDoc(doc(adminDb, 'raffle_admin', 'active')), 'admin reads private raffle data');
   await fails(getDoc(doc(anonymousDb, 'raffle_admin', 'active')), 'public cannot read private raffle data');
 
+  // Formato exato de src/services/eventosService.ts (criadoEm = serverTimestamp()).
+  const evento = (overrides = {}) => ({
+    usuarioId: 'u1',
+    tipo: 'viu_produto',
+    produtoId: 'p1',
+    categoria: 'cosmeticos',
+    criadoEm: serverTimestamp(),
+    ...overrides,
+  });
   const eventRef = doc(userDb, 'eventos', 'event-1');
-  await succeeds(
-    setDoc(eventRef, { usuarioId: 'u1', tipo: 'view', criadoEm: '2026-08-01T00:00:00.000Z' }),
-    'user creates own event',
+  await succeeds(setDoc(eventRef, evento()), 'user creates own event');
+  await fails(
+    setDoc(doc(userDb, 'eventos', 'event-spoof'), evento({ usuarioId: 'u2' })),
+    'user cannot spoof event owner',
+  );
+  await fails(setDoc(doc(userDb, 'eventos', 'event-extra'), evento({ extra: 'x' })), 'event rejects extra fields');
+  await fails(setDoc(doc(userDb, 'eventos', 'event-tipo'), evento({ tipo: 'view' })), 'event rejects unknown type');
+  await fails(
+    setDoc(doc(userDb, 'eventos', 'event-date'), evento({ criadoEm: '2026-08-01T00:00:00.000Z' })),
+    'event timestamp must be server time',
   );
   await fails(
-    setDoc(doc(userDb, 'eventos', 'event-spoof'), { usuarioId: 'u2', tipo: 'view' }),
-    'user cannot spoof event owner',
+    setDoc(doc(userDb, 'eventos', 'event-big'), evento({ categoria: 'x'.repeat(81) })),
+    'event rejects oversized category',
   );
   await succeeds(getDoc(eventRef), 'user reads own event');
   await fails(getDoc(doc(otherDb, 'eventos', 'event-1')), 'other user cannot read event');
@@ -174,11 +191,19 @@ try {
     userEmail: 'u1@example.com',
     productId: 'p1',
     productName: 'Produto',
-    videoUrl: 'https://cdn.example.com/review.mp4',
+    videoUrl: 'https://firebasestorage.googleapis.com/v0/b/nikkeybox.firebasestorage.app/o/review.mp4?alt=media',
     status: 'pending',
     submittedAt: '2026-08-01T00:00:00.000Z',
   };
   await succeeds(setDoc(doc(userDb, 'video_reviews', video.id), video), 'user submits constrained video review');
+  await fails(
+    setDoc(doc(userDb, 'video_reviews', 'vr-u1-p2'), { ...video, id: 'vr-u1-p2', productId: 'p2', videoUrl: 'https://cdn.example.com/review.mp4' }),
+    'video review only accepts Firebase Storage URLs',
+  );
+  await fails(
+    setDoc(doc(userDb, 'video_reviews', 'vr-u1-p3'), { ...video, productId: 'p3' }),
+    'video review id must match document id',
+  );
   await fails(
     setDoc(doc(otherDb, 'video_reviews', 'forged'), { ...video, id: 'forged', userId: 'u2', pointsAwarded: 500 }),
     'user cannot self-award video points',
@@ -314,6 +339,23 @@ try {
   await fails(setDoc(doc(userDb, 'promo_state', 'homePromotion'), { holds: [] }), 'user cannot write promo_state');
   await fails(getDoc(doc(anonymousDb, 'promo_state', 'homePromotion')), 'anonymous cannot read promo_state');
   await fails(setDoc(doc(anonymousDb, 'promo_state', 'homePromotion'), { holds: [] }), 'anonymous cannot write promo_state');
+  // Fase 1 (auditoria 2026-07-23): nenhum cliente, logado ou anônimo, pode
+  // mexer em estoque, pedido, CPF, cupom, uso de promoção ou contador de venda.
+  // Essas escritas precisam passar pela API (Admin SDK), com transação e idempotência.
+  await fails(updateDoc(doc(userDb, 'products', 'p1'), { 'stock.quantity': 0 }), 'user cannot zero product stock');
+  await fails(updateDoc(doc(anonymousDb, 'products', 'p1'), { 'stock.quantity': 0 }), 'anonymous cannot zero product stock');
+  await fails(setDoc(doc(userDb, 'orders', 'forjado'), { userId: 'u1', totalYen: 1 }), 'user cannot forge an order');
+  await fails(setDoc(doc(anonymousDb, 'orders', 'forjado2'), { totalYen: 1 }), 'anonymous cannot forge an order');
+  await fails(setDoc(doc(userDb, 'cpf_index', '12345678901'), { productIds: [] }), 'user cannot write cpf_index');
+  await fails(setDoc(doc(anonymousDb, 'cpf_index', '12345678901'), { productIds: [] }), 'anonymous cannot write cpf_index');
+  await fails(setDoc(doc(userDb, 'fraud_attempts', 'f1'), { cpf: 'x' }), 'user cannot write fraud_attempts');
+  await fails(setDoc(doc(userDb, 'coupons', 'FREE'), { active: true }), 'user cannot create coupon');
+  await fails(setDoc(doc(userDb, 'coupon_usage', 'c1'), { userId: 'u1' }), 'user cannot write coupon_usage');
+  await fails(setDoc(doc(userDb, 'promo_usage', 'p1_u1'), { userId: 'u1' }), 'user cannot write promo_usage');
+  await fails(updateDoc(doc(anonymousDb, 'siteContent', 'homePromotion'), { soldCount: 0 }), 'anonymous cannot reset promo soldCount');
+  await fails(updateDoc(doc(userDb, 'siteContent', 'homePromotion'), { soldCount: 0 }), 'user cannot reset promo soldCount');
+  await fails(setDoc(doc(userDb, 'email_optout', 'alguem'), { optedOut: true }), 'user cannot change email opt-out of others');
+
   console.log(`Firestore rules preflight passed: ${checks} checks`);
 } finally {
   await environment.cleanup();

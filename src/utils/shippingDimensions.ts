@@ -1,4 +1,4 @@
-import { packedWeightG } from '../../shared/weight.js';
+import { packedWeightG, parcelWeightG, productPackedWeightG } from '../../shared/weight.js';
 import type { CartItem, ProductPackageDimensionsCm } from '@/types';
 
 export const PACKAGE_SAFETY_MARGIN_CM = 5;
@@ -98,12 +98,12 @@ export const calculateCartShippingBoxes = (
 ): CartShippingBoxes => {
   if (items.length === 0) return emptyBoxes();
 
-  // Peso pronto para envio: o mesmo padding de 200g vale para peso cadastrado
-  // e estimado enquanto a unidade crua tiver menos de 2kg.
+  // Peso pronto para envio: peso conferido entra exato; peso não conferido ou
+  // estimado leva a margem de 200g enquanto a unidade tiver menos de 2kg.
   let totalWeightG = 0;
   for (const item of items) {
     if (item.product.weightGrams && item.product.weightGrams > 0) {
-      totalWeightG += packedWeightG(item.product.weightGrams) * item.quantity;
+      totalWeightG += productPackedWeightG(item.product) * item.quantity;
     } else {
       const dim = sanitizePackageDimensions(item.product.packageDimensionsCm);
       const estimatedWeight = dim
@@ -112,7 +112,8 @@ export const calculateCartShippingBoxes = (
       totalWeightG += packedWeightG(estimatedWeight) * item.quantity;
     }
   }
-  totalWeightG = Math.max(100, Math.round(totalWeightG));
+  // Mais a caixa com plástico-bolha, uma vez por pacote.
+  totalWeightG = Math.max(100, parcelWeightG(totalWeightG));
 
   let knownQuantity = 0;
   let missingQuantity = 0;

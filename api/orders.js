@@ -25,7 +25,7 @@ import {
 import { buildOrderEmail, sendMail } from './_lib/mailer.js';
 import { enforceRateLimit } from './_lib/rate-limit.js';
 
-const PAYMENT_METHODS = new Set(['card', 'pix', 'bank', 'paypay', 'yucho', 'wise']);
+const PAYMENT_METHODS = new Set(['card', 'pix']);
 const ORDER_PATTERN = /^(?:SC-JP|SE-[A-Z]{2})-\d{6}$/;
 
 function parseItems(raw) {

@@ -7,7 +7,7 @@ type Platform = 'android' | 'ios' | null;
 // Detecta plataforma mobile
 const detectPlatform = (): Platform => {
   const ua = navigator.userAgent;
-  if (/iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream) return 'ios';
+  if (/iPad|iPhone|iPod/.test(ua) && !(window as Window & { MSStream?: unknown }).MSStream) return 'ios';
   if (/Android/.test(ua)) return 'android';
   return null;
 };
@@ -15,7 +15,7 @@ const detectPlatform = (): Platform => {
 // App já está instalado como PWA (sem barra do browser = standalone)
 const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches ||
-  (window.navigator as any).standalone === true;
+  (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 const DISMISSED_KEY = 'pwa_install_dismissed';
 const DISMISS_TTL   = 7 * 24 * 60 * 60 * 1000; // 7 dias

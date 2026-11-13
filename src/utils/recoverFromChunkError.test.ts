@@ -25,7 +25,7 @@ function encenar(registros: RegistroFalso[]) {
   const replace = vi.fn();
   Object.defineProperty(window, 'location', {
     configurable: true,
-    value: { href: 'https://www.nikkeybox-store.com/carrinho', replace },
+    value: { href: 'https://www.nikkeybox.jp/carrinho', replace },
   });
   Object.defineProperty(window.navigator, 'serviceWorker', {
     configurable: true,
@@ -42,8 +42,8 @@ describe('recoverFromChunkError', () => {
   });
 
   it('derruba o SW do Workbox e PRESERVA o de push', async () => {
-    const workbox = registro('https://www.nikkeybox-store.com/');
-    const push = registro('https://www.nikkeybox-store.com/push/');
+    const workbox = registro('https://www.nikkeybox.jp/');
+    const push = registro('https://www.nikkeybox.jp/push/');
     const { replace } = encenar([workbox, push]);
 
     const recuperou = await recoverFromChunkError();
@@ -55,7 +55,7 @@ describe('recoverFromChunkError', () => {
   });
 
   it('limpa o Cache Storage, que é onde mora o chunk velho', async () => {
-    encenar([registro('https://www.nikkeybox-store.com/')]);
+    encenar([registro('https://www.nikkeybox.jp/')]);
 
     await recoverFromChunkError();
 
@@ -63,7 +63,7 @@ describe('recoverFromChunkError', () => {
   });
 
   it('não recarrega duas vezes seguidas — a trava contra loop continua', async () => {
-    const { replace } = encenar([registro('https://www.nikkeybox-store.com/')]);
+    const { replace } = encenar([registro('https://www.nikkeybox.jp/')]);
 
     await recoverFromChunkError();
     const segunda = await recoverFromChunkError();

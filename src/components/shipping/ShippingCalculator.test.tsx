@@ -35,7 +35,10 @@ const itens: CartItem[] = [item];
 const getSpaceUsedEstavel = () => ({ small: 1, large: 0, totalSmallEquivalent: 1 });
 
 vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({ t: (key: string) => key, language: 'pt' }),
+  useLanguage: (() => {
+    const t = (key: string) => key;
+    return () => ({ t, language: 'pt' });
+  })(),
 }));
 
 vi.mock('@/context/CartContext', () => ({
@@ -65,7 +68,8 @@ describe('ShippingCalculator — seleção de frete', () => {
 
     render(<CheckoutHarness />);
 
-    const alvo = (await screen.findByText(/Japan Post EMS/)).closest('div.cursor-pointer') as HTMLElement;
+    // O mock de t() devolve a chave; o nome do serviço agora sai de t('shipping.svc.ems').
+    const alvo = (await screen.findByText(/shipping\.svc\.ems/)).closest('div.cursor-pointer') as HTMLElement;
     fireEvent.click(alvo);
 
     const loopWarnings = erroSpy.mock.calls.filter((c) =>

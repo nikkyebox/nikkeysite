@@ -37,7 +37,8 @@ const CouponUsageReport: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'coupon' | 'affiliate'>('all');
 
   const fetchPage = useCallback(async (pageCursor: string | null, reset: boolean) => {
-    reset ? setLoading(true) : setLoadingMore(true);
+    if (reset) setLoading(true);
+    else setLoadingMore(true);
     setError('');
     try {
       const params = new URLSearchParams({ limit: '25', type: filterType });
@@ -61,7 +62,8 @@ const CouponUsageReport: React.FC = () => {
       }
       setError('Não foi possível carregar o relatório.');
     } finally {
-      reset ? setLoading(false) : setLoadingMore(false);
+      if (reset) setLoading(false);
+      else setLoadingMore(false);
     }
   }, [filterCode, filterType]);
 

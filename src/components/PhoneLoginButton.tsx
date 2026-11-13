@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ const RECAPTCHA_ID = 'recaptcha-phone-login';
 const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }) => {
   const { sendPhoneCode, confirmPhoneCode } = useUser();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');
@@ -44,7 +46,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
   const handleSend = async () => {
     const normalized = phone.replace(/[^\d+]/g, '');
     if (!normalized.startsWith('+') || normalized.length < 8) {
-      toast({ title: 'Número inválido', description: 'Use o formato internacional, ex.: +5511999998888.', variant: 'destructive' });
+      toast({ title: t('phone.toast.invalidTitle'), description: t('phone.toast.invalidDesc'), variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -55,10 +57,10 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
       if (result.success && result.confirmationResult) {
         confirmRef.current = result.confirmationResult;
         setStep('code');
-        toast({ title: 'Código enviado!', description: `Enviamos um SMS para ${normalized}.` });
+        toast({ title: t('phone.toast.sentTitle'), description: t('phone.toast.sentDesc').replace('{phone}', normalized) });
       } else {
         cleanupVerifier();
-        toast({ title: 'Erro', description: result.error || 'Não foi possível enviar o SMS.', variant: 'destructive' });
+        toast({ title: t('phone.toast.error'), description: result.error || t('phone.toast.sendError'), variant: 'destructive' });
       }
     } finally {
       setLoading(false);
@@ -68,18 +70,18 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
   const handleConfirm = async () => {
     if (!confirmRef.current) return;
     if (code.trim().length < 6) {
-      toast({ title: 'Código incompleto', description: 'Digite os 6 dígitos do SMS.', variant: 'destructive' });
+      toast({ title: t('phone.toast.incompleteTitle'), description: t('phone.toast.incompleteDesc'), variant: 'destructive' });
       return;
     }
     setLoading(true);
     try {
       const result = await confirmPhoneCode(confirmRef.current, code);
       if (result.success) {
-        toast({ title: 'Login realizado!', description: 'Bem-vindo(a)!' });
+        toast({ title: t('phone.toast.okTitle'), description: t('phone.toast.okDesc') });
         setOpen(false);
         reset();
       } else {
-        toast({ title: 'Erro', description: result.error || 'Código inválido.', variant: 'destructive' });
+        toast({ title: t('phone.toast.error'), description: result.error || t('phone.toast.invalidCode'), variant: 'destructive' });
       }
     } finally {
       setLoading(false);
@@ -96,7 +98,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
         className="w-full rounded-xl py-5 font-semibold flex items-center justify-center gap-3 border-2"
       >
         <Phone className="w-5 h-5 shrink-0" />
-        Entrar com telefone
+        {t('phone.login.open')}
       </Button>
     );
   }
@@ -106,7 +108,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
       {step === 'phone' ? (
         <>
           <Label htmlFor="phone-login" className="flex items-center gap-2">
-            <Phone className="w-4 h-4" /> Telefone (com código do país)
+            <Phone className="w-4 h-4" /> {t('phone.login.label')}
           </Label>
           <Input
             id="phone-login"
@@ -119,13 +121,13 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
             disabled={loading}
           />
           <Button type="button" onClick={handleSend} disabled={loading} className="w-full btn-primary rounded-xl py-5 font-semibold">
-            {loading ? 'Enviando...' : 'Enviar código SMS'}
+            {loading ? t('phone.login.sending') : t('phone.login.send')}
           </Button>
         </>
       ) : (
         <>
           <Label htmlFor="phone-code" className="flex items-center gap-2">
-            Código recebido por SMS
+            {t('phone.login.codeLabel')}
           </Label>
           <Input
             id="phone-code"
@@ -140,7 +142,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
             className="tracking-[0.4em] text-center text-lg"
           />
           <Button type="button" onClick={handleConfirm} disabled={loading} className="w-full btn-primary rounded-xl py-5 font-semibold">
-            {loading ? 'Confirmando...' : 'Confirmar e entrar'}
+            {loading ? t('phone.login.confirming') : t('phone.login.confirm')}
           </Button>
           <button
             type="button"
@@ -148,7 +150,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
             className="text-sm text-primary hover:underline w-full text-center"
             disabled={loading}
           >
-            Trocar número / reenviar
+            {t('phone.login.change')}
           </button>
         </>
       )}
@@ -158,7 +160,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
         onClick={() => { setOpen(false); reset(); }}
         className="text-xs text-muted-foreground hover:underline w-full text-center"
       >
-        Cancelar
+        {t('profile.cancel')}
       </button>
 
       {/* Container do reCAPTCHA invisível exigido pelo Firebase Phone Auth */}

@@ -10,6 +10,7 @@ import { adminService } from '@/services/adminService';
 import { referralService } from '@/services/referralService';
 import { trackSignUp, trackLogin } from '@/lib/analytics';
 import { sendVerificationEmail } from '@/services/mailService';
+import { useLanguage } from '@/context/LanguageContext';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -40,6 +41,7 @@ export interface UserProfile {
     city: string;
     address: string;
     building?: string;
+    country?: string;
   };
   createdAt: string;
   coupons?: Coupon[]; // Cupons do perfil (sincronizados no Firestore)
@@ -60,7 +62,7 @@ export interface Coupon {
 }
 
 // Fábrica do cupom de boas-vindas concedido no cadastro.
-export const makeWelcomeCoupon = (): Coupon => ({
+const makeWelcomeCoupon = (): Coupon => ({
   id: `welcome-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
   code: 'BEMVINDO10',
   description: 'Cupom de boas-vindas — 10% de desconto',
@@ -80,6 +82,14 @@ export interface Order {
   /** Só vira `true` quando o pagamento é confirmado
    *  (`api/_lib/fulfillment.js`): separa pedido pago de pedido só criado. */
   paymentConfirmed?: boolean;
+  /** Campos gravados pelo servidor (`api/orders.js`). Opcionais: pedidos antigos não os têm. */
+  currency?: string;
+  totalYen?: number;
+  grandTotalYen?: number;
+  couponCode?: string;
+  couponDiscountYen?: number;
+  couponDiscount?: number;
+  appliedCoupon?: { code: string; discount?: number };
   items: Array<{
     productName: string;
     size: string;
@@ -154,7 +164,6 @@ interface UserContextType {
   useCoupon: (couponId: string) => void;
   consumeCouponByCode: (code: string) => void;
   validateProfileCoupon: (code: string, orderTotalYen?: number) => { valid: boolean; coupon?: Coupon; error?: string };
-  addOrder: (order: Omit<Order, 'id' | 'date'> & { orderNumber?: string }) => Promise<void> | void;
   clearOrderHistory: () => void;
   refreshOrders: () => Promise<void>;
   /** `true` quando a leitura dos pedidos no servidor falhou e o que está na
@@ -175,6 +184,50 @@ const firebaseErrorCode = (error: unknown): string =>
     ? error.code
     : '';
 
+const errorMessageOf = (error: unknown): string =>
+  error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+    ? error.message
+    : '';
+
+/** Pedido como vem do localStorage ou do Firestore, antes de normalizar. */
+interface RawOrder {
+  id?: string;
+  orderNumber?: string;
+  status?: string;
+  date?: string;
+  orderDate?: string;
+  syncedAt?: string;
+  items?: unknown;
+  totalAmount?: unknown;
+  totalPrice?: unknown;
+  total?: unknown;
+  paymentMethod?: string;
+  shipping?: Order['shipping'];
+  shippingCost?: unknown;
+  shippingCarrier?: string;
+  shippingAddress?: Order['shippingAddress'] & { email?: string };
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
+  customerEmail?: string;
+  email?: string;
+  name?: string;
+  postalCode?: string;
+  prefecture?: string;
+  city?: string;
+  address?: string;
+  building?: string;
+}
+
+interface RawOrderItem {
+  productName?: string;
+  name?: string;
+  productId?: string;
+  size?: string;
+  quantity?: unknown;
+  price?: unknown;
+}
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const useUser = () => {
@@ -190,6 +243,7 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+  const { t } = useLanguage();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -292,7 +346,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     return list;
   };
 
-  const normalizeStoredOrder = (order: any): Order | null => {
+  const normalizeStoredOrder = (order: RawOrder | null | undefined): Order | null => {
     if (!order) return null;
     const statusText = String(order.status || '').toLowerCase();
     const status =
@@ -308,7 +362,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       orderNumber: order.orderNumber || order.id,
       date: order.orderDate || order.date || order.syncedAt || new Date().toISOString(),
       items: Array.isArray(order.items)
-        ? order.items.map((item: any) => ({
+        ? order.items.map((item: RawOrderItem) => ({
             productName: item.productName || item.name || item.productId || 'Produto',
             size: item.size || '',
             quantity: Number(item.quantity) || 1,
@@ -337,7 +391,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const orderMap = new Map<string, Order>();
     const addOrders = (list: unknown, overwrite = true) => {
       if (!Array.isArray(list)) return;
-      list.forEach((order: any) => {
+      list.forEach((order: RawOrder) => {
         const normalized = normalizeStoredOrder(order);
         const key = normalized?.orderNumber || normalized?.id;
         if (!key || !normalized) return;
@@ -362,7 +416,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // and may contain older duplicate entries with wrong paymentMethod)
       addOrders(
         Array.isArray(legacyOrders)
-          ? legacyOrders.filter((order: any) =>
+          ? legacyOrders.filter((order: RawOrder) =>
               normalizeEmail(order?.customerEmail || order?.email || order?.shippingAddress?.email || '') === normalizedEmail
             )
           : [],
@@ -381,7 +435,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // Ignore malformed local users backup.
     }
 
-    return Array.from(orderMap.values()).sort((a: any, b: any) =>
+    return Array.from(orderMap.values()).sort((a: Order, b: Order) =>
       new Date(b.orderDate || b.date).getTime() - new Date(a.orderDate || a.date).getTime()
     );
   };
@@ -431,7 +485,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
 
   // Helper: fix old tracking URLs to use the correct format (direct results)
-  const fixTrackingUrl = (order: any): any => {
+  const fixTrackingUrl = <T extends Pick<RawOrder, 'trackingNumber' | 'trackingUrl' | 'carrier' | 'shipping'>>(order: T): T => {
     const trackingNumber = order.trackingNumber;
     const savedUrl = order.trackingUrl || '';
     let carrier = order.carrier || order.shipping?.carrier || '';
@@ -477,7 +531,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     cursor: OrderPageCursor | null = null
   ): Promise<LoadedOrdersPage> => {
     const page = await firebaseSyncService.getOrdersFromFirestore(userId, userEmail, 20, cursor);
-    const items = page.items.map((order) => {
+    const items = page.items.map((order: RawOrder) => {
       const mapped = {
         id: order.id || order.orderNumber,
         orderNumber: order.orderNumber || order.id,
@@ -590,20 +644,22 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (firestoreUser) {
           // Merge Firestore data with local data (keep more complete profile)
           const localUser = storedUser ? JSON.parse(safeStorage.getItem('user') || '{}') : {};
+          // Perfil do Firestore como vem do SDK; campos ausentes ficam para o perfil local.
+          const remoteUser: Partial<UserProfile> = firestoreUser ?? {};
           const mergedUser: UserProfile = {
             ...localUser,
             ...firestoreUser,
             // O e-mail AUTENTICADO no Firebase é a fonte da verdade de QUEM logou.
             // Sem isto, um perfil do Firestore podia sobrescrever o e-mail do admin
             // e derrubar o acesso de admin logo após o login.
-            email: firebaseUser.email || (firestoreUser as any).email || localUser.email,
+            email: firebaseUser.email || remoteUser.email || localUser.email,
             // Keep the most complete address (Firestore if has data, else local)
-            address: (firestoreUser as any).address?.postalCode
-              ? { ...localUser.address, ...(firestoreUser as any).address }
-              : localUser.address || (firestoreUser as any).address || {},
+            address: remoteUser.address?.postalCode
+              ? { ...localUser.address, ...remoteUser.address }
+              : localUser.address || remoteUser.address || {},
             // Keep birthdate from whichever source has it
-            birthdate: (firestoreUser as any).birthdate || localUser.birthdate || undefined,
-            phone: (firestoreUser as any).phone || localUser.phone || '',
+            birthdate: remoteUser.birthdate || localUser.birthdate || undefined,
+            phone: remoteUser.phone || localUser.phone || '',
           } as UserProfile;
           
           setUser(mergedUser);
@@ -656,6 +712,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (!firebaseConfigReady || !auth) setAuthReady(true);
 
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- listener de autenticação registrado uma vez; reinscrever a cada render recriaria o listener
   }, []);
 
   // Save current user session to safeStorage (sem senha)
@@ -787,7 +844,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           else safeStorage.removeItem('user');
           return {
             success: false,
-            error: 'Senha correta, mas não foi possível abrir a sessão do painel. Tente novamente.',
+            error: t('ctx.login.adminSession'),
             code: firebaseErrorCode(err),
           };
         }
@@ -815,7 +872,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         safeStorage.setItem('user', JSON.stringify(stripSensitive(foundUser)));
         return { success: true };
       }
-      return { success: false, error: 'Email ou senha incorretos. Cadastre-se primeiro caso não tenha uma conta.' };
+      return { success: false, error: t('ctx.login.localInvalid') };
     }
 
     try {
@@ -835,7 +892,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         await firebaseSyncService.logoutUser();
         return { 
           success: false, 
-          error: 'Usuário não cadastrado. Crie uma conta primeiro na página de cadastro.' 
+          error: t('ctx.login.notRegistered') 
         };
       }
       
@@ -849,7 +906,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         devLog('🔒 [LOGIN] E-mail não verificado, bloqueando acesso:', normalizedEmail);
         const verificationSent = await sendVerificationEmailWithFallback(
           normalizedEmail,
-          (userProfile as any)?.name || localUser?.name
+          (userProfile as Partial<UserProfile> | null)?.name || localUser?.name
         );
         await firebaseSyncService.logoutUser();
         clearCurrentSession();
@@ -857,8 +914,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           success: false,
           needsVerification: true,
           error: verificationSent
-            ? 'Confirme seu e-mail pelo link que enviamos. Reenviamos o link agora; verifique a caixa de entrada e o spam.'
-            : 'Seu e-mail ainda nao foi confirmado, mas nao conseguimos reenviar o link automaticamente. Avise a loja para reenviar manualmente.',
+            ? t('ctx.login.verifySent')
+            : t('ctx.login.verifyNotSent'),
         };
       }
 
@@ -879,8 +936,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setIsAuthenticated(true);
         
         // Load and merge the first bounded Firestore page.
-        const localOrders = getUserOrders(userData.id, (userData as any).email || normalizedEmail);
-        const firestorePage = await loadInitialOrdersFromFirestore(firebaseUser.uid, (userData as any).email || normalizedEmail);
+        const localOrders = getUserOrders(userData.id, userData.email || normalizedEmail);
+        const firestorePage = await loadInitialOrdersFromFirestore(firebaseUser.uid, userData.email || normalizedEmail);
         const allOrders = mergeOrders(localOrders, firestorePage.items);
 
         const userCoupons = resolveUserCoupons(userData as UserProfile);
@@ -895,15 +952,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         trackLogin('email');
         return { success: true };
       }
-    } catch (error: any) {
-      devLog('⚠️ [LOGIN] Firebase Auth failed:', error?.code);
+    } catch (error: unknown) {
+      devLog('⚠️ [LOGIN] Firebase Auth failed:', firebaseErrorCode(error));
       
-      const authCode = error?.code || '';
+      const authCode = firebaseErrorCode(error) || '';
       
       if (authCode.includes('api-key-not-valid')) {
         return {
           success: false,
-          error: 'API Key inválida. Confirme se a chave é do projeto correto.',
+          error: t('ctx.login.apiKey'),
           code: authCode
         };
       }
@@ -918,10 +975,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       if (isConnectivityError) {
         const friendlyMessage = authCode.includes('unauthorized-domain')
-          ? `Domínio não autorizado no Firebase. Adicione ${window.location.hostname} em Authentication > Settings > Authorized domains.`
+          ? t('ctx.login.unauthorizedDomain').replace('{host}', window.location.hostname)
           : authCode.includes('network-request-failed')
-            ? 'Falha de rede ao conectar. Verifique sua conexão e tente novamente.'
-            : 'Erro de configuração do Firebase.';
+            ? t('ctx.login.network')
+            : t('ctx.login.config');
         return { success: false, error: friendlyMessage, code: authCode };
       }
 
@@ -937,12 +994,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         // senha errada quanto para e-mail inexistente; não dá para distinguir no cliente.
         return {
           success: false,
-          error: 'E-mail ou senha incorretos. Se ainda não tem conta, crie uma na página de cadastro.'
+          error: t('ctx.login.credentials')
         };
       }
     }
     
-    return { success: false, error: 'Erro ao fazer login. Tente novamente.' };
+    return { success: false, error: t('ctx.login.generic') };
   };
 
   const register = async (userData: Omit<UserProfile, 'id' | 'createdAt' | 'password'> & { password: string }): Promise<{ success: boolean; error?: string; verificationEmailSent?: boolean }> => {
@@ -960,11 +1017,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       let firebaseUser;
       try {
         firebaseUser = await firebaseSyncService.registerUser(normalizedEmail, userData.password);
-      } catch (authError: any) {
-        if (authError.code && authError.code.includes('api-key-not-valid')) {
-          return { success: false, error: 'API Key inválida. Verifique se a chave é do projeto correto.' };
+      } catch (authError: unknown) {
+        if (firebaseErrorCode(authError).includes('api-key-not-valid')) {
+          return { success: false, error: t('ctx.register.apiKey') };
         }
-        if ((authError.code && authError.code.includes('email-already-in-use')) || (authError.message && authError.message.includes('email-already-in-use'))) {
+        if ((firebaseErrorCode(authError).includes('email-already-in-use')) || (errorMessageOf(authError).includes('email-already-in-use'))) {
           // Ghost user check: exists in Auth but maybe not in Firestore
           devLog('⚠️ [REGISTER] Email already in Auth. Checking for ghost user...');
           try {
@@ -985,13 +1042,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                   success: false,
                   verificationEmailSent: resent,
                   error: resent
-                    ? 'Este e-mail já tem cadastro, mas ainda não foi confirmado. Reenviamos o link de confirmação — verifique sua caixa de entrada e o spam.'
-                    : 'Este e-mail já tem cadastro mas ainda não foi confirmado. Tente fazer login para reenviar o link.',
+                    ? t('ctx.register.existsResent')
+                    : t('ctx.register.existsNotSent'),
                 };
               }
               // E-mail já confirmado → realmente já cadastrado.
               await firebaseSyncService.logoutUser();
-              return { success: false, error: 'Este email já está cadastrado. Faça login na página de login.' };
+              return { success: false, error: t('ctx.register.exists') };
             }
             
             // Ghost user confirmed: Auth exists but NO Firestore profile
@@ -1001,18 +1058,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             
             // Verification is sent once below, after the profile is saved.
             // Fall through to profile creation below
-          } catch (loginError: any) {
+          } catch (loginError: unknown) {
             // Can't login - wrong password for existing Auth account
             devLog('❌ [REGISTER] Ghost user exists but password mismatch');
             await firebaseSyncService.logoutUser().catch(() => {});
-            return { success: false, error: 'Este email já existe com outra senha. Tente fazer login ou use "Esqueceu a senha?" para redefinir.' };
+            return { success: false, error: t('ctx.register.wrongPassword').replace('{forgot}', t('ctx.login.forgot')) };
           }
-        } else if (authError.code && authError.code.includes('weak-password')) {
-          return { success: false, error: 'Senha muito fraca. Use pelo menos 6 caracteres.' };
+        } else if (firebaseErrorCode(authError).includes('weak-password')) {
+          return { success: false, error: t('ctx.register.weakPassword') };
         } else {
-          const errorMessage = authError?.code
-            ? `Erro no cadastro: ${authError.code}`
-            : 'Erro ao criar conta. Tente novamente.';
+          const errorMessage = firebaseErrorCode(authError)
+            ? t('ctx.register.errorCode').replace('{code}', firebaseErrorCode(authError))
+            : t('ctx.register.generic');
           return { success: false, error: errorMessage };
         }
       }
@@ -1061,7 +1118,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       return { success: true, verificationEmailSent: verificationSent };
     } catch (error) {
       devError('❌ [DEBUG] Error registering user:', error);
-      return { success: false, error: 'Erro ao criar conta. Tente novamente.' };
+      return { success: false, error: t('ctx.register.generic') };
     } finally {
       isRegisteringRef.current = false;
     }
@@ -1184,18 +1241,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       devError('❌ [PHONE LOGIN] Falha ao enviar SMS:', error);
       const code = firebaseErrorCode(error);
       if (code.includes('invalid-phone-number')) {
-        return { success: false, error: 'Número inválido. Use o formato internacional, ex.: +5511999998888.' };
+        return { success: false, error: t('ctx.phone.invalid') };
       }
       if (code.includes('too-many-requests')) {
-        return { success: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' };
+        return { success: false, error: t('ctx.auth.tooMany') };
       }
       if (code.includes('operation-not-allowed')) {
-        return { success: false, error: 'Login por telefone ainda não está ativado no Firebase.' };
+        return { success: false, error: t('ctx.phone.notEnabled') };
       }
       if (code.includes('captcha-check-failed')) {
-        return { success: false, error: 'Falha na verificação anti-robô. Recarregue a página e tente de novo.' };
+        return { success: false, error: t('ctx.phone.captcha') };
       }
-      return { success: false, error: 'Não foi possível enviar o código SMS. Tente novamente.' };
+      return { success: false, error: t('ctx.phone.sendFail') };
     }
   };
 
@@ -1213,12 +1270,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       devError('❌ [PHONE LOGIN] Código inválido:', error);
       const ecode = firebaseErrorCode(error);
       if (ecode.includes('invalid-verification-code')) {
-        return { success: false, error: 'Código incorreto. Confira os 6 dígitos do SMS.' };
+        return { success: false, error: t('ctx.phone.wrongCode') };
       }
       if (ecode.includes('code-expired')) {
-        return { success: false, error: 'O código expirou. Peça um novo SMS.' };
+        return { success: false, error: t('ctx.phone.expired') };
       }
-      return { success: false, error: 'Não foi possível confirmar o código. Tente novamente.' };
+      return { success: false, error: t('ctx.phone.confirmFail') };
     }
   };
 
@@ -1330,70 +1387,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   // e não usado). É assim que garantimos que só quem possui o cupom usa.
   const validateProfileCoupon = (code: string, orderTotalYen?: number): { valid: boolean; coupon?: Coupon; error?: string } => {
     const normalized = code.trim().toUpperCase();
-    if (!normalized) return { valid: false, error: 'Digite um cupom.' };
+    if (!normalized) return { valid: false, error: t('ctx.coupon.empty') };
     const found = coupons.find(c => c.code.toUpperCase() === normalized);
-    if (!found) return { valid: false, error: 'Você não possui este cupom.' };
-    if (found.isUsed) return { valid: false, error: 'Este cupom já foi utilizado.' };
-    if (new Date(found.expiresAt) <= new Date()) return { valid: false, error: 'Cupom expirado.' };
+    if (!found) return { valid: false, error: t('ctx.coupon.notOwned') };
+    if (found.isUsed) return { valid: false, error: t('ctx.coupon.used') };
+    if (new Date(found.expiresAt) <= new Date()) return { valid: false, error: t('ctx.coupon.expired') };
     if (found.minOrderValue && orderTotalYen !== undefined && orderTotalYen < found.minOrderValue) {
-      return { valid: false, error: `Pedido mínimo de ¥${found.minOrderValue.toLocaleString()} para usar este cupom.` };
+      return { valid: false, error: t('ctx.coupon.minOrder').replace('{min}', found.minOrderValue.toLocaleString()) };
     }
     return { valid: true, coupon: found };
-  };
-
-  const addOrder = async (orderData: Omit<Order, 'id' | 'date'> & { orderNumber?: string }) => {
-    const newOrder: Order = {
-      ...orderData,
-      id: `order-${Date.now()}`,
-      orderNumber: orderData.orderNumber || `DL-${Date.now().toString().slice(-8)}`,
-      date: new Date().toISOString(),
-    };
-    
-    // Atualiza os pedidos do usuário atual
-    setOrders(prev => (
-      prev.some((order) => order.orderNumber === newOrder.orderNumber)
-        ? prev
-        : [newOrder, ...prev]
-    ));
-    
-    // Sync to Firestore
-    if (user) {
-      try {
-        const customerEmail = normalizeEmail((orderData as any).customerEmail || user.email);
-        await firebaseSyncService.syncOrderToFirestore(user.id, {
-          ...newOrder,
-          orderDate: newOrder.date,
-          totalPrice: newOrder.totalAmount,
-          customerEmail,
-          customerName: (orderData as any).customerName || user.name,
-          customerPhone: user.phone,
-        });
-        devLog('✅ [ORDER] Synced to Firestore:', newOrder.orderNumber);
-      } catch (err) {
-        devError('❌ [ORDER] Failed to sync to Firestore:', err);
-      }
-    }
-    
-    // Também atualiza na base global de usuários (safeStorage backup)
-    if (user) {
-      const usersData = safeStorage.getItem('nikkeybox-users');
-      if (usersData) {
-        const users = JSON.parse(usersData);
-        const customerEmail = normalizeEmail((orderData as any).customerEmail || user.email);
-        const userKey = users[customerEmail] ? customerEmail : user.email;
-        if (users[userKey]) {
-          if (!users[userKey].orders) {
-            users[userKey].orders = [];
-          }
-          users[userKey].orders.unshift({
-            ...newOrder,
-            orderDate: newOrder.date,
-            totalPrice: newOrder.totalAmount,
-          });
-          safeStorage.setItem('nikkeybox-users', JSON.stringify(users));
-        }
-      }
-    }
   };
 
   const clearOrderHistory = () => {
@@ -1406,15 +1408,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       await firebaseSyncService.sendPasswordReset(normalizeEmail(email));
       return { success: true };
-    } catch (error: any) {
-      const code = error?.code || '';
+    } catch (error: unknown) {
+      const code = firebaseErrorCode(error) || '';
       if (code.includes('user-not-found')) {
-        return { success: false, error: 'Nenhuma conta encontrada com este email.' };
+        return { success: false, error: t('ctx.reset.notFound') };
       }
       if (code.includes('too-many-requests')) {
-        return { success: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' };
+        return { success: false, error: t('ctx.auth.tooMany') };
       }
-      return { success: false, error: 'Erro ao enviar email de recuperação. Tente novamente.' };
+      return { success: false, error: t('ctx.reset.generic') };
     }
   };
 
@@ -1457,7 +1459,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     useCoupon,
     consumeCouponByCode,
     validateProfileCoupon,
-    addOrder,
     clearOrderHistory,
     refreshOrders,
     ordersOffline,

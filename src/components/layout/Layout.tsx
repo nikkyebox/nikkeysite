@@ -5,12 +5,10 @@ import Footer from './Footer';
 import AdminPreviewBar from './AdminPreviewBar';
 import { useBirthdayBonus } from '@/hooks/useBirthdayBonus';
 import OrganizationJsonLd from '@/components/OrganizationJsonLd';
-import { KIMICLAW_ENABLED } from '@/config/featureFlags';
 
-// Widget não-crítico (chat flutuante): carregado sob demanda para manter o
+// Widget não-crítico (botão flutuante do WhatsApp): carregado sob demanda para manter o
 // chunk compartilhado (Layout) leve. Ausência momentânea do botão não afeta
 // o conteúdo principal da página — fallback null é apropriado aqui.
-const KimiClawAssistant = lazy(() => import('../KimiClawAssistant'));
 const FloatingWhatsAppWidget = lazy(() => import('../FloatingWhatsAppWidget'));
 
 interface LayoutProps {
@@ -18,7 +16,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // KimiClaw e WhatsApp são assistentes do cliente — não aparecem no painel admin
+  // O WhatsApp é o assistente flutuante do cliente — não aparece no painel admin
   const isAdminPage = useLocation().pathname.startsWith('/admin');
   useBirthdayBonus(); // concede 1000 pts no aniversário
   return (
@@ -39,11 +37,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className={isAdminPage ? '' : 'md:pl-64'}>
         <Footer />
       </div>
-      {!isAdminPage && KIMICLAW_ENABLED && (
-        <Suspense fallback={null}>
-          <KimiClawAssistant />
-        </Suspense>
-      )}
       {!isAdminPage && (
         <Suspense fallback={null}>
           <FloatingWhatsAppWidget />

@@ -34,9 +34,9 @@ const Login: React.FC = () => {
   const [needsVerification, setNeedsVerification] = useState(verificationEmailSent);
   const [showPassword, setShowPassword] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState(() => {
-    if (verifiedFromLink) return 'E-mail confirmado. Agora entre com seu e-mail e senha.';
-    if (verificationEmailFailed) return 'Conta criada, mas nao conseguimos enviar o link automaticamente. Tente entrar para reenviar.';
-    if (verificationEmailSent) return 'Enviamos um link de confirmação para seu e-mail. Clique no link antes de fazer login.';
+    if (verifiedFromLink) return t('login.notice.verified');
+    if (verificationEmailFailed) return t('login.notice.mailFailed');
+    if (verificationEmailSent) return t('login.notice.sent');
     return '';
   });
 
@@ -62,30 +62,30 @@ const Login: React.FC = () => {
 
       if (result.success) {
         toast({
-          title: "Login realizado!",
-          description: "Bem-vindo(a) de volta!",
+          title: t('login.toast.okTitle'),
+          description: t('login.toast.okDesc'),
         });
         // Admin → tela de escolha (Admin/Cliente); cliente → o efeito redireciona
       } else {
         if (result.needsVerification) {
           setNeedsVerification(true);
-          setVerificationNotice(result.error || 'Confirme seu e-mail pelo link enviado antes de fazer login.');
+          setVerificationNotice(result.error || t('login.error.confirmFirst'));
           toast({
-            title: "Confirme seu e-mail",
-            description: result.error || "Verifique sua caixa de entrada e o spam.",
+            title: t('login.notice.titleConfirm'),
+            description: result.error || t('login.error.checkInbox'),
           });
           return;
         }
         toast({
-          title: "Erro ao fazer login",
-          description: result.error || "Email ou senha incorretos.",
+          title: t('login.toast.errorTitle'),
+          description: result.error || t('login.error.invalid'),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao fazer login. Tente novamente.",
+        title: t('login.toast.error'),
+        description: t('login.error.generic'),
         variant: "destructive",
       });
     } finally {
@@ -96,21 +96,21 @@ const Login: React.FC = () => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail.trim()) {
-      toast({ title: "Erro", description: "Digite seu email.", variant: "destructive" });
+      toast({ title: t('login.toast.error'), description: t('login.error.typeEmail'), variant: "destructive" });
       return;
     }
     setIsSendingReset(true);
     try {
       const result = await sendPasswordReset(forgotEmail);
       if (result.success) {
-        toast({ title: "Email enviado!", description: "Verifique sua caixa de entrada para redefinir sua senha." });
+        toast({ title: t('login.toast.resetSent'), description: t('login.toast.resetSentDesc') });
         setShowForgotPassword(false);
         setForgotEmail('');
       } else {
-        toast({ title: "Erro", description: result.error || "Não foi possível enviar o email.", variant: "destructive" });
+        toast({ title: t('login.toast.error'), description: result.error || t('login.error.resetFailed'), variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: "Erro", description: "Erro ao enviar email de recuperação.", variant: "destructive" });
+      toast({ title: t('login.toast.error'), description: t('login.error.resetGeneric'), variant: "destructive" });
     } finally {
       setIsSendingReset(false);
     }
@@ -142,7 +142,7 @@ const Login: React.FC = () => {
                       <KeyRound className="w-5 h-5 text-primary" />
                     </div>
                     <h2 className="font-display text-2xl font-semibold text-foreground">
-                      Recuperar Senha
+                      {t('login.forgot.title')}
                     </h2>
                   </div>
 
@@ -155,7 +155,7 @@ const Login: React.FC = () => {
                       <Input
                         id="forgotEmail"
                         type="email"
-                        placeholder="exemplo@email.com"
+                        placeholder={t('login.placeholder.emailExample')}
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         required
@@ -165,10 +165,10 @@ const Login: React.FC = () => {
 
                     <div className="pt-4 space-y-3">
                       <Button type="submit" className="w-full btn-primary rounded-xl py-6 text-lg font-semibold" disabled={isSendingReset}>
-                        {isSendingReset ? 'Enviando...' : 'Enviar Link de Recuperação'}
+                        {isSendingReset ? t('login.forgot.sending') : t('login.forgot.send')}
                       </Button>
                       <Button type="button" variant="outline" className="w-full" onClick={() => setShowForgotPassword(false)}>
-                        Voltar ao Login
+                        {t('login.forgot.back')}
                       </Button>
                     </div>
                   </form>
@@ -190,10 +190,10 @@ const Login: React.FC = () => {
                         <MailCheck className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                            {verifiedFromLink && !needsVerification ? 'E-mail confirmado' : 'Confirme seu e-mail'}
+                            {verifiedFromLink && !needsVerification ? t('login.notice.titleVerified') : t('login.notice.titleConfirm')}
                           </p>
                           <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                            {verificationNotice || 'Verifique sua caixa de entrada e clique no link de confirmação.'}
+                            {verificationNotice || t('login.notice.defaultText')}
                           </p>
                         </div>
                       </div>
@@ -204,13 +204,13 @@ const Login: React.FC = () => {
                     <div className="space-y-2">
                       <Label htmlFor="email" className="flex items-center gap-2">
                         <Mail className="w-4 h-4" />
-                        E-mail
+                        {t('login.emailLabel')}
                       </Label>
                       <Input
                         id="email"
                         name="email"
                         type="text"
-                        placeholder="seu@email.com"
+                        placeholder={t('login.placeholder.email')}
                         value={formData.email}
                         onChange={handleInputChange}
                         required
@@ -240,7 +240,7 @@ const Login: React.FC = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
-                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                          aria-label={showPassword ? t('login.aria.hidePassword') : t('login.aria.showPassword')}
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -263,7 +263,7 @@ const Login: React.FC = () => {
                     {GOOGLE_LOGIN_ENABLED && (
                       <div className="relative py-1">
                         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">{t('login.or')}</span></div>
                       </div>
                     )}
                     <SocialLoginButtons disabled={isLoading} />

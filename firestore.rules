@@ -213,10 +213,17 @@ service cloud.firestore {
     }
 
     match /eventos/{eventId} {
+      // Só o evento descrito em `src/services/eventosService.ts`: campos fixos,
+      // uid do próprio usuário e tamanhos limitados. Antes, qualquer campo (até 12)
+      // com valor de qualquer tamanho era aceito.
       allow create: if signedIn()
-        && request.resource.data.get('usuarioId', '') == request.auth.uid
-        && request.resource.data.keys().hasAll(['usuarioId'])
-        && request.resource.data.keys().size() <= 12;
+        && request.resource.data.keys().hasOnly(['usuarioId', 'tipo', 'produtoId', 'categoria', 'criadoEm'])
+        && request.resource.data.keys().hasAll(['usuarioId', 'tipo', 'produtoId', 'categoria', 'criadoEm'])
+        && request.resource.data.usuarioId == request.auth.uid
+        && request.resource.data.tipo == 'viu_produto'
+        && validText(request.resource.data.produtoId, 1, 160)
+        && validText(request.resource.data.categoria, 0, 80)
+        && request.resource.data.criadoEm == request.time;
       allow read: if isAdmin()
         || (signedIn() && resource.data.get('usuarioId', '') == request.auth.uid);
       allow update: if false;
@@ -299,13 +306,19 @@ service cloud.firestore {
           'id', 'userId', 'userName', 'userEmail', 'productId', 'productName',
           'videoUrl', 'status', 'submittedAt', 'minutes', 'pointsAwarded'
         ])
+        && request.resource.data.id == id
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.userEmail == tokenEmail()
         && request.resource.data.status == 'pending'
         && request.resource.data.get('minutes', 0) == 0
         && request.resource.data.get('pointsAwarded', 0) == 0
+        && validText(request.resource.data.userName, 1, 120)
         && validText(request.resource.data.productId, 1, 160)
-        && validText(request.resource.data.videoUrl, 1, 1000);
+        && validText(request.resource.data.productName, 0, 200)
+        && validText(request.resource.data.videoUrl, 1, 1000)
+        // O vídeo sobe pelo upload do site, então a URL só pode apontar para o
+        // Firebase Storage (https). Qualquer outro host é recusado.
+        && request.resource.data.videoUrl.matches('^https://(firebasestorage\\.googleapis\\.com|[a-z0-9-]+\\.firebasestorage\\.app)/.*');
       allow read: if isAdmin()
         || (signedIn() && resource.data.get('userId', '') == request.auth.uid)
         || ownsByEmail(resource.data, 'userEmail');

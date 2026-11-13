@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { getLenis } from '@/lib/smoothScroll';
+import { getLenis } from '@/lib/lenisInstance';
 
 /**
  * Hero: vídeo de fundo de reprodução única (sem `loop`), em tela cheia. Traz o

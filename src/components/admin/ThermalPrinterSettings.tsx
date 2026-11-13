@@ -13,6 +13,7 @@ export default function ThermalPrinterSettings() {
 
   useEffect(() => {
     if (cfg.enabled) checkOnline();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- checa a impressora só ao montar
   }, []);
 
   async function checkOnline() {
@@ -36,7 +37,7 @@ export default function ThermalPrinterSettings() {
       status: 'pending',
       paymentMethod: 'pix',
       orderDate: new Date().toISOString(),
-      customerEmail: 'contato@nikkeybox.jp',
+      customerEmail: 'nikkeybox.jp@gmail.com',
       shippingAddress: {
         name: 'Cliente Teste',
         phone: '(11) 99999-9999',

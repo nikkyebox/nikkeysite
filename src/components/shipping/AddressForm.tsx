@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface AddressFormProps {
   onAddressChange?: (address: {
@@ -17,6 +18,7 @@ interface AddressFormProps {
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
+  const { t } = useLanguage();
   const [postalCode, setPostalCode] = useState('');
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
@@ -55,6 +57,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
     if (cleanCode.length === 7) {
       handleSearch();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- busca só quando o CEP muda; incluir handleSearch faria buscas a cada render
   }, [postalCode]);
 
   // Notifica mudanças no endereço completo
@@ -75,20 +78,20 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <MapPin className="w-5 h-5 text-primary" />
-        <h3 className="font-medium text-foreground">Endereço de Entrega</h3>
+        <h3 className="font-medium text-foreground">{t('address.title')}</h3>
       </div>
 
       {/* Código Postal */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Código Postal (郵便番号) *
+          {t('address.postalCode')} *
         </label>
         <div className="flex gap-2">
           <Input
             type="text"
             value={postalCode}
             onChange={handlePostalCodeChange}
-            placeholder="例: 100-0001"
+            placeholder={t('address.exPostal')}
             maxLength={8}
             className={cn(
               "flex-1",
@@ -113,20 +116,20 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
           <p className="text-sm text-destructive mt-1">{error}</p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
-          Digite o código postal (7 dígitos) - o endereço será preenchido automaticamente
+          {t('address.postalHint')}
         </p>
       </div>
 
       {/* Província */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Província (都道府県) *
+          {t('address.province')} *
         </label>
         <Input
           type="text"
           value={province}
           onChange={(e) => setProvince(e.target.value)}
-          placeholder="例: 東京都"
+          placeholder={t('address.exProvince')}
           readOnly
           className="bg-secondary/50"
         />
@@ -135,13 +138,13 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
       {/* Cidade */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Cidade (市区町村) *
+          {t('address.city')} *
         </label>
         <Input
           type="text"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="例: 千代田区"
+          placeholder={t('address.exCity')}
           readOnly
           className="bg-secondary/50"
         />
@@ -150,13 +153,13 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
       {/* Bairro */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Bairro/Área (町域) *
+          {t('address.town')} *
         </label>
         <Input
           type="text"
           value={town}
           onChange={(e) => setTown(e.target.value)}
-          placeholder="例: 千代田"
+          placeholder={t('address.exTown')}
           readOnly
           className="bg-secondary/50"
         />
@@ -165,34 +168,34 @@ const AddressForm: React.FC<AddressFormProps> = ({ onAddressChange }) => {
       {/* Rua e número */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Rua e número (番地) *
+          {t('address.street')} *
         </label>
         <Input
           type="text"
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          placeholder="例: 1-1-1"
+          placeholder={t('address.exStreet')}
         />
       </div>
 
       {/* Nome do prédio/apartamento (opcional) */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Edifício/Apartamento (建物名・部屋番号)
+          {t('address.building')}
         </label>
         <Input
           type="text"
           value={building}
           onChange={(e) => setBuilding(e.target.value)}
-          placeholder="例: マンション名 101号室"
+          placeholder={t('address.exBuilding')}
         />
-        <p className="text-xs text-muted-foreground mt-1">Opcional</p>
+        <p className="text-xs text-muted-foreground mt-1">{t('address.optional')}</p>
       </div>
 
       {/* Resumo do endereço */}
       {province && city && (
         <div className="bg-secondary/30 rounded-lg p-4 mt-4">
-          <p className="text-sm font-medium text-foreground mb-1">Endereço Completo:</p>
+          <p className="text-sm font-medium text-foreground mb-1">{t('address.fullAddress')}</p>
           <p className="text-sm text-muted-foreground">
             〒{postalCode}<br />
             {province} {city} {town} {street} {building}

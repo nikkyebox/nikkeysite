@@ -30,7 +30,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const { user } = useUser();
   const { toast } = useToast();
-  const { selectedCountry } = useLanguage();
+  const { t, selectedCountry } = useLanguage();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -54,7 +54,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user?.email) {
-      toast({ title: 'Entre para favoritar', variant: 'destructive' });
+      toast({ title: t('card.loginFav'), variant: 'destructive' });
       return;
     }
     if (isFavorite) {
@@ -75,7 +75,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
     e.stopPropagation();
     if (isSoldOut) return;
     addToCart(product, firstVariant?.id || 'small', 1, firstVariant?.label);
-    toast({ title: 'Adicionado ao carrinho', description: name });
+    toast({ title: t('promo.addedTitle'), description: name });
   };
 
   return (
@@ -157,13 +157,13 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
               ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25'
               : 'bg-white/85 text-slate-500 shadow-sm ring-1 ring-white/80 hover:scale-105 hover:text-pink-500'
           )}
-          aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          aria-label={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
         >
           <Heart className={cn('w-4 h-4', isFavorite && 'fill-current')} />
         </button>
         {isSoldOut && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-[11px] font-black text-red-600">ESGOTADO</span>
+            <span className="text-[11px] font-black text-red-600">{t('product.outOfStock')}</span>
           </div>
         )}
       </div>
@@ -179,7 +179,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
               </span>
             ) : null}
             {product.rating && product.salesCount ? <span className="text-gray-300">·</span> : null}
-            {product.salesCount ? <span>{formatCount(product.salesCount)} vendidos</span> : null}
+            {product.salesCount ? <span>{formatCount(product.salesCount)} {t('promo.sold')}</span> : null}
           </div>
         ) : (
           <div className="mb-1.5" />
@@ -199,7 +199,7 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
             <button
               onClick={handleAddToCart}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-500 text-white shadow-md shadow-pink-500/20 transition-all duration-300 hover:scale-105 hover:rotate-3 hover:shadow-lg"
-              aria-label="Adicionar ao carrinho"
+              aria-label={t('product.addToCart')}
             >
               <Plus className="w-4 h-4" />
             </button>

@@ -47,6 +47,8 @@ npm install
 npm run dev
 ```
 
+O `npm run dev` também serve as funções de `api/` (incluindo as reescritas do `vercel.json`), via `scripts/vercel-dev-api.mjs`. Não é preciso rodar `vercel dev`. As variáveis de `.env.local` são carregadas no processo; sem as credenciais do Firebase Admin, as rotas que dependem delas respondem 503 `firebase_admin_misconfigured`.
+
 | Script | Command | What it does |
 |---|---|---|
 | `npm run dev` | `vite` | Site at `http://localhost:8080` (port configurable via `PORT`) |
@@ -87,7 +89,7 @@ Names and purpose only (no values). `.env.example` also lists Google OAuth, Face
 | Push notifications | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `VITE_VAPID_PUBLIC_KEY` | Web Push |
 | Protected endpoints | `CRON_SECRET`, `UNSUBSCRIBE_SECRET`, `CART_RECOVERY_SECRET`, `PS_FEE_WAIVER_SECRET` | Authorize cron/automation calls to specific API routes |
 | CORS / origin | `ALLOWED_ORIGINS` (or `APP_ORIGIN`), `SITE_ORIGIN` | CORS allowlist; domain used in email links (defaults to `https://nikkeybox.jp`) |
-| AI (custom-order screening) | `TYPESAFE_API_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`, `ZAI_API_KEY`, `ZAI_MODEL`, `OPENROUTER_API_KEY` | All optional; screening is disabled without any of them |
+| AI (custom-order screening) | `TYPESAFE_API_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`, `OPENROUTER_API_KEY` | All optional; screening is disabled without any of them |
 | Marketplace integrations | `RAKUTEN_APP_ID`, `RAKUTEN_ACCESS_KEY`, `YAHOO_APP_ID` | Product enrichment (`api/_handlers/product-enrich.js`) |
 | Analytics / marketing | `VITE_GOOGLE_ADS_TAG_ID`, `VITE_META_PIXEL_ID` | Conversion tags |
 | Other | `ORDER_NOTIFICATION_EMAIL`, `VITE_YOUTUBE_URL`, `VITE_INSTAGRAM_URL`, `NODE_ENV` | New-order alert email (defaults to `ADMIN_EMAIL`); Vlog page links; environment |

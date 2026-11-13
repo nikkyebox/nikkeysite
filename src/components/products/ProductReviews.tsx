@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, Video, PlayCircle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUser } from '@/context/UserContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { reviewService } from '@/services/reviewService';
 import { Review, ProductRating } from '@/types/review';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ interface ProductReviewsProps {
 // Página do produto: SOMENTE LEITURA das avaliações.
 // A avaliação é feita pelo cliente no histórico de pedidos (só quem comprou avalia).
 const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
+  const { t } = useLanguage();
   const { isAuthenticated } = useUser();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState<ProductRating | null>(null);
@@ -49,7 +51,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
             <div className="text-center">
               <div className="text-5xl font-bold text-foreground">{rating.averageRating.toFixed(1)}</div>
               {renderStars(Math.round(rating.averageRating), 'lg')}
-              <p className="text-sm text-muted-foreground mt-2">{rating.totalReviews} avaliações</p>
+              <p className="text-sm text-muted-foreground mt-2">{rating.totalReviews} {t('productDetail.reviews')}</p>
             </div>
             <div className="flex-1 space-y-2">
               {[5, 4, 3, 2, 1].map((star) => (
@@ -71,11 +73,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       <div className="flex items-start gap-3 bg-secondary/40 border border-border rounded-xl p-4">
         <ShoppingBag className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground">
-          As avaliações são feitas por quem comprou o produto.{' '}
+          {t('rv.rate.intro')}{' '}
           {isAuthenticated ? (
-            <>Avalie pelos seus pedidos em <Link to="/perfil" className="text-primary font-semibold hover:underline">Meu Perfil → Histórico de Compras</Link>.</>
+            <>{t('rv.rate.goOrders')} <Link to="/perfil" className="text-primary font-semibold hover:underline">{t('rv.rate.link')}</Link>.</>
           ) : (
-            <>Faça login e avalie pelo seu histórico de compras.</>
+            <>{t('rv.rate.login')}</>
           )}
         </p>
       </div>
@@ -83,7 +85,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       {/* Lista de avaliações */}
       <div className="space-y-4">
         {reviews.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Este produto ainda não tem avaliações.</p>
+          <p className="text-center text-muted-foreground py-8">{t('rv.none')}</p>
         ) : (
           reviews.map((review) => (
             <div key={review.id} className="bg-card rounded-xl border border-border p-6">
@@ -92,7 +94,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-semibold">{review.userName}</span>
                     {review.verified && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Compra Verificada</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ {t('rv.verified')}</span>
                     )}
                   </div>
                   {renderStars(review.rating)}
@@ -116,7 +118,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                 <div className="mb-3">
                   {getYouTubeEmbed(review.videoUrl) ? (
                     <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border border-border">
-                      <iframe src={getYouTubeEmbed(review.videoUrl)!} title="Vídeo de review"
+                      <iframe src={getYouTubeEmbed(review.videoUrl)!} title={t('rv.video.label')}
                         className="absolute inset-0 w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen />
@@ -131,7 +133,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
               {review.videoUrl && (
                 <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                  <Video className="w-3 h-3" /> Vídeo de review
+                  <Video className="w-3 h-3" /> {t('rv.video.label')}
                 </span>
               )}
             </div>

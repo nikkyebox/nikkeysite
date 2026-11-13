@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Sparkles, MessageCircle, PackageSearch, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
+import { useLanguage } from '@/context/LanguageContext';
 
 const WHATSAPP_NUMBER = COMPANY_PROFILE.whatsapp.digits;
 
 export const PersonalShopperBanner: React.FC = () => {
+  const { t } = useLanguage();
   const handleWhatsAppCustom = () => {
     const text = encodeURIComponent(
       'Olá NikkeyBox! Quero cotar um produto específico do Japão que não encontrei no site. Como funciona a encomenda personalizada?'
@@ -25,29 +27,29 @@ export const PersonalShopperBanner: React.FC = () => {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="space-y-4 max-w-xl text-center lg:text-left">
               <div className="inline-flex items-center gap-2 rounded-full bg-pink-500/20 px-3.5 py-1 text-xs font-bold text-pink-300 border border-pink-500/30">
-                <Sparkles className="w-3.5 h-3.5 text-pink-400" /> Serviço Exclusivo de Personal Shopper no Japão
+                <Sparkles className="w-3.5 h-3.5 text-pink-400" /> {t('ui.ps.badge')}
               </div>
 
               <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Não achou o que procura? <br className="hidden sm:inline" />
+                {t('ui.ps.title1')} <br className="hidden sm:inline" />
                 <span className="bg-gradient-to-r from-pink-400 via-purple-300 to-amber-300 bg-clip-text text-transparent">
-                  Nós compramos qualquer produto no Japão para você!
+                  {t('ui.ps.title2')}
                 </span>
               </h2>
 
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Envie o nome, foto ou link do item desejado (cosméticos de lançamento, doces limitados, colecionáveis ou eletrônicos). Cotamos nas lojas do Japão e enviamos direto para sua casa.
+                {t('ui.ps.desc')}
               </p>
 
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 text-xs text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% Autêntico
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> {t('ui.ps.authentic')}
                 </span>
                 <span className="flex items-center gap-1.5 font-medium">
-                  <Clock className="w-4 h-4 text-amber-400" /> Cotação Rápida
+                  <Clock className="w-4 h-4 text-amber-400" /> {t('ui.ps.quote')}
                 </span>
                 <span className="flex items-center gap-1.5 font-medium">
-                  <PackageSearch className="w-4 h-4 text-pink-400" /> Consolidação de Encomendas
+                  <PackageSearch className="w-4 h-4 text-pink-400" /> {t('ui.ps.consolidate')}
                 </span>
               </div>
             </div>
@@ -59,7 +61,7 @@ export const PersonalShopperBanner: React.FC = () => {
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-900/40 gap-2 h-13 py-3.5 px-6"
               >
                 <MessageCircle className="w-5 h-5" />
-                Pedir no WhatsApp
+                {t('ui.ps.whatsapp')}
               </Button>
 
               <Button
@@ -69,7 +71,7 @@ export const PersonalShopperBanner: React.FC = () => {
                 className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold rounded-2xl gap-2 h-13 py-3.5 px-6"
               >
                 <Link to="/faca-seu-pedido">
-                  Formulário Online <ArrowRight className="w-4 h-4" />
+                  {t('ui.ps.form')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
             </div>

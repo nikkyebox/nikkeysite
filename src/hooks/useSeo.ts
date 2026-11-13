@@ -9,7 +9,7 @@ export interface SeoOptions {
   type?: 'website' | 'product' | 'article';
 }
 
-const SITE_ORIGIN = 'https://nikkeybox-store.com';
+const SITE_ORIGIN = 'https://nikkeybox.jp';
 const DEFAULT_OG_IMAGE = '/icons/icon-512x512.png?v=2';
 
 function upsertMeta(attr: 'name' | 'property', key: string, content: string) {

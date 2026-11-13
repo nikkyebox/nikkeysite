@@ -65,9 +65,9 @@ const Shipping: React.FC = () => {
   const getSimulatorRates = () => {
     if (country === 'Japão') {
       return [
-        { name: 'Japan Post Local (ゆうパック) 📮', cost: 700 + 150 * billableWeight, time: language === 'ja' ? '1-2日' : '1-2 days' },
-        { name: 'Yamato Transport (宅急便) 🐱', cost: 800 + 180 * billableWeight, time: language === 'ja' ? '1-2日' : '1-2 days' },
-        { name: 'Sagawa Express (飛脚宅配便) 🏃', cost: 750 + 160 * billableWeight, time: language === 'ja' ? '1-2日' : '1-2 days' }
+        { name: `${t('shipping.svc.yuubin')} 📮`, cost: 700 + 150 * billableWeight, time: t('shippingPage.time12') },
+        { name: `${t('shipping.svc.yamato')} 🐱`, cost: 800 + 180 * billableWeight, time: t('shippingPage.time12') },
+        { name: `${t('shipping.svc.sagawa')} 🏃`, cost: 750 + 160 * billableWeight, time: t('shippingPage.time12') }
       ];
     }
 
@@ -76,7 +76,7 @@ const Shipping: React.FC = () => {
     const billableWeightG = Math.max(1, Math.round(billableWeight * 1000));
 
     // Unidade de prazo conforme idioma
-    const du = language === 'ja' ? '営業日' : language === 'en' ? 'business days' : 'dias úteis';
+    const du = t('shippingPage.bizDays');
     // Prazo estimado por zona Japan Post (só números; unidade adicionada abaixo)
     const daysByZone: Record<number, { light: string; air: string; ems: string }> = {
       1: { light: '6-10',  air: '4-7',   ems: '2-4'  },
@@ -92,18 +92,18 @@ const Shipping: React.FC = () => {
     const rates: SimRate[] = [];
     if (billableWeightG <= 2000) {
       const yen = getELightRate(billableWeightG, zone);
-      rates.push({ name: 'Japan Post E-Light ✉️', cost: yen ? fxConvert(yen, cur) : null, time: `${zd.light} ${du}` });
+      rates.push({ name: `${t('shipping.svc.airPacket')} ✉️`, cost: yen ? fxConvert(yen, cur) : null, time: `${zd.light} ${du}` });
     } else {
       const airYen = getAirParcelRate(billableWeightG, zone);
-      rates.push({ name: 'Japan Post Kozutsumi Air 📦', cost: airYen ? fxConvert(airYen, cur) : null, time: `${zd.air} ${du}` });
+      rates.push({ name: `${t('shipping.svc.kozutsumiAir')} 📦`, cost: airYen ? fxConvert(airYen, cur) : null, time: `${zd.air} ${du}` });
     }
 
     const emsYen = getEmsRate(billableWeightG, zone);
-    rates.push({ name: 'Japan Post EMS / DHL ✈️', cost: emsYen ? fxConvert(emsYen, cur) : null, time: `${zd.ems} ${du}` });
-    const seaTime = language === 'ja' ? '60-90日' : language === 'en' ? '60-90 days' : '60-90 dias';
-    const tbdTime = language === 'ja' ? '要相談' : language === 'en' ? 'TBD' : 'A definir';
-    rates.push({ name: 'Sea Freight 🚢', cost: null, time: seaTime, consultar: true });
-    rates.push({ name: 'A Combinar ⚖️', cost: null, time: tbdTime, consultar: true, combinar: true });
+    rates.push({ name: `${t('shipping.svc.ems')} ✈️`, cost: emsYen ? fxConvert(emsYen, cur) : null, time: `${zd.ems} ${du}` });
+    const seaTime = t('shippingPage.seaTime');
+    const tbdTime = t('shippingPage.tbdTime');
+    rates.push({ name: `${t('shippingPage.seaFreight')} 🚢`, cost: null, time: seaTime, consultar: true });
+    rates.push({ name: `${t('shippingPage.combinarName')} ⚖️`, cost: null, time: tbdTime, consultar: true, combinar: true });
 
     return rates;
   };
@@ -115,10 +115,10 @@ const Shipping: React.FC = () => {
     }
     
     const vatRates: Record<string, { rate: number; label: string }> = {
-      Portugal: { rate: 0.23, label: 'IVA Portugal (23%)' },
-      França: { rate: 0.20, label: 'TVA França (20%)' },
-      Itália: { rate: 0.22, label: 'IVA Itália (22%)' },
-      Espanha: { rate: 0.21, label: 'IVA Espanha (21%)' }
+      Portugal: { rate: 0.23, label: t('shippingPage.vatPt') },
+      França: { rate: 0.20, label: t('shippingPage.vatFr') },
+      Itália: { rate: 0.22, label: t('shippingPage.vatIt') },
+      Espanha: { rate: 0.21, label: t('shippingPage.vatEs') }
     };
 
     if (vatRates[country]) {
@@ -128,7 +128,7 @@ const Shipping: React.FC = () => {
       };
     }
 
-    return { total: 0, label: 'Isento' };
+    return { total: 0, label: t('shippingPage.exempt') };
   };
 
   const simRates = getSimulatorRates();
@@ -139,31 +139,31 @@ const Shipping: React.FC = () => {
     if (country === 'Japão') {
       return [
         {
-          name: 'Japan Post Local (ゆうパック) ✉️',
+          name: `${t('shipping.svc.yuubin')} ✉️`,
           logo: '📮',
           desc: t('shippingPage.carrier.jp.desc'),
           rate60: 870,
           rate80: 1100,
-          time: language === 'ja' ? '1-2営業日' : '1-2 business days',
-          features: ['Rastreamento completo', 'Entrega aos sábados/domingos', 'Seguro básico']
+          time: t('shippingPage.time12bd'),
+          features: [t('shippingPage.f.trackFull'), t('shippingPage.f.weekend'), t('shippingPage.f.basicInsurance')]
         },
         {
-          name: 'Yamato Transport (宅急便) 🐱',
+          name: `${t('shipping.svc.yamato')} 🐱`,
           logo: '📦',
           desc: t('shippingPage.carrier.yamato.desc'),
           rate60: 930,
           rate80: 1150,
-          time: language === 'ja' ? '1-2営業日' : '1-2 business days',
-          features: ['Horários selecionáveis', 'Entrega rápida', 'Alta confiabilidade']
+          time: t('shippingPage.time12bd'),
+          features: [t('shippingPage.f.timeSlots'), t('shippingPage.f.fast'), t('shippingPage.f.reliable')]
         },
         {
-          name: 'Sagawa Express (飛脚宅配便) 🏃‍♂️',
+          name: `${t('shipping.svc.sagawa')} 🏃‍♂️`,
           logo: '🏃‍♂️',
           desc: t('shippingPage.carrier.sagawa.desc'),
           rate60: 880,
           rate80: 1100,
-          time: language === 'ja' ? '1-2営業日' : '1-2 business days',
-          features: ['Rastreável online', 'Suporte local excelente', 'Rede expressa']
+          time: t('shippingPage.time12bd'),
+          features: [t('shippingPage.f.trackOnline'), t('shippingPage.f.localSupport'), t('shippingPage.f.express')]
         }
       ];
     }
@@ -177,40 +177,40 @@ const Shipping: React.FC = () => {
       const eurAir5kg  = fxConvert(getAirParcelRate(5000, 3) ?? 12450, 'EUR');
       return [
         {
-          name: 'Japan Post E-Light ✉️',
+          name: `${t('shipping.svc.airPacket')} ✉️`,
           logo: '✉️',
           desc: t('shippingPage.carrier.elight.desc'),
           rate60: eurELight1kg,
           rate80: eurELight2kg,
-          time: '7-12 days',
-          features: ['Até 2 kg', 'Rastreio básico', 'Mais acessível']
+          time: t('shippingPage.t7_12'),
+          features: [t('shippingPage.f.upTo2'), t('shippingPage.f.trackBasic'), t('shippingPage.f.affordable')]
         },
         {
-          name: 'Japan Post EMS / DHL ✈️',
+          name: `${t('shipping.svc.ems')} ✈️`,
           logo: '✈️',
           desc: t('shippingPage.carrier.ems.desc'),
           rate60: eurEms1kg,
           rate80: eurEms3kg,
-          time: '5-8 days',
-          features: ['Despacho prioritário Narita', 'Rastreio em tempo real', 'Trânsito aéreo expresso']
+          time: t('shippingPage.t5_8'),
+          features: [t('shippingPage.f.narita'), t('shippingPage.f.trackRealtime'), t('shippingPage.f.airExpress')]
         },
         {
-          name: 'Japan Post Kozutsumi Air 📦',
+          name: `${t('shipping.svc.kozutsumiAir')} 📦`,
           logo: '📦',
           desc: t('shippingPage.carrier.kozutsumi.desc'),
           rate60: eurAir3kg,
           rate80: eurAir5kg,
-          time: '7-10 days',
-          features: ['Até 30 kg', 'Rastreio completo', 'Ótimo custo-benefício']
+          time: t('shippingPage.t7_10'),
+          features: [t('shippingPage.f.upTo30'), t('shippingPage.f.trackFull2'), t('shippingPage.f.bestValue')]
         },
         {
-          name: 'Sea Freight 🚢',
+          name: `${t('shippingPage.seaFreight')} 🚢`,
           logo: '🚢',
           desc: t('shippingPage.carrier.sea.desc'),
           rate60: null as unknown as number,
           rate80: null as unknown as number,
-          time: '60-90 days',
-          features: ['Custo baixo', 'Ideal para volumes grandes', 'Consultar disponibilidade'],
+          time: t('shippingPage.t60_90'),
+          features: [t('shippingPage.f.lowCost'), t('shippingPage.f.bigVolumes'), t('shippingPage.f.checkAvail')],
           consultar: true
         }
       ];
@@ -224,55 +224,55 @@ const Shipping: React.FC = () => {
     const brlEms3kg  = fxConvert(getEmsRate(3000, 5) ?? 7800, 'BRL');
     const brlAir3kg  = fxConvert(getAirParcelRate(3000, 5) ?? 9950, 'BRL');
     const brlAir5kg  = fxConvert(getAirParcelRate(5000, 5) ?? 15350, 'BRL');
-    const du = language === 'ja' ? '営業日' : language === 'en' ? 'business days' : 'dias úteis';
-    const seaTime = language === 'ja' ? '60-90日' : language === 'en' ? '60-90 days' : '60-90 dias';
-    const tbdTime = language === 'ja' ? '要相談' : language === 'en' ? 'TBD' : 'A definir';
+    const du = t('shippingPage.bizDays');
+    const seaTime = t('shippingPage.seaTime');
+    const tbdTime = t('shippingPage.tbdTime');
     return [
       {
-        name: 'Japan Post E-Light ✉️',
+        name: `${t('shipping.svc.airPacket')} ✉️`,
         logo: '✉️',
         desc: t('shippingPage.carrier.elight.desc'),
         rate60: brlELight1kg,
         rate80: brlELight2kg,
         time: `20-40 ${du}`,
-        features: ['Até 2 kg', 'Rastreio básico', 'Mais acessível']
+        features: [t('shippingPage.f.upTo2'), t('shippingPage.f.trackBasic'), t('shippingPage.f.affordable')]
       },
       {
-        name: 'Japan Post EMS / DHL ✈️',
+        name: `${t('shipping.svc.ems')} ✈️`,
         logo: '✈️',
         desc: t('shippingPage.carrier.ems.desc'),
         rate60: brlEms1kg,
         rate80: brlEms3kg,
         time: `18 ${du}`,
-        features: ['Prioridade na aduana', 'Rastreio em tempo real', 'Despacho rápido']
+        features: [t('shippingPage.f.customsPriority'), t('shippingPage.f.trackRealtime'), t('shippingPage.f.fastDispatch')]
       },
       {
-        name: 'Japan Post Kozutsumi Air 📦',
+        name: `${t('shipping.svc.kozutsumiAir')} 📦`,
         logo: '📦',
         desc: t('shippingPage.carrier.kozutsumi.desc'),
         rate60: brlAir3kg,
         rate80: brlAir5kg,
         time: `10-15 ${du}`,
-        features: ['Até 30 kg', 'Rastreio completo', 'Ótimo custo-benefício']
+        features: [t('shippingPage.f.upTo30'), t('shippingPage.f.trackFull2'), t('shippingPage.f.bestValue')]
       },
       {
-        name: 'Sea Freight 🚢',
+        name: `${t('shippingPage.seaFreight')} 🚢`,
         logo: '🚢',
         desc: t('shippingPage.carrier.sea.desc'),
         rate60: null as unknown as number,
         rate80: null as unknown as number,
         time: seaTime,
-        features: ['Custo baixo', 'Ideal para volumes grandes', 'Consultar disponibilidade'],
+        features: [t('shippingPage.f.lowCost'), t('shippingPage.f.bigVolumes'), t('shippingPage.f.checkAvail')],
         consultar: true
       },
       {
-        name: 'A Combinar ⚖️',
+        name: `${t('shippingPage.combinarName')} ⚖️`,
         logo: '⚖️',
-        desc: 'Frete calculado após pesagem real do pacote — valor cobrado separadamente.',
+        desc: t('shippingPage.combinarDesc'),
         rate60: null as unknown as number,
         rate80: null as unknown as number,
         time: tbdTime,
-        features: ['Produtos acrescentados depois', 'Pesagem na finalização', 'Cobrado à parte'],
+        features: [t('shippingPage.f.addedLater'), t('shippingPage.f.weighing'), t('shippingPage.f.chargedApart')],
         consultar: true,
         combinar: true,
       }
@@ -340,11 +340,11 @@ const Shipping: React.FC = () => {
                 className="w-full p-3 rounded-xl border border-border bg-background text-foreground font-semibold focus:ring-2 focus:ring-primary transition-all text-sm cursor-pointer"
               >
                 <option value="Brasil">Brasil 🇧🇷</option>
-                <option value="Portugal">Portugal 🇵🇹</option>
-                <option value="França">França 🇫🇷</option>
-                <option value="Itália">Itália 🇮🇹</option>
-                <option value="Espanha">Espanha 🇪🇸</option>
-                <option value="Japão">Japão 🇯🇵</option>
+                <option value="Portugal">{t('shippingPage.country.portugal')} 🇵🇹</option>
+                <option value="França">{t('shippingPage.country.france')} 🇫🇷</option>
+                <option value="Itália">{t('shippingPage.country.italy')} 🇮🇹</option>
+                <option value="Espanha">{t('shippingPage.country.spain')} 🇪🇸</option>
+                <option value="Japão">{t('shippingPage.country.japan')} 🇯🇵</option>
               </select>
             </div>
           </div>
@@ -463,7 +463,7 @@ const Shipping: React.FC = () => {
                           onClick={() => setBoxPreset(40, 30, 30)}
                           className="text-[9px] bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
                         >
-                          Box 100 (40x30x30)
+                          {t('shippingPage.box100')} (40x30x30)
                         </button>
                       </div>
                     </div>
@@ -496,19 +496,19 @@ const Shipping: React.FC = () => {
                 <div className="bg-secondary/40 p-3.5 rounded-xl border border-border/80 text-xs text-muted-foreground space-y-1.5">
                   <div className="flex justify-between">
                     <span>{t('shippingPage.dimSum')}</span>
-                    <span className="font-bold text-foreground">{dimensionSum} cm</span>
+                    <span className="font-bold text-foreground">{dimensionSum} {t('shippingPage.unitCm')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t('shippingPage.volumeResult')}</span>
-                    <span className="font-semibold text-foreground">{simVolume.toFixed(6)} m³</span>
+                    <span className="font-semibold text-foreground">{simVolume.toFixed(6)} {t('shippingPage.unitM3')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t('shippingPage.volumetricWeight')}</span>
-                    <span className="font-semibold text-foreground">{volumetricWeight.toFixed(2)} kg</span>
+                    <span className="font-semibold text-foreground">{volumetricWeight.toFixed(2)} {t('shippingPage.unitKg')}</span>
                   </div>
                   <div className="flex justify-between border-t border-border/50 pt-1.5 mt-1 font-bold">
                     <span className="text-foreground">{t('shippingPage.taxableWeight')}:</span>
-                    <span className="text-primary">{billableWeight.toFixed(2)} kg</span>
+                    <span className="text-primary">{billableWeight.toFixed(2)} {t('shippingPage.unitKg')}</span>
                   </div>
                 </div>
 
@@ -525,7 +525,7 @@ const Shipping: React.FC = () => {
                         <div key={rate.name} className="p-3 bg-secondary/20 rounded-xl border border-border text-center flex flex-col justify-between">
                           <span className="text-[10px] text-muted-foreground block truncate font-bold">{rate.name}</span>
                           {rate.combinar ? (
-                            <span className="text-sm font-black text-amber-600 dark:text-amber-400 block mt-1">A combinar</span>
+                            <span className="text-sm font-black text-amber-600 dark:text-amber-400 block mt-1">{t('calc.toBeAgreed')}</span>
                           ) : rate.consultar || rate.cost === null ? (
                             <span className="text-sm font-black text-muted-foreground block mt-1">{t('shippingPage.consultar')}</span>
                           ) : (
@@ -584,10 +584,10 @@ const Shipping: React.FC = () => {
                 {country === 'Brasil' && (
                   <div className="space-y-3 text-xs leading-relaxed text-muted-foreground">
                     <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-3 text-amber-800 dark:text-amber-200 font-medium">
-                      ⚠️ <strong>Aviso sobre Tributação</strong>
+                      ⚠️ <strong>{t('shippingPage.taxWarning')}</strong>
                     </div>
                     <p>
-                      Produtos enviados do Japão podem estar sujeitos a tributos, taxas e inspeção alfandegária definidos pelas autoridades do país de destino. Valores eventualmente exibidos são estimativas e não garantem cobrança final nem prazo de liberação.
+                      {t('shippingPage.brTaxText')}
                     </p>
                   </div>
                 )}
@@ -595,26 +595,26 @@ const Shipping: React.FC = () => {
                 {['Portugal', 'França', 'Itália', 'Espanha'].includes(country) && (
                   <div className="space-y-3 text-xs leading-relaxed text-muted-foreground">
                     <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 rounded-lg p-3 text-blue-800 dark:text-blue-200 font-medium">
-                      ℹ️ <strong>European Air Import (DDU/DAP)</strong>
+                      ℹ️ <strong>{t('shippingPage.euImportTitle')}</strong>
                     </div>
                     <p>
-                      We do not charge European import taxes (VAT or local customs duties) at checkout. Your package is shipped from Japan as a standard international postal shipment.
+                      {t('shippingPage.euTaxText')}
                     </p>
                     <div className="border-t border-primary/10 pt-2.5 space-y-2">
                       <div className="flex justify-between font-bold text-foreground">
-                        <span>Tax at Checkout:</span>
+                        <span>{t('shippingPage.taxAtCheckout')}</span>
                         <span className="text-green-600">€ 0.00</span>
                       </div>
                       <p className="text-[10px] pl-2 border-l-2 border-border">
-                        You pay only the product price and shipping from Hiroshima on our site.
+                        {t('shippingPage.youPayOnly')}
                       </p>
 
                       <div className="flex justify-between font-bold text-foreground">
-                        <span>Local Customs Tax:</span>
-                        <span className="text-blue-600">VAT + Postal Fees</span>
+                        <span>{t('shippingPage.localCustoms')}</span>
+                        <span className="text-blue-600">{t('shippingPage.vatPlusFees')}</span>
                       </div>
                       <p className="text-[10px] pl-2 border-l-2 border-border">
-                        Upon arrival at European customs, the package may be subject to local VAT (e.g. 23% in Portugal, 20% in France) and local postal handling fees payable by the recipient.
+                        {t('shippingPage.euArrivalText')}
                       </p>
                     </div>
                   </div>
@@ -623,32 +623,24 @@ const Shipping: React.FC = () => {
                 {country === 'Japão' && (
                   <div className="space-y-3 text-xs leading-relaxed text-muted-foreground">
                     <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 rounded-lg p-3 text-emerald-800 dark:text-emerald-200 font-medium">
-                      ✓ <strong>国内発送（輸入税免除）/ Domestic Shipping (Import Tax Exempt)</strong>
+                      ✓ <strong>{t('shippingPage.jpTaxFreeTitle')}</strong>
                     </div>
                     <p>
-                      国内発送のため（広島の店舗から発送）、輸入関税や通関手続きは一切ありません。<br />
-                      <span className="text-muted-foreground">Domestic shipment from our Hiroshima store — no customs or international import taxes.</span>
+                      {t('shippingPage.jpTaxFreeText')}<br />
+                      <span className="text-muted-foreground">{t('shippingPage.jpTaxFreeEn')}</span>
                     </p>
                     <div className="border-t border-primary/10 pt-2.5 space-y-2">
                       <div className="flex justify-between font-bold text-foreground">
-                        <span>輸入税 / Import Tax:</span>
-                        <span className="text-green-600">免除 / Exempt (¥0)</span>
+                        <span>{t('shippingPage.importTax')}</span>
+                        <span className="text-green-600">{t('shippingPage.exempt0')}</span>
                       </div>
 
                       <div className="flex justify-between font-bold text-foreground">
-                        <span>消費税 (消費税 10%) / Consumption Tax:</span>
-                        <span className="text-emerald-600">含む / Included (10%)</span>
+                        <span>{t('shippingPage.consumptionTax')}</span>
+                        <span className="text-emerald-600">{t('shippingPage.included10')}</span>
                       </div>
                       <p className="text-[10px] pl-2 border-l-2 border-border">
-                        Japanese 10% consumption tax is already fully included in all product prices.
-                      </p>
-
-                      <div className="flex justify-between font-bold text-foreground">
-                        <span>送料無料 / Free Shipping:</span>
-                        <span className="text-emerald-600">利用可 / Available</span>
-                      </div>
-                      <p className="text-[10px] pl-2 border-l-2 border-border">
-                        Free domestic shipping in Japan for orders over ¥6,000 at NikkeyBox!
+                        {t('shippingPage.jpTaxIncluded')}
                       </p>
                     </div>
                   </div>
@@ -680,13 +672,13 @@ const Shipping: React.FC = () => {
                         <div className="bg-secondary/40 p-2 rounded-lg text-center">
                           <span className="text-muted-foreground block text-[10px]">{carrier.consultar ? t('shippingPage.box60only') : t('shippingPage.avgBox60')}</span>
                           <span className={cn("font-sans font-black text-sm", carrier.combinar ? "text-amber-600 dark:text-amber-400" : "text-primary")}>
-                            {carrier.combinar ? 'A combinar' : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate60, currency)}
+                            {carrier.combinar ? t('calc.toBeAgreed') : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate60, currency)}
                           </span>
                         </div>
                         <div className="bg-secondary/40 p-2 rounded-lg text-center">
                           <span className="text-muted-foreground block text-[10px]">{carrier.consultar ? t('shippingPage.box80only') : t('shippingPage.avgBox80')}</span>
                           <span className={cn("font-sans font-black text-sm", carrier.combinar ? "text-amber-600 dark:text-amber-400" : "text-primary")}>
-                            {carrier.combinar ? 'A combinar' : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate80, currency)}
+                            {carrier.combinar ? t('calc.toBeAgreed') : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate80, currency)}
                           </span>
                         </div>
                       </div>

@@ -45,11 +45,4 @@ export function currencyForCountry(country) {
   return euroCountries.has(country) ? 'EUR' : 'USD';
 }
 
-export function convertYen(yen, currency, rates, { exact = false } = {}) {
-  if (currency === 'JPY') return Math.round(yen);
-  const baseRate = Number(rates[currency]);
-  const cushion = rates.source === 'wise' ? 0 : 0.04;
-  const rate = exact ? baseRate : baseRate * (1 + cushion);
-  const buffer = exact ? 0 : 5;
-  return Math.round((yen + buffer) * rate * 100) / 100;
-}
+export { convertYen } from '../../shared/checkout-totals.js';

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { Product } from '@/types';
 
-const SITE_URL = 'https://www.nikkeybox-store.com';
+const SITE_URL = 'https://www.nikkeybox.jp';
 
 interface Props {
   products: Product[];

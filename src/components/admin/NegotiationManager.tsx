@@ -76,6 +76,7 @@ const NegotiationRow: React.FC<{ neg: Negotiation }> = ({ neg }) => {
     if (neg.status === 'pending' && negotiationService.isExpired(neg)) {
       negotiationService.expire(neg.id).catch(() => {});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- expira só quando status ou expiresAt mudam; incluir o objeto neg dispararia escritas a cada render
   }, [neg.id, neg.status, neg.expiresAt]);
 
   const adminEmail = user?.email || 'admin';

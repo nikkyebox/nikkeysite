@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 export interface CarouselSlide {
   id: string;
@@ -32,6 +33,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
   autoplay = true,
   autoplayInterval = 5000,
 }) => {
+  const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   // Uma vez que o usuário navega manualmente, o autoplay desliga definitivamente
@@ -87,7 +89,8 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           const distance = endX - startX;
           if (Math.abs(distance) > 48) {
             setUserInteracted(true);
-            distance > 0 ? goToPrevious() : goToNextManual();
+            if (distance > 0) goToPrevious();
+            else goToNextManual();
           }
         }
         touchStartX.current = null;
@@ -159,7 +162,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                         tabIndex={isActive ? 0 : -1}
                         className="hero-primary-cta inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-purple-600 hover:shadow-xl hover:shadow-purple-500/30 active:translate-y-0"
                       >
-                        {slide.ctaLabel || 'Saiba Mais'}
+                        {slide.ctaLabel || t('hero.cta.story')}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                       {slide.secondaryCtaLabel && slide.secondaryCtaLink && (
@@ -214,7 +217,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                       tabIndex={isActive ? 0 : -1}
                       className="hero-primary-cta mt-5 inline-flex w-fit items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-purple-600 hover:shadow-xl active:translate-y-0"
                     >
-                      {slide.ctaLabel || 'Saiba Mais'}
+                      {slide.ctaLabel || t('hero.cta.story')}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </div>
@@ -251,7 +254,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
             type="button"
             onClick={goToPrevious}
             className="hero-glass absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl text-slate-800 transition-all hover:scale-105 hover:border-purple-300 hover:text-purple-600 sm:left-5 sm:flex"
-            aria-label="Slide anterior"
+            aria-label={t('hero.carousel.prev')}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -259,7 +262,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
             type="button"
             onClick={goToNextManual}
             className="hero-glass absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl text-slate-800 transition-all hover:scale-105 hover:border-purple-300 hover:text-purple-600 sm:right-5 sm:flex"
-            aria-label="Próximo slide"
+            aria-label={t('hero.carousel.next')}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -278,7 +281,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
                     'h-1.5 rounded-full transition-all duration-300',
                     index === currentIndex ? 'w-10 bg-purple-500' : 'w-2 bg-slate-300 hover:bg-purple-300'
                   )}
-                  aria-label={`Ir para o slide ${index + 1}`}
+                  aria-label={t('hero.carousel.goto').replace('{n}', String(index + 1))}
                   aria-current={index === currentIndex ? 'true' : undefined}
                 />
               ))}

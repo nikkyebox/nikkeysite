@@ -44,7 +44,7 @@ function pedido({ country, cpf }) {
       prefecture: '',
       state: country === 'Brasil' ? 'SP' : '',
       shippingCarrier: 'ems',
-      paymentMethod: 'wise',
+      paymentMethod: 'pix',
       couponCode: '',
       redeemPoints: 0,
       negotiationId: '',

@@ -141,7 +141,7 @@ const interceptConsole = () => {
   const originalError = console.error;
   const originalWarn = console.warn;
   
-  console.log = function(...args: any[]) {
+  console.log = function(...args: unknown[]) {
     originalLog.apply(console, args);
     const message = args.map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
@@ -149,7 +149,7 @@ const interceptConsole = () => {
     addLog(message, '#00ff00');
   };
   
-  console.error = function(...args: any[]) {
+  console.error = function(...args: unknown[]) {
     originalError.apply(console, args);
     const message = args.map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
@@ -157,7 +157,7 @@ const interceptConsole = () => {
     addLog('❌ ' + message, '#ff0000');
   };
   
-  console.warn = function(...args: any[]) {
+  console.warn = function(...args: unknown[]) {
     originalWarn.apply(console, args);
     const message = args.map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)

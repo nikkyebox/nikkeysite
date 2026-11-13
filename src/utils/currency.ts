@@ -1,6 +1,6 @@
 import { yenFromConverted } from '@/services/fxService';
 import { roundYen } from '@/utils/pricing';
-import { getCountryConfig } from '@/data/worldCountries';
+import { FALLBACK_CONFIG, getCountryConfig } from '@/data/worldCountries';
 
 
 // Desfaz o RATE_CUSHION de convertYen: ¥ equivalente ao valor exibido (aproximado, arredondado).
@@ -58,6 +58,7 @@ export const getCurrencyByCountry = (country: string): 'BRL' | 'JPY' | 'EUR' | '
   if (country === 'Japão') return 'JPY';
   if (country === 'Estados Unidos') return 'USD';
   if (['Portugal', 'França', 'Itália', 'Espanha'].includes(country)) return 'EUR';
-  return 'USD';
+  // Moeda do país não cadastrado: a mesma do fallback universal, sem repetir o valor aqui.
+  return FALLBACK_CONFIG.currency;
 };
 

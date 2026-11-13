@@ -1,6 +1,7 @@
 import React from 'react';
 import { Truck } from 'lucide-react';
-import { getDeliveryEstimate, formatDeliveryRange } from '@/utils/deliveryEstimate';
+import { getDeliveryEstimate } from '@/utils/deliveryEstimate';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface DeliveryEstimateBadgeProps {
   country: string;
@@ -12,7 +13,11 @@ interface DeliveryEstimateBadgeProps {
  * do botão de compra. Responde ao país de destino selecionado pelo cliente.
  */
 const DeliveryEstimateBadge: React.FC<DeliveryEstimateBadgeProps> = ({ country, className = '' }) => {
+  const { t } = useLanguage();
   const est = getDeliveryEstimate(country);
+  const rangeText = est.minDays === est.maxDays
+    ? t('delivery.days').replace('{min}', String(est.minDays))
+    : t('delivery.daysRange').replace('{min}', String(est.minDays)).replace('{max}', String(est.maxDays));
 
   return (
     <div
@@ -21,14 +26,14 @@ const DeliveryEstimateBadge: React.FC<DeliveryEstimateBadgeProps> = ({ country, 
       <Truck className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
       <p className="text-xs sm:text-sm text-green-800 dark:text-green-300 leading-tight">
         {est.isDomestic ? (
-          <>Entrega no Japão em <strong className="font-bold">{formatDeliveryRange(est)}</strong></>
+          <>{t('delivery.domestic')} <strong className="font-bold">{rangeText}</strong></>
         ) : (
           <>
-            Chega em <strong className="font-bold">{formatDeliveryRange(est)}</strong> em {country || 'seu país'}
+            {t('delivery.intlArrives')} <strong className="font-bold">{rangeText}</strong> {t('delivery.intlCountry').replace('{country}', country || t('delivery.yourCountry'))}
           </>
         )}
         <span className="block text-[10px] text-green-700/70 dark:text-green-400/70 font-medium">
-          Prazo estimado após confirmação do pagamento
+          {t('delivery.afterPayment')}
         </span>
       </p>
     </div>

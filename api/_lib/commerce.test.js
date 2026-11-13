@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildQuote } from './commerce.js';
+import { buildQuote, emsRateYen } from './commerce.js';
 
 const rates = { BRL: 1 / 28, EUR: 0.16 / 28, USD: 1 / 150, source: 'fallback' };
 const product = {
@@ -188,5 +188,23 @@ describe('authoritative checkout quote', () => {
     expect(result.total).toBe(result.totalYen);
     expect(subtotal - couponDiscount - pointsDiscount - paymentDiscount).toBe(products);
     expect(products + shipping + psFee + tax).toBe(result.total);
+  });
+});
+
+describe('emsRateYen — tabela EMS alinhada à referência', () => {
+  it('zona 4 (EUA) usa faixas de 1 kg acima de 10 kg, não degraus de 5 kg', () => {
+    expect(emsRateYen(15000, 4)).toBe(39100);
+    expect(emsRateYen(20000, 4)).toBe(51100);
+    expect(emsRateYen(25000, 4)).toBe(63100);
+    expect(emsRateYen(30000, 4)).toBe(75100);
+  });
+
+  it('zona 4 abaixo de 10 kg e faixas intermediárias', () => {
+    expect(emsRateYen(3000, 4)).toBe(10300);
+    expect(emsRateYen(603, 4)).toBe(4460);
+  });
+
+  it('acima de 30 kg não há tarifa', () => {
+    expect(emsRateYen(30001, 4)).toBeNull();
   });
 });

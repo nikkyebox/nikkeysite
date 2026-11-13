@@ -8,7 +8,7 @@ import { firebaseSyncService } from '@/services/firebaseSyncService';
 
 const SyncData: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; migrated?: number; error?: any } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; migrated?: number; error?: unknown } | null>(null);
   const [localUsers, setLocalUsers] = useState<number>(0);
 
   React.useEffect(() => {

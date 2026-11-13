@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, XCircle, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 type Level = 'prohibited' | 'restricted' | 'attention';
 
@@ -15,56 +16,56 @@ interface Category {
   items: Item[];
 }
 
-const CATEGORIES: Category[] = [
+const buildCategories = (t: (key: string) => string): Category[] => [
   {
     icon: '🚫',
-    title: 'Absolutamente Proibidos',
+    title: t('prohibited.cat.prohibited'),
     level: 'prohibited',
     items: [
-      { name: 'Armas de fogo, munições e réplicas', detail: 'Qualquer tipo, incluindo peças e acessórios' },
-      { name: 'Explosivos, fogos de artifício e sinalizadores' },
-      { name: 'Drogas e entorpecentes ilícitos', detail: 'Incluindo sementes de Cannabis' },
-      { name: 'Material pornográfico infantil' },
-      { name: 'Animais vivos' },
-      { name: 'Restos mortais humanos' },
-      { name: 'Moeda falsa e documentos falsificados' },
-      { name: 'Mercadorias contrabandeadas ou pirateadas' },
-      { name: 'Substâncias radioativas' },
-      { name: 'Solos e terra in natura', detail: 'Risco fitossanitário' },
+      { name: t('prohibited.p1.name'), detail: t('prohibited.p1.detail') },
+      { name: t('prohibited.p2.name') },
+      { name: t('prohibited.p3.name'), detail: t('prohibited.p3.detail') },
+      { name: t('prohibited.p4.name') },
+      { name: t('prohibited.p5.name') },
+      { name: t('prohibited.p6.name') },
+      { name: t('prohibited.p7.name') },
+      { name: t('prohibited.p8.name') },
+      { name: t('prohibited.p9.name') },
+      { name: t('prohibited.p10.name'), detail: t('prohibited.p10.detail') },
     ],
   },
   {
     icon: '⚠️',
-    title: 'Restritos (exigem declaração ou documentação)',
+    title: t('prohibited.cat.restricted'),
     level: 'restricted',
     items: [
-      { name: 'Medicamentos', detail: 'Uso pessoal: até 3 meses de tratamento. Necessita receita médica em inglês ou português. Máx. 10 unidades por item.' },
-      { name: 'Suplementos alimentares', detail: 'Máx. 3 unidades por tipo. Deve estar na embalagem original com lista de ingredientes.' },
-      { name: 'Baterias de lítio avulsas (sem dispositivo)', detail: 'Proibidas pela Japan Post. Baterias JÁ INSTALADAS em dispositivos são permitidas.' },
-      { name: 'Aerossóis e sprays pressurizados', detail: 'Proibidos em EMS/Avião. Não disponível para envio.' },
-      { name: 'Perfumes e produtos com álcool acima de 70%', detail: 'Via aérea: máx. 500ml por pacote. Deve ser declarado.' },
-      { name: 'Plantas, sementes e bulbos', detail: 'Exige Certificado Fitossanitário (phytosanitary certificate) do MAPA do Japão.' },
-      { name: 'Alimentos de origem animal (carne, laticínios)', detail: 'Exige inspeção veterinária e certificado sanitário. Geralmente bloqueado na aduana.' },
-      { name: 'Óleos essenciais e inflamáveis', detail: 'Classificados como perigosos. Proibidos em via aérea. Marítimo requer documentação DGD.' },
-      { name: 'Facas e objetos cortantes', detail: 'Permitidos se for uso culinário ou artístico. Réplicas de armas são proibidas.' },
-      { name: 'Lasers e ponteiros laser', detail: 'Acima de 1mW pode ser retido na aduana brasileira.' },
+      { name: t('prohibited.r1.name'), detail: t('prohibited.r1.detail') },
+      { name: t('prohibited.r2.name'), detail: t('prohibited.r2.detail') },
+      { name: t('prohibited.r3.name'), detail: t('prohibited.r3.detail') },
+      { name: t('prohibited.r4.name'), detail: t('prohibited.r4.detail') },
+      { name: t('prohibited.r5.name'), detail: t('prohibited.r5.detail') },
+      { name: t('prohibited.r6.name'), detail: t('prohibited.r6.detail') },
+      { name: t('prohibited.r7.name'), detail: t('prohibited.r7.detail') },
+      { name: t('prohibited.r8.name'), detail: t('prohibited.r8.detail') },
+      { name: t('prohibited.r9.name'), detail: t('prohibited.r9.detail') },
+      { name: t('prohibited.r10.name'), detail: t('prohibited.r10.detail') },
     ],
   },
   {
     icon: '💡',
-    title: 'Atenção especial (permitidos com cuidados)',
+    title: t('prohibited.cat.attention'),
     level: 'attention',
     items: [
-      { name: 'Cosméticos', detail: 'Permitidos. Acima de R$3.000 (valor total do pacote) pode incidir imposto de importação de 20%.' },
-      { name: 'Eletrônicos', detail: 'Permitidos. Declare o valor correto. Pacotes acima de US$50 podem ser taxados pela Receita Federal.' },
-      { name: 'Alimentos industrializados (snacks, doces, chás)', detail: 'Permitidos se selados e na embalagem original. Declare como "food/alimento".' },
-      { name: 'Brinquedos e action figures', detail: 'Permitidos. Declare valor real — subfaturamento pode causar apreensão.' },
-      { name: 'Papelaria e canetas', detail: 'Sem restrições. Declare normalmente.' },
-      { name: 'Roupas e vestuário', detail: 'Permitidos. Acima de 3 peças iguais pode ser considerado comercial.' },
-      { name: 'Calçados', detail: 'Permitidos. Mais de 1 par igual pode ser questionado.' },
-      { name: 'Produtos com pilhas AAA/AA incluídas', detail: 'Permitidos. Pilhas alcalinas comuns não são perigosas. Baterias de lítio devem estar instaladas.' },
-      { name: 'Vinhos e bebidas alcoólicas', detail: 'Proibidos em EMS/avião. Não disponível para envio no momento.' },
-      { name: 'Itens de alto valor (relógios, joias)', detail: 'Declare o valor real. Seguro recomendado. CN23 obrigatório.' },
+      { name: t('prohibited.a1.name'), detail: t('prohibited.a1.detail') },
+      { name: t('prohibited.a2.name'), detail: t('prohibited.a2.detail') },
+      { name: t('prohibited.a3.name'), detail: t('prohibited.a3.detail') },
+      { name: t('prohibited.a4.name'), detail: t('prohibited.a4.detail') },
+      { name: t('prohibited.a5.name'), detail: t('prohibited.a5.detail') },
+      { name: t('prohibited.a6.name'), detail: t('prohibited.a6.detail') },
+      { name: t('prohibited.a7.name'), detail: t('prohibited.a7.detail') },
+      { name: t('prohibited.a8.name'), detail: t('prohibited.a8.detail') },
+      { name: t('prohibited.a9.name'), detail: t('prohibited.a9.detail') },
+      { name: t('prohibited.a10.name'), detail: t('prohibited.a10.detail') },
     ],
   },
 ];
@@ -100,6 +101,8 @@ const levelConfig = {
 };
 
 const ProhibitedItems: React.FC = () => {
+  const { t } = useLanguage();
+  const CATEGORIES = buildCategories(t);
   const [open, setOpen] = useState<Record<number, boolean>>({ 0: true });
   const [search, setSearch] = useState('');
 
@@ -121,15 +124,15 @@ const ProhibitedItems: React.FC = () => {
       <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
         <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
         <div className="text-sm text-red-700 dark:text-red-400 leading-relaxed">
-          <strong>Atenção:</strong> Enviar itens proibidos pode resultar em apreensão do pacote, multa e até processo criminal.
-          Em caso de dúvida, consulte a{' '}
+          <strong>{t('prohibited.warningLabel')}</strong> {t('prohibited.warningText')}
+          {t('prohibited.warningAsk')}{' '}
           <a href="https://www.gov.br/receitafederal/pt-br" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
-            Receita Federal do Brasil
+            {t('ui.receitaFederal')}
           </a>{' '}
-          e as{' '}
+          {t('prohibited.andThe')}{' '}
           <a href="https://www.post.japanpost.jp/int/restriction/index_en.html" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
-            restrições da Japan Post
-          </a>.
+            {t('prohibited.jpRestrictions')}
+          </a>{t('prohibited.periodEnd')}
         </div>
       </div>
 
@@ -139,7 +142,7 @@ const ProhibitedItems: React.FC = () => {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="🔍  Buscar item (ex: bateria, medicamento, perfume...)"
+          placeholder={`🔍  ${t('prohibited.searchPh')}`}
           className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
         />
         {search && (
@@ -170,7 +173,7 @@ const ProhibitedItems: React.FC = () => {
                 <div>
                   <span className={`font-bold text-base ${cfg.title}`}>{cat.title}</span>
                   <span className={`ml-2 text-xs text-white px-2 py-0.5 rounded-full ${cfg.badge}`}>
-                    {cat.items.length} itens
+                    {cat.items.length} {t('prohibited.items')}
                   </span>
                 </div>
               </div>
@@ -203,7 +206,7 @@ const ProhibitedItems: React.FC = () => {
 
       {/* Fonte */}
       <p className="text-xs text-muted-foreground text-center">
-        Fontes: Japan Post International Restrictions · Receita Federal do Brasil · ANVISA · MAPA
+        {t('prohibited.sources')}
       </p>
     </div>
   );
