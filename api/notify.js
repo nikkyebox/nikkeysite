@@ -138,6 +138,26 @@ async function handleEmail(req, res) {
       return;
     }
 
+    // Botao "Testar notificacoes" do Admin. Vai sempre para o e-mail do PROPRIO
+    // admin autenticado — nunca para um destinatario vindo do navegador — e
+    // passa pelo mesmo sendMail() dos e-mails reais, entao prova chave, dominio
+    // e remetente de uma vez.
+    if (type === 'test') {
+      assertExactKeys(body, ['type']);
+      const admin = await requireAdmin(req);
+      if (!admin.email) throw new HttpError(403, 'forbidden');
+      await enforceRateLimit(req, { scope: 'email:test', limit: 10, windowMs: 60 * 60 * 1000, identity: admin.uid });
+      const to = normalizeEmail(admin.email);
+      const quando = new Date().toLocaleString('pt-BR', { timeZone: 'Asia/Tokyo' });
+      const result = await sendMail({
+        to,
+        subject: 'Teste de envio – NikkeyBox',
+        html: wrapEmail(`<p>Este e um e-mail de teste disparado pelo painel do Admin.</p><p>Se voce recebeu esta mensagem, o envio via Resend esta funcionando.</p><p style="color:#777;font-size:13px">${quando} (JST)</p>`),
+      });
+      res.status(200).json({ ok: true, type, ...result });
+      return;
+    }
+
     // Reenvio pelo painel do admin. Existe porque o caminho normal depende da
     // sessão do próprio cliente estar viva no navegador dele — e quando isso
     // falha, a conta é criada e NINGUÉM fica sabendo que o link não saiu. Aqui

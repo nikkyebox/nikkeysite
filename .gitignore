@@ -116,3 +116,6 @@ email-template-*.html
 CLAUDE.md.tar.gz
 .env*
 .old-branding-backup/
+
+# Configuração local de MCP (por desenvolvedor)
+.mcp.json

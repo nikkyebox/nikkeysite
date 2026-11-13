@@ -7,7 +7,6 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/UserContext';
 import { emailService } from '@/services/emailService';
-import { emailServiceSimple } from '@/services/emailServiceSimple';
 import { whatsappService } from '@/services/whatsappService';
 import { whatsappServiceSimple } from '@/services/whatsappServiceSimple';
 import { waServer } from '@/services/waServerService';
@@ -50,7 +49,6 @@ import { negotiationService } from '@/services/negotiationService';
 import { convertYen } from '@/services/fxService';
 import { formatPrice } from '@/utils/currency';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
-import { ADMIN_EMAIL } from '@/config/admin';
 import { auth } from '@/config/firebase';
 import { ADMIN_HEADER_ACTIONS_ENABLED } from '@/config/featureFlags';
 
@@ -99,10 +97,9 @@ const Admin: React.FC = () => {
 
   // A lista cresce em páginas reais do Firestore; nenhum carregamento integral é feito no navegador.
 
-  // `ADMIN_EMAIL` (de @/config/admin) é só o destinatário do e-mail de teste
-  // desta tela. Quem barra o acesso é o guarda de sessão mais abaixo somado às
-  // regras do Firestore — o comentário antigo dizia que era esta constante, o
-  // que fazia parecer que apagá-la abriria o painel.
+  // Quem barra o acesso a esta tela é o guarda de sessão mais abaixo somado às
+  // regras do Firestore (o e-mail de teste vai para o admin logado, decidido
+  // pelo servidor).
 
   useEffect(() => {
     // Espera o SDK resolver o estado inicial antes de qualquer leitura. Pedidos
@@ -394,52 +391,11 @@ const Admin: React.FC = () => {
       
       let emailResult = false;
       
-      // Try Resend first
-      if (import.meta.env.VITE_RESEND_API_KEY) {
-        devLog('📧 Testing Resend...');
-        const testEmailHTML = `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="utf-8">
-            </head>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-              <h1 style="color: #22c55e;">🧪 Test Email (Resend)</h1>
-              <p>This is a test email from NikkeyBox!</p>
-              <p>If you received this, your email configuration is working correctly! ✅</p>
-              <p>Time: ${new Date().toLocaleString('pt-BR')}</p>
-            </body>
-          </html>
-        `;
-        
-        emailResult = await emailService.sendOrderConfirmation({
-          to: ADMIN_EMAIL,
-          subject: '🧪 Test Email (Resend) - NikkeyBox',
-          html: testEmailHTML,
-          orderNumber: 'TEST-' + Date.now(),
-          customerName: 'Test User'
-        });
-      } else {
-        // Try EmailJS
-        devLog('📧 Testing EmailJS...');
-        emailResult = await emailServiceSimple.sendOrderConfirmation({
-          formData: {
-            name: 'Test User',
-            email: ADMIN_EMAIL,
-            phone: COMPANY_PROFILE.whatsapp.domestic,
-            postalCode: COMPANY_PROFILE.fulfillmentOrigin.postalCode,
-            prefecture: COMPANY_PROFILE.fulfillmentOrigin.prefecture,
-            city: COMPANY_PROFILE.fulfillmentOrigin.city,
-            address: COMPANY_PROFILE.fulfillmentOrigin.addressLine1,
-            building: ''
-          },
-          items: [],
-          totalPrice: 1000,
-          orderNumber: 'TEST-' + Date.now(),
-          paymentMethod: 'bank'
-        });
-      }
-      
+      // Resend no servidor: a chave nunca vai para o navegador. O destinatario
+      // e o e-mail do admin logado, decidido pelo servidor.
+      devLog('📧 Testing Resend (server)...');
+      emailResult = await emailService.sendTest();
+
       devLog('📧 Email test result:', emailResult);
       
       // Wait a bit before WhatsApp test

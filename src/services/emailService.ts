@@ -37,6 +37,26 @@ export const emailService = {
   /**
    * Send order confirmation email using Resend
    */
+  /** E-mail de teste para o próprio admin logado, via Resend no servidor. */
+  sendTest: async (): Promise<boolean> => {
+    try {
+      const response = await authenticatedFetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'test' }),
+      });
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        devError('❌ send-email (test) error:', response.status, errText);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      devError('❌ Error sending test email:', error);
+      return false;
+    }
+  },
+
   sendOrderConfirmation: async (data: EmailData): Promise<boolean> => {
     devLog('📧 Email Service - Sending order confirmation email');
     devLog('📧 Order Number:', data.orderNumber);
