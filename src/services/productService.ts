@@ -23,6 +23,8 @@ import { gravarCatalogo, lerCatalogo, limparCatalogo } from '@/services/catalogC
 import { Product } from '@/types';
 import { products as defaultProducts } from '@/data/products';
 import { ensureAdminAuth } from '@/utils/adminAuth';
+import { fetchPublicCatalog, isAdminRoute } from '@/services/publicCatalog';
+import { withCdnImages, withStorageImages } from '@/utils/mediaUrl';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -44,6 +46,9 @@ const COL = 'products';
 // "o que mudou desde X?", o que custa ~1 leitura quando nada mudou — contra
 // as ~265 de reler o catálogo.
 const JANELA_VERIFICACAO = 60 * 60 * 1000; // 60 minutos
+// Vitrine: o catálogo vem do CDN da Vercel (custo zero de Firestore), então
+// dá para conferir bem mais vezes.
+const JANELA_PUBLICA = 5 * 60 * 1000;
 
 let memoria: CatalogSnapshot | null = null;
 let verificadoEm = 0;
@@ -136,12 +141,13 @@ export const productService = {
   async sync(): Promise<CatalogSnapshot | null> {
     if (!memoria) memoria = await lerCatalogo();
 
-    const base = memoria;
+    // O retrato público não tem o custo: o admin precisa de leitura completa.
+    const base = memoria?.source === 'public' ? null : memoria;
     const { items, deleted, maxMs } = await this.getOverrides(base ? base.syncedAtMs : null);
 
     if (!base) {
       if (!items.length && !deleted.length) return null;
-      memoria = { items, deleted, syncedAtMs: maxMs };
+      memoria = { items, deleted, syncedAtMs: maxMs, source: 'firestore' };
     } else {
       // Delta: o que voltou sobrepõe o que havia; o resto permanece intacto.
       const porId = new Map(base.items.map((p) => [p.id, p]));
@@ -158,6 +164,7 @@ export const productService = {
         items: Array.from(porId.values()),
         deleted: Array.from(removidos),
         syncedAtMs: Math.max(base.syncedAtMs, maxMs),
+        source: 'firestore',
       };
     }
 
@@ -174,16 +181,35 @@ export const productService = {
   async getMerged(forceRefresh = false): Promise<Product[]> {
     if (!memoria) memoria = await lerCatalogo();
 
-    const dentroDaJanela = Date.now() - verificadoEm < JANELA_VERIFICACAO;
-    const podeServirDoCache = memoria && !forceRefresh && !precisaVerificar && dentroDaJanela;
-
-    if (!podeServirDoCache) {
-      try {
-        await this.sync();
-      } catch {
-        // Firestore inacessível (offline, cota esgotada, auth não pronta).
-        // Servir o cache é melhor que uma vitrine vazia.
-        if (!memoria) return defaultProducts;
+    if (isAdminRoute()) {
+      const dentroDaJanela = Date.now() - verificadoEm < JANELA_VERIFICACAO;
+      const podeServirDoCache =
+        memoria?.source === 'firestore' && !forceRefresh && !precisaVerificar && dentroDaJanela;
+      if (!podeServirDoCache) {
+        try {
+          await this.sync();
+        } catch {
+          // Firestore inacessível: servir o cache é melhor que um painel vazio.
+          if (!memoria) return defaultProducts;
+        }
+      }
+    } else {
+      const dentroDaJanela = Date.now() - verificadoEm < JANELA_PUBLICA;
+      const podeServirDoCache = memoria && !forceRefresh && !precisaVerificar && dentroDaJanela;
+      if (!podeServirDoCache) {
+        const publico = await fetchPublicCatalog(forceRefresh || precisaVerificar);
+        if (publico) {
+          memoria = {
+            items: publico.products.items,
+            deleted: publico.products.deleted,
+            syncedAtMs: publico.products.maxMs,
+            source: 'public',
+          };
+          verificadoEm = Date.now();
+          precisaVerificar = false;
+          await gravarCatalogo(memoria);
+        }
+        // Sem resposta do CDN (offline): segue com o que está no IndexedDB.
       }
     }
 
@@ -196,14 +222,15 @@ export const productService = {
     }
     for (const p of memoria.items) map.set(p.id, p);
     for (const id of memoria.deleted) map.delete(id);
-    return Array.from(map.values()).filter((p) => p.image);
+    return Array.from(map.values()).filter((p) => p.image).map(withCdnImages);
   },
 
   /** Cria ou atualiza um produto. Invalida o cache local automaticamente. */
   async save(product: Product): Promise<void> {
     if (!db) throw new Error('Firebase indisponível');
     await ensureAdminAuth();
-    const { id, ...rest } = product;
+    // A vitrine usa /media/...; no Firestore fica sempre a URL do Storage.
+    const { id, ...rest } = withStorageImages(product);
     const cleanRest = stripUndefined(rest) as Record<string, unknown>;
     Object.entries(rest).forEach(([key, value]) => {
       if (value === undefined) cleanRest[key] = deleteField();

@@ -10,6 +10,7 @@ import { effectiveYen, baseYen, getVariants } from '@/utils/pricing';
 import { PROMO_TYPES, ActivePromo } from '@/types/promotion';
 import { Product } from '@/types';
 import { productEnglishName } from '@/utils/productName';
+import { fetchPublicCatalog } from '@/services/publicCatalog';
 
 // Assets locais do projeto — evita depender de host externo (Unsplash) que pode
 // falhar por CSP/rede em alguns ambientes de preview.
@@ -30,10 +31,16 @@ const PromoCarouselSection: React.FC = () => {
   const [promo, setPromo] = useState<ActivePromo | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!db) { setPromo(null); return; }
-    getDoc(doc(db, 'siteContent', 'homePromotion'))
-      .then((snap) => setPromo(snap.exists() ? (snap.data() as ActivePromo) : null))
-      .catch(() => setPromo(null));
+    let vivo = true;
+    fetchPublicCatalog().then(async (publico) => {
+      if (publico) return (publico.content.homePromotion as unknown as ActivePromo | null) ?? null;
+      if (!db) return null;
+      const snap = await getDoc(doc(db, 'siteContent', 'homePromotion'));
+      return snap.exists() ? (snap.data() as ActivePromo) : null;
+    })
+      .then((p) => { if (vivo) setPromo(p); })
+      .catch(() => { if (vivo) setPromo(null); });
+    return () => { vivo = false; };
   }, []);
 
   const currency = getCurrencyByCountry(selectedCountry);

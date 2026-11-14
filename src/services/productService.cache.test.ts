@@ -13,6 +13,12 @@ const firestoreMocks = vi.hoisted(() => ({
 }));
 
 const cacheMocks = vi.hoisted(() => ({ snapshot: null as unknown }));
+const publicMocks = vi.hoisted(() => ({ admin: true, fetchPublicCatalog: vi.fn() }));
+
+vi.mock('@/services/publicCatalog', () => ({
+  isAdminRoute: () => publicMocks.admin,
+  fetchPublicCatalog: publicMocks.fetchPublicCatalog,
+}));
 
 vi.mock('@/config/firebase', () => ({ auth: {}, db: {}, firebaseConfigReady: true }));
 
@@ -67,6 +73,8 @@ function responder(docs: FakeDoc[]): void {
 describe('sincronização do catálogo', () => {
   beforeEach(async () => {
     cacheMocks.snapshot = null;
+    publicMocks.admin = true;
+    publicMocks.fetchPublicCatalog.mockReset();
     firestoreMocks.getDocs.mockReset();
     firestoreMocks.where.mockClear();
     await resetProductCache();
@@ -132,5 +140,41 @@ describe('sincronização do catálogo', () => {
     const durantePane = await productService.getMerged();
 
     expect(durantePane.map((p) => p.id)).toEqual(['a']);
+  });
+
+  describe('vitrine (fora do /admin)', () => {
+    beforeEach(() => { publicMocks.admin = false; });
+
+    it('lê o catálogo do CDN e não toca o Firestore', async () => {
+      publicMocks.fetchPublicCatalog.mockResolvedValueOnce({
+        products: {
+          items: [{ id: 'a', name: 'a', image: 'https://firebasestorage.googleapis.com/v0/b/nikkeybox.firebasestorage.app/o/products%2Fa%2F1.webp?alt=media' }],
+          deleted: [],
+          maxMs: 1,
+        },
+      });
+
+      const lista = await productService.getMerged();
+
+      expect(lista).toHaveLength(1);
+      expect(firestoreMocks.getDocs).not.toHaveBeenCalled();
+      // A foto da vitrine passa pelo CDN da Vercel.
+      expect(lista[0].image).toBe('/media/products/a/1.webp');
+    });
+
+    it('sem resposta do CDN, serve o que já está no IndexedDB', async () => {
+      cacheMocks.snapshot = {
+        items: [{ id: 'z', name: 'z', image: 'https://cdn/z.webp' }],
+        deleted: [],
+        syncedAtMs: 5,
+        source: 'public',
+      };
+      publicMocks.fetchPublicCatalog.mockResolvedValueOnce(null);
+
+      const lista = await productService.getMerged(true);
+
+      expect(lista.map((p) => p.id)).toEqual(['z']);
+      expect(firestoreMocks.getDocs).not.toHaveBeenCalled();
+    });
   });
 });

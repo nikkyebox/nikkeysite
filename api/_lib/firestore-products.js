@@ -2,8 +2,6 @@
 // que o site usa no client). Compartilhado entre sitemap.js e merchant-feed.js —
 // não duplicar este parser em cada endpoint.
 
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || '';
-
 export function parseValue(v) {
   if ('stringValue' in v) return v.stringValue;
   if ('integerValue' in v) return Number(v.integerValue);
@@ -26,22 +24,21 @@ export function escapeXml(s) {
   return String(s || '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
 }
 
+// Lê com o Admin SDK: a coleção `products` não é mais pública no Firestore
+// (o custo de aquisição mora nela). Quem chama aqui só usa campos públicos.
 export async function fetchProducts() {
-  if (!FIREBASE_PROJECT_ID) throw new Error('FIREBASE_PROJECT_ID não configurado');
-  const base = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/products?pageSize=300`;
+  const { adminDb } = await import('./firebase-admin.js');
+  const snap = await adminDb().collection('products').get();
   const all = [];
-  let pageToken = '';
-  do {
-    const url = pageToken ? `${base}&pageToken=${pageToken}` : base;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Firestore read failed: ' + res.status);
-    const data = await res.json();
-    (data.documents || []).forEach(doc => {
-      const id = doc.name.split('/').pop();
-      all.push({ id, ...parseFields(doc.fields || {}) });
-    });
-    pageToken = data.nextPageToken || '';
-  } while (pageToken);
+  // Timestamps viram ISO, como chegavam pela API REST (`timestampValue`).
+  const plain = (v) => {
+    if (v === null || v === undefined) return v;
+    if (typeof v?.toDate === 'function') return v.toDate().toISOString();
+    if (Array.isArray(v)) return v.map(plain);
+    if (typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, plain(x)]));
+    return v;
+  };
+  snap.forEach((d) => all.push({ id: d.id, ...plain(d.data()) }));
   return all;
 }
 

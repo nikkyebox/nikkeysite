@@ -2,6 +2,7 @@
 // O admin pode adicionar novas categorias que ficam salvas para uso futuro.
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { fetchPublicCatalog, isAdminRoute } from '@/services/publicCatalog';
 
 export interface ProductCategory {
   id: string;
@@ -31,13 +32,21 @@ const slugify = (s: string) =>
 export const categoryService = {
   /** Lista padrão + personalizadas (sem duplicar ids). */
   async getAll(): Promise<ProductCategory[]> {
-    if (!db) return DEFAULT_CATEGORIES;
+    // Vitrine: lista vem do catálogo público no CDN; o admin lê do Firestore.
+    let custom: ProductCategory[] | null = null;
+    if (!isAdminRoute()) {
+      const publico = await fetchPublicCatalog();
+      if (publico) custom = publico.categories as ProductCategory[];
+    }
+    if (custom === null && !db) return DEFAULT_CATEGORIES;
     try {
-      const snap = await getDoc(doc(db, 'settings', SETTINGS_DOC));
-      const custom: ProductCategory[] = snap.exists() ? (snap.data().list || []) : [];
+      if (custom === null) {
+        const snap = await getDoc(doc(db, 'settings', SETTINGS_DOC));
+        custom = snap.exists() ? (snap.data().list || []) : [];
+      }
       const map = new Map<string, ProductCategory>();
       // Custom primeiro; padrão sobrescreve (emoji/label das padrão sempre prevalecem)
-      for (const c of custom) if (c?.id) map.set(c.id, c);
+      for (const c of custom ?? []) if (c?.id) map.set(c.id, c);
       for (const c of DEFAULT_CATEGORIES) map.set(c.id, c);
       return Array.from(map.values());
     } catch {

@@ -179,8 +179,10 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // Só admin lê direto: o documento guarda o custo de aquisição. A vitrine
+    // recebe os produtos sem campos sensíveis por /api/public-catalog.
     match /products/{productId} {
-      allow read: if true;
+      allow read: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
 

@@ -6,6 +6,7 @@ import { Package, Printer, ShoppingBag, User, MapPin, Phone, Mail, Calendar, Tes
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/UserContext';
+import { useProducts } from '@/context/ProductsContext';
 import { emailService } from '@/services/emailService';
 import { whatsappService } from '@/services/whatsappService';
 import { whatsappServiceSimple } from '@/services/whatsappServiceSimple';
@@ -94,6 +95,7 @@ const Admin: React.FC = () => {
   // leitura protegida vai passar até entrar de novo.
   const [noAdminSession, setNoAdminSession] = useState(false);
   const { settings, saveSettings } = useSiteSettings();
+  const { refresh: refreshProducts } = useProducts();
 
   // A lista cresce em páginas reais do Firestore; nenhum carregamento integral é feito no navegador.
 
@@ -160,6 +162,13 @@ const Admin: React.FC = () => {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- listeners de foco e visibilidade dependem só de user/authReady; loadOrders é recriado a cada render
   }, [user, navigate, authReady]);
+
+  useEffect(() => {
+    // A vitrine carrega o catálogo público (sem custo). Com a sessão de admin
+    // pronta, relê do Firestore para o painel ter o custo e dados frescos.
+    if (!authReady || !auth?.currentUser) return;
+    void refreshProducts();
+  }, [authReady, refreshProducts]);
 
   useEffect(() => {
     // `onSnapshot` sem sessão erra na primeira resposta e não se reinscreve:
@@ -711,7 +720,7 @@ _This is an automated test message_
   const DISABLED_TAB_IDS = new Set<AdminTab>([
     'affiliates', 'visitors', 'review-moderation', 'videos',
     'home', 'vlog', 'sorteio', 'marketing',
-    'calculator', 'migration', 'thermal-printer', 'whatsapp', 'promotion',
+    'calculator', 'thermal-printer', 'whatsapp', 'promotion',
   ]);
 
   // Abas agrupadas (menu lateral) — orientado a dados

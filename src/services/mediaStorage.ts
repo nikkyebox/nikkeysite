@@ -66,7 +66,8 @@ const isString = (s: unknown): s is string => typeof s === 'string';
 export const mediaStorage = {
   isStorageUrl: (s: unknown) =>
     isString(s) &&
-    (s.includes('firebasestorage.googleapis.com') ||
+    (s.startsWith('/media/products/') ||
+      s.includes('firebasestorage.googleapis.com') ||
       s.includes('.firebasestorage.app') ||
       s.includes('storage.googleapis.com')),
 

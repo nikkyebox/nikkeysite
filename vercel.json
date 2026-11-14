@@ -23,6 +23,8 @@
     { "source": "/clear-storage.html", "destination": "/", "permanent": false }
   ],
   "rewrites": [
+    { "source": "/media/:path*", "destination": "/api/catalog?action=media&p=:path*" },
+    { "source": "/api/public-catalog", "destination": "/api/catalog?action=public" },
     { "source": "/sitemap.xml", "destination": "/api/catalog?action=sitemap" },
     { "source": "/api/geo", "destination": "/api/catalog?action=geo" },
     { "source": "/api/wise-rate", "destination": "/api/catalog?action=wise-rate" },

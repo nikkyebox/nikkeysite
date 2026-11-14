@@ -23,6 +23,8 @@ export interface CatalogSnapshot {
    *  usar `Date.now()` aqui perderia atualizações sempre que o relógio local
    *  estivesse adiantado. */
   syncedAtMs: number;
+  /** De onde veio: o catálogo público (sem custo) ou o Firestore (admin). */
+  source?: 'public' | 'firestore';
 }
 
 function abrir(): Promise<IDBDatabase> {

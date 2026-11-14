@@ -1,10 +1,14 @@
 import geo from './_handlers/geo.js';
+import media from './_handlers/media.js';
 import productEnrich from './_handlers/product-enrich.js';
+import publicCatalog from './_handlers/public-catalog.js';
 import sitemap from './_handlers/sitemap.js';
 import wiseRate from './_handlers/wise-rate.js';
 
 const HANDLERS = {
   geo,
+  media,
+  public: publicCatalog,
   'product-enrich': productEnrich,
   sitemap,
   'wise-rate': wiseRate,

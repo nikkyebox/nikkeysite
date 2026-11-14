@@ -3,6 +3,7 @@
 import { db } from '@/config/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ensureAdminAuth } from '@/utils/adminAuth';
+import { fetchPublicCatalog, isAdminRoute } from '@/services/publicCatalog';
 
 const isDev = import.meta.env.DEV;
 const devLog = isDev ? console.log.bind(console) : () => {};
@@ -82,6 +83,14 @@ const DEFAULT_SETTINGS: SiteSettings = { vlogEnabled: false };
 
 export const siteContentService = {
   async getSettings(): Promise<SiteSettings> {
+    if (!isAdminRoute()) {
+      const publico = await fetchPublicCatalog();
+      if (publico) {
+        const result = { ...DEFAULT_SETTINGS, ...((publico.content.settings ?? {}) as Partial<SiteSettings>) };
+        try { localStorage.setItem(SETTINGS_LS, JSON.stringify(result)); } catch { /* cache local indisponível */ }
+        return result;
+      }
+    }
     try {
       const cached = localStorage.getItem(SETTINGS_LS);
       if (cached) return { ...DEFAULT_SETTINGS, ...JSON.parse(cached) };
@@ -110,6 +119,13 @@ export const siteContentService = {
 
 
   async getHome(): Promise<HomeContent> {
+    if (!isAdminRoute()) {
+      const publico = await fetchPublicCatalog();
+      if (publico) {
+        const data = (publico.content.home ?? {}) as Partial<HomeContent>;
+        return { ...DEFAULT_HOME, ...data, videos: data.videos || [] };
+      }
+    }
     if (!db) return DEFAULT_HOME;
     try {
       const snap = await getDoc(doc(db, 'siteContent', 'home'));
@@ -133,6 +149,14 @@ export const siteContentService = {
   },
 
   async getVlog(): Promise<VlogContent> {
+    if (!isAdminRoute()) {
+      const publico = await fetchPublicCatalog();
+      if (publico) {
+        if (!publico.content.vlog) return DEFAULT_VLOG;
+        const data = publico.content.vlog as Partial<VlogContent>;
+        return { ...DEFAULT_VLOG, ...data, videos: data.videos || [], saved: true };
+      }
+    }
     if (!db) return DEFAULT_VLOG;
     try {
       const snap = await getDoc(doc(db, 'siteContent', 'vlog'));
