@@ -32,7 +32,7 @@ const DeliveryEstimateBadge: React.FC<DeliveryEstimateBadgeProps> = ({ country, 
             {t('delivery.intlArrives')} <strong className="font-bold">{rangeText}</strong> {t('delivery.intlCountry').replace('{country}', country || t('delivery.yourCountry'))}
           </>
         )}
-        <span className="block text-[10px] text-green-700/70 dark:text-green-400/70 font-medium">
+        <span className="block text-xs text-green-700/70 dark:text-green-400/70 font-medium">
           {t('delivery.afterPayment')}
         </span>
       </p>

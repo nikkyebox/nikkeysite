@@ -158,7 +158,7 @@ const AffiliateManager: React.FC = () => {
             <div className="space-y-1 md:col-span-2">
               <Label>E-mail da conta do influencer *</Label>
               <Input value={form.ownerEmail} onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })} placeholder="influencer@email.com" />
-              <p className="text-[11px] text-muted-foreground">É com este e-mail que o influencer vê o painel dele em /afiliado.</p>
+              <p className="text-xs text-muted-foreground">É com este e-mail que o influencer vê o painel dele em /afiliado.</p>
             </div>
             <div className="space-y-1">
               <Label>Desconto ao comprador (%)</Label>
@@ -289,7 +289,7 @@ const AffiliateManager: React.FC = () => {
                             style={{ width: `${progress}%` }}
                           />
                         </div>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {progress >= 100
                             ? `✅ Meta batida! ${nextTierCfg ? `Sobe para ${nextTierCfg.emoji} ${nextTierCfg.label} no próximo mês` : 'Mantém Ouro'}`
                             : tierCfg.prevTier

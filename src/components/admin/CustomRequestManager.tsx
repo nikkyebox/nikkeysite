@@ -89,7 +89,7 @@ const CustomRequestManager: React.FC = () => {
                       <Phone className="w-3.5 h-3.5" /> {r.contact}
                       {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline ml-1">WhatsApp ↗</a>}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{new Date(r.createdAt).toLocaleString('pt-BR')}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.createdAt).toLocaleString('pt-BR')}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_COLOR[r.status]}`}>{STATUS_LABEL[r.status]}</span>
                 </div>

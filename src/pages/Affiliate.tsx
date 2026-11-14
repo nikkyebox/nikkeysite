@@ -127,26 +127,26 @@ const AffiliatePage: React.FC = () => {
                       <div className="bg-secondary/30 rounded-xl p-4">
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><Percent className="w-3 h-3" /> {t('checkout.discount')}</p>
                         <p className="text-xl font-bold">{aff.discountPercent}%</p>
-                        <p className="text-[10px] text-muted-foreground">{t('affiliate.forUsers')}</p>
+                        <p className="text-xs text-muted-foreground">{t('affiliate.forUsers')}</p>
                       </div>
                       <div className="bg-secondary/30 rounded-xl p-4">
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><Package className="w-3 h-3" /> {t('affiliate.sales')}</p>
                         <p className="text-xl font-bold">{totalVendas}</p>
                         {pend.orders > 0 && (
-                          <p className="text-[10px] text-amber-600">{pend.orders} {t('affiliate.awaitingDelivery')}</p>
+                          <p className="text-xs text-amber-600">{pend.orders} {t('affiliate.awaitingDelivery')}</p>
                         )}
                       </div>
                       <div className="bg-secondary/30 rounded-xl p-4">
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><TrendingUp className="w-3 h-3" /> {t('affiliate.revenueGenerated')}</p>
                         <p className="text-xl font-bold">{yen(totalReceita)}</p>
                         {pend.netYen > 0 && (
-                          <p className="text-[10px] text-amber-600">{yen(pend.netYen)} {t('affiliate.pendingShort')}</p>
+                          <p className="text-xs text-amber-600">{yen(pend.netYen)} {t('affiliate.pendingShort')}</p>
                         )}
                       </div>
                       <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
                         <p className="text-xs text-primary flex items-center gap-1 mb-1"><DollarSign className="w-3 h-3" /> {t('affiliate.commissionReleased')}</p>
                         <p className="text-xl font-bold text-primary">{yen(aff.totalEarnings)}</p>
-                        <p className="text-[10px] text-muted-foreground">{t('affiliate.commissionOfSales').replace('{pct}', String(aff.commissionPercent))}</p>
+                        <p className="text-xs text-muted-foreground">{t('affiliate.commissionOfSales').replace('{pct}', String(aff.commissionPercent))}</p>
                         {/* Badge de nível */}
                         {(() => {
                           const tier: AffiliateTier = aff.tier || 'bronze';
@@ -156,13 +156,13 @@ const AffiliatePage: React.FC = () => {
                           const nextCfg = cfg.nextTier ? TIER_CONFIG[cfg.nextTier] : null;
                           return (
                             <div className="mt-2 space-y-1.5">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
                                 tier === 'gold'   ? 'bg-yellow-100 text-yellow-700' :
                                 tier === 'silver' ? 'bg-gray-100 text-gray-600' :
                                                     'bg-purple-100 text-purple-700'
                               }`}>{cfg.emoji} {t('affiliate.tier.' + tier)}</span>
                               <div>
-                                <div className="flex justify-between text-[10px] text-muted-foreground mb-0.5">
+                                <div className="flex justify-between text-xs text-muted-foreground mb-0.5">
                                   <span>{t('affiliate.thisMonth').replace('{valor}', '¥' + monthRev.toLocaleString())}</span>
                                   <span>{t('affiliate.goal').replace('{valor}', '¥' + cfg.goalYen.toLocaleString())}</span>
                                 </div>
@@ -170,7 +170,7 @@ const AffiliatePage: React.FC = () => {
                                   <div className={`h-full rounded-full ${progress >= 100 ? 'bg-green-500' : progress >= 60 ? 'bg-amber-400' : 'bg-red-400'}`}
                                     style={{ width: `${progress}%` }} />
                                 </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                <p className="text-xs text-muted-foreground mt-0.5">
                                   {progress >= 100
                                     ? (t('affiliate.goalReached') + (nextCfg ? t('affiliate.goalReachedNext').replace('{tier}', nextCfg.emoji + ' ' + t('affiliate.tier.' + cfg.nextTier)) : ''))
                                     : t('affiliate.remaining').replace('{valor}', '¥' + (cfg.goalYen - monthRev).toLocaleString()).replace('{acao}', nextCfg ? t('affiliate.remainingUp').replace('{tier}', nextCfg.emoji + ' ' + t('affiliate.tier.' + cfg.nextTier)) : t('affiliate.remainingKeep'))}
@@ -181,10 +181,10 @@ const AffiliatePage: React.FC = () => {
                         })()}
                         {pend.commissionYen > 0 && (
                           <div className="mt-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2 border border-amber-200 dark:border-amber-800">
-                            <p className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-1 font-semibold">
+                            <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1 font-semibold">
                               <Clock className="w-3 h-3" /> {yen(pend.commissionYen)} {t('affiliate.toRelease')}
                             </p>
-                            <p className="text-[10px] text-amber-600/80 dark:text-amber-500/80">
+                            <p className="text-xs text-amber-600/80 dark:text-amber-500/80">
                               {t('affiliate.releasedAfterDelivery')}
                             </p>
                           </div>
@@ -206,7 +206,7 @@ const AffiliatePage: React.FC = () => {
                           {copied === `link-${aff.code}` ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                         </Button>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         {t('affiliate.shareHint1')} <strong>{aff.code}</strong>{t('affiliate.shareHint2').replace('{desconto}', String(aff.discountPercent)).replace('{comissao}', String(aff.commissionPercent))}
                       </p>
                     </div>
@@ -243,7 +243,7 @@ const AffiliatePage: React.FC = () => {
                           </Button>
                         </div>
                       )}
-                      <p className="text-[11px] text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         {t('affiliate.productLinkHint')}
                       </p>
                     </div>
@@ -257,7 +257,7 @@ const AffiliatePage: React.FC = () => {
 
       {/* Modal de metas */}
       {showTierModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowTierModal(false)}>
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowTierModal(false)}>
           <div className="bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border overflow-hidden" onClick={e => e.stopPropagation()}>
 
             {/* Header */}

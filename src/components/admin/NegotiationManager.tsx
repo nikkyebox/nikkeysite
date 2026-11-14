@@ -47,7 +47,7 @@ function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
   }, [expiresAt]);
-  return <span className="text-[10px] text-orange-500 font-semibold flex items-center gap-1"><Clock className="w-3 h-3" />{remaining}</span>;
+  return <span className="text-xs text-orange-500 font-semibold flex items-center gap-1"><Clock className="w-3 h-3" />{remaining}</span>;
 }
 
 const NegotiationRow: React.FC<{ neg: Negotiation }> = ({ neg }) => {
@@ -276,7 +276,7 @@ const NegotiationRow: React.FC<{ neg: Negotiation }> = ({ neg }) => {
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
                   />
                   {parseInt(approveInput) !== neg.requestedDiscountYen && parseInt(approveInput) > 0 && (
-                    <p className="text-[10px] text-orange-500 mt-0.5">
+                    <p className="text-xs text-orange-500 mt-0.5">
                       Diferente do pedido — cliente verá ~~{fmt(neg.requestedDiscountYen)}~~ → {fmt(parseInt(approveInput))}
                     </p>
                   )}

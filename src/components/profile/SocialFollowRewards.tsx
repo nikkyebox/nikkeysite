@@ -72,11 +72,11 @@ const SocialFollowRewards: React.FC = () => {
                 <Check className="w-3.5 h-3.5" /> {t('social.followed')}
               </span>
             ) : opened[net] ? (
-              <Button size="sm" className="text-xs h-7 px-3" onClick={() => handleConfirm(net)} disabled={loading === net}>
+              <Button size="sm" className="h-11 px-3 text-sm" onClick={() => handleConfirm(net)} disabled={loading === net}>
                 {loading === net ? '...' : t('social.confirm')}
               </Button>
             ) : (
-              <Button size="sm" variant="outline" className="text-xs h-7 px-3 gap-1" onClick={() => handleOpen(net)}>
+              <Button size="sm" variant="outline" className="h-11 gap-1 px-3 text-sm" onClick={() => handleOpen(net)}>
                 {t('social.follow')} <ExternalLink className="w-3 h-3" />
               </Button>
             )}

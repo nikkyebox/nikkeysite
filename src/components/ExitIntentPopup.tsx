@@ -60,7 +60,7 @@ const Shell: React.FC<{ label: string; onClose: () => void; children: React.Reac
   const { t } = useLanguage();
   return (
   <div
-    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200"
     role="dialog"
     aria-modal="true"
     aria-label={label}
@@ -292,7 +292,7 @@ const ExitIntentPopup: React.FC = () => {
           >
             {t('exit.retention.back')}
           </button>
-          <p className="text-[11px] text-center text-gray-400">{t('exit.retention.kept')}</p>
+          <p className="text-xs text-center text-gray-400">{t('exit.retention.kept')}</p>
         </div>
       </Shell>
     );
@@ -316,7 +316,7 @@ const ExitIntentPopup: React.FC = () => {
           >
             {t('exit.warn.back')}
           </button>
-          <p className="text-[11px] text-center text-gray-400">{t('exit.warn.note')}</p>
+          <p className="text-xs text-center text-gray-400">{t('exit.warn.note')}</p>
         </div>
       </Shell>
     );
@@ -349,7 +349,7 @@ const ExitIntentPopup: React.FC = () => {
           >
             {t('exit.notNow')}
           </button>
-          <p className="text-[11px] text-center text-gray-400">
+          <p className="text-xs text-center text-gray-400">
             {t('exit.ps.note')}
           </p>
         </div>
@@ -389,7 +389,7 @@ const ExitIntentPopup: React.FC = () => {
         >
           {t('exit.notNow')}
         </button>
-        <p className="text-[11px] text-center text-gray-400">{t('exit.guide.note')}</p>
+        <p className="text-xs text-center text-gray-400">{t('exit.guide.note')}</p>
       </div>
     </Shell>
   );

@@ -14,10 +14,27 @@ service firebase.storage {
                    && request.resource.contentType.matches('video/.*');
     }
 
+    // Mídia de produto (fonte única desde que o Cloudinary saiu). Só admin
+    // escreve — mesma definição de admin do firestore.rules.
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.get('admin', false) == true
+        || request.auth.token.get('role', '') == 'admin'
+        || request.auth.token.get('adminRole', '') == 'admin'
+        || request.auth.token.get('adminRole', 0) in [1, 2, 3]
+        || (request.auth.token.get('email_verified', false) == true
+            && request.auth.token.get('email', '') == 'dracko2007@gmail.com')
+        || firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.get('active', false) == true
+      );
+    }
+
     match /products/{productId}/{fileName} {
       allow read: if true;
-      allow write: if request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin() && (
+        (request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*'))
+        || (request.resource.size < 50 * 1024 * 1024 && request.resource.contentType.matches('video/.*'))
+      );
     }
 
     // Fotos de avaliação: até 8MB, só imagem.

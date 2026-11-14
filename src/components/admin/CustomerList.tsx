@@ -423,14 +423,14 @@ const CustomerList: React.FC = () => {
     return v.verified ? (
       <span
         title="E-mail confirmado no Firebase Auth"
-        className="inline-flex items-center gap-0.5 shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+        className="inline-flex items-center gap-0.5 shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
       >
         <MailCheck className="w-3 h-3" /> Verificado
       </span>
     ) : (
       <span
         title="E-mail ainda NÃO confirmado — o cadastro não foi concluído e o cliente não consegue entrar"
-        className="inline-flex items-center gap-0.5 shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+        className="inline-flex items-center gap-0.5 shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
       >
         <AlertTriangle className="w-3 h-3" /> Não confirmado
       </span>
@@ -887,7 +887,7 @@ const CustomerList: React.FC = () => {
 
       {/* Modal: conceder cupom — desativado (ver featureFlags.ts) */}
       {COUPONS_ENABLED && grantTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-card rounded-2xl w-full max-w-md shadow-xl border border-border">
             <div className="flex items-center justify-between p-5 border-b border-border">
               <h3 className="font-bold text-lg flex items-center gap-2">

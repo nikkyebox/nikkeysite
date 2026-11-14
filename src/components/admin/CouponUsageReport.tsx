@@ -101,7 +101,7 @@ const CouponUsageReport: React.FC = () => {
             <TrendingDown className="w-3.5 h-3.5" /> Total Descontado
           </p>
           <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">≈¥{totalDiscountYen.toLocaleString()}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">Receita que deixou de entrar</p>
+          <p className="text-xs text-muted-foreground mt-1">Receita que deixou de entrar</p>
         </div>
         <div className="bg-card rounded-xl border border-border p-4">
           <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -132,7 +132,7 @@ const CouponUsageReport: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-amber-600">≈¥{data.totalYen.toLocaleString()}</p>
-                  <p className="text-[11px] text-muted-foreground">{data.count} uso{data.count !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-muted-foreground">{data.count} uso{data.count !== 1 ? 's' : ''}</p>
                 </div>
               </div>
             ))}

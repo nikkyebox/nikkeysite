@@ -16,7 +16,7 @@ const MAX_PHOTOS = 9; // capa + até 8 fotos extras
 const MAX_VIDEO_MB = 50; // limite de upload de vídeo do produto
 import { useProducts } from '@/context/ProductsContext';
 import { productService } from '@/services/productService';
-import { cloudinaryService } from '@/services/cloudinaryService';
+import { mediaStorage, productMediaFolder } from '@/services/mediaStorage';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { PACKAGE_SAFETY_MARGIN_CM, sanitizePackageDimensions } from '@/utils/shippingDimensions';
@@ -478,8 +478,8 @@ const ProductManager: React.FC = () => {
     }
     setUploadingVideo(true);
     try {
-      const folder = `nikkeybox/products/${editing.id || 'temp-' + Date.now()}`;
-      const url = await cloudinaryService.uploadVideoFile(file, folder);
+      const folder = productMediaFolder(editing.id || 'temp-' + Date.now());
+      const url = await mediaStorage.uploadVideoFile(file, folder);
       setEditing((prev) => (prev ? { ...prev, video: url } : prev));
       toast({ title: '✅ Vídeo enviado' });
     } catch (e: unknown) {
@@ -506,10 +506,12 @@ const ProductManager: React.FC = () => {
       const id = isNew ? slugify(editing.name) + '-' + Date.now().toString(36).slice(-4) : editing.id;
       const rawGallery = editing.gallery && editing.gallery.length > 0 ? editing.gallery : [editing.image].filter(Boolean);
 
-      // ── Upload de imagens para Cloudinary CDN ────────────────────────────
-      const folder = `nikkeybox/products/${id}`;
+      // ── Upload de imagens para o Firebase Storage ────────────────────────
+      // Base64, URL de fornecedor e URL legada do Cloudinary sobem para o
+      // bucket; o que já está no bucket fica como está.
+      const folder = productMediaFolder(id);
 
-      // Migrar imagem pro CDN não pode travar o resto do salvamento: produto
+      // Migrar imagem pro bucket não pode travar o resto do salvamento: produto
       // com imagem externa (Yahoo/Rakuten) frequentemente falha o fetch por
       // CORS, e isso não pode impedir uma simples atualização de estoque.
       // Em falha, mantém a URL original e o admin vê um aviso — não um erro
@@ -517,13 +519,13 @@ const ProductManager: React.FC = () => {
       const imageWarnings: string[] = [];
       const toCdnUrl = async (imgStr: string): Promise<string> => {
         if (!imgStr) return '';
-        if (cloudinaryService.isCloudinaryUrl(imgStr) || cloudinaryService.isFirebaseUrl(imgStr)) return imgStr;
+        if (!mediaStorage.needsUpload(imgStr)) return imgStr;
         try {
           let dataUrl = imgStr;
-          if (cloudinaryService.isExternalUrl(imgStr)) {
+          if (mediaStorage.isExternalUrl(imgStr)) {
             dataUrl = await urlToCompressedDataURL(imgStr);
           }
-          return await cloudinaryService.uploadDataUrl(dataUrl, folder);
+          return await mediaStorage.uploadDataUrl(dataUrl, folder);
         } catch (e) {
           imageWarnings.push(e instanceof Error ? errorMessage(e) : String(e));
           return imgStr;
@@ -536,15 +538,15 @@ const ProductManager: React.FC = () => {
 
       // Thumbnail HD 1200px a partir do data URL original
       let thumbnailUrl = editing.thumbnail || '';
-      const needNewThumb = rawCover && !cloudinaryService.isCloudinaryUrl(rawCover) && !cloudinaryService.isFirebaseUrl(rawCover);
-      if (needNewThumb) {
+      const needNewThumb = mediaStorage.needsUpload(rawCover) || mediaStorage.needsUpload(thumbnailUrl);
+      if (rawCover && needNewThumb) {
         try {
           const thumbData = await urlToCompressedDataURL(
-            cloudinaryService.isDataUrl(rawCover) ? rawCover : coverUrl,
+            mediaStorage.isDataUrl(rawCover) ? rawCover : coverUrl,
             1600,
             0.95
           );
-          thumbnailUrl = await cloudinaryService.uploadDataUrl(thumbData, folder);
+          thumbnailUrl = await mediaStorage.uploadDataUrl(thumbData, folder);
         } catch (e) {
           imageWarnings.push(e instanceof Error ? errorMessage(e) : String(e));
         }
@@ -701,24 +703,24 @@ const ProductManager: React.FC = () => {
                         </div>
                       )}
                       {p.discountPercent ? (
-                        <span className="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-br">-{p.discountPercent}%</span>
+                        <span className="absolute top-0 left-0 bg-red-600 text-white text-xs font-extrabold px-1.5 py-0.5 rounded-br">-{p.discountPercent}%</span>
                       ) : null}
                     </div>
                     <div className="p-3 flex-1 min-w-0 flex flex-col">
                       <p className="font-semibold text-sm leading-tight line-clamp-2 flex items-center gap-1 flex-wrap">
-                        {p.hidden && <span className="text-[9px] font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded shrink-0">OCULTO</span>}
+                        {p.hidden && <span className="text-xs font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded shrink-0">OCULTO</span>}
                         {p.stock && !p.stock.unlimited && (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${p.stock.quantity === 0 ? 'bg-red-600 text-white' : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'}`}>
+                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded shrink-0 ${p.stock.quantity === 0 ? 'bg-red-600 text-white' : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'}`}>
                             {p.stock.quantity === 0 ? 'ESGOTADO' : `${p.stock.quantity} un.`}
                           </span>
                         )}
                         {p.promoGift && p.promoGift.buyQuantity > 0 && (
-                          <span className="text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shrink-0">🎁 PROMO</span>
+                          <span className="text-xs font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shrink-0">🎁 PROMO</span>
                         )}
                         {p.name}
                       </p>
                       {p.sku && (
-                        <p className="text-[10px] font-mono text-muted-foreground/80 tracking-wide">SKU: {p.sku}</p>
+                        <p className="text-xs font-mono text-muted-foreground/80 tracking-wide">SKU: {p.sku}</p>
                       )}
                       {p.discountPercent ? (
                         <p className="text-xs mt-1">
@@ -746,7 +748,7 @@ const ProductManager: React.FC = () => {
 
       {/* Modal de edição */}
       {editing && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
           <div className="bg-card rounded-2xl w-full max-w-2xl h-[min(90vh,780px)] flex flex-col shadow-elevated border border-border">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border shrink-0 bg-card rounded-t-2xl">
               <h3 className="font-display text-lg sm:text-xl font-bold flex items-center gap-2">
@@ -781,11 +783,11 @@ const ProductManager: React.FC = () => {
                     <span className="sm:hidden">{enriching ? '…' : 'IA'}</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   ✨ <strong>Auto-preencher</strong>: busca descrição, preço, peso, medidas da embalagem e até 5 fotos automaticamente via Rakuten/Yahoo.
                 </p>
                 <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                  <span className="text-[11px] text-muted-foreground font-medium">Buscar:</span>
+                  <span className="text-xs text-muted-foreground font-medium">Buscar:</span>
                   {([
                     { key: 'price', label: 'Valor' },
                     { key: 'images', label: 'Imagens' },
@@ -799,7 +801,7 @@ const ProductManager: React.FC = () => {
                         onChange={(e) => setEnrichFields(prev => ({ ...prev, [key]: e.target.checked }))}
                         className="w-3.5 h-3.5 rounded accent-amber-500"
                       />
-                      <span className="text-[11px] text-muted-foreground">{label}</span>
+                      <span className="text-xs text-muted-foreground">{label}</span>
                     </label>
                   ))}
                 </div>
@@ -823,7 +825,7 @@ const ProductManager: React.FC = () => {
                   placeholder="Ex: 4901301234567 (13 dígitos do código de barras da embalagem)"
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background font-mono text-sm"
                 />
-                <p className="text-[11px] text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Com o código real, o produto passa a aparecer no Google Shopping com marca (bem casado). <strong>Sem código</strong>, o item continua elegível mas como "sem identificador". Não invente — código errado suspende a conta do Merchant.
                 </p>
               </div>
@@ -959,7 +961,7 @@ const ProductManager: React.FC = () => {
                       De <s>¥{variants()[0].price.toLocaleString()}</s> por <strong>¥{Math.round(variants()[0].price * (1 - editing.discountPercent / 100)).toLocaleString()}</strong> ({variants()[0].label})
                     </p>
                   ) : (
-                    <p className="text-[11px] text-red-600/70 mt-1.5">Mostra a tag de promoção no produto.</p>
+                    <p className="text-xs text-red-600/70 mt-1.5">Mostra a tag de promoção no produto.</p>
                   )}
                 </div>
 
@@ -979,7 +981,7 @@ const ProductManager: React.FC = () => {
                       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${editing.hidden ? 'left-0.5' : 'left-4'}`} />
                     </span>
                   </button>
-                  <p className="text-[11px] text-muted-foreground mt-1.5">Oculto = fica registrado, mas o cliente não vê.</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Oculto = fica registrado, mas o cliente não vê.</p>
                 </div>
 
                 {/* Em Destaque na home */}
@@ -1010,13 +1012,13 @@ const ProductManager: React.FC = () => {
                     const featuredCount = products.filter(p => p.featured && p.id !== editing.id).length + (editing.featured ? 1 : 0);
                     if (featuredCount > 4) {
                       return (
-                        <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1.5 leading-snug">
+                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-1.5 leading-snug">
                           ⚠️ {featuredCount} produtos em destaque. A home mostra <strong>4 por vez</strong> e alterna automaticamente <strong>a cada semana</strong>, dando vez aos próximos.
                         </p>
                       );
                     }
                     return (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                      <p className="text-xs text-muted-foreground mt-1.5 leading-snug">
                         {featuredCount}/4 em destaque. Aparece na seção "Em Destaque" da home. Acima de 4, alternam semanalmente.
                       </p>
                     );
@@ -1050,7 +1052,7 @@ const ProductManager: React.FC = () => {
                   {(() => {
                     const heroCount = products.filter(p => p.heroCarousel && p.id !== editing.id).length + (editing.heroCarousel ? 1 : 0);
                     return (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                      <p className="text-xs text-muted-foreground mt-1.5 leading-snug">
                         {heroCount === 0
                           ? 'O hero mostra a curadoria fixa padrão quando nada está marcado.'
                           : <>{heroCount} marcado(s). O hero exibe <strong>4 por vez</strong> + a <strong>promoção de início</strong> (sempre). Acima de 4, <strong>sorteia 4 diferentes</strong> a cada visita, sem repetir.</>}
@@ -1130,7 +1132,7 @@ const ProductManager: React.FC = () => {
                     + Adicionar
                   </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">Separe por vírgula. Ex: <em>shampoo · hidratante · filtro solar · protetor labial</em></p>
+                <p className="text-xs text-muted-foreground mt-1">Separe por vírgula. Ex: <em>shampoo · hidratante · filtro solar · protetor labial</em></p>
               </div>
 
               {/* Lançamento + Quantidade vendida */}
@@ -1151,7 +1153,7 @@ const ProductManager: React.FC = () => {
                       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${editing?.isNew ? 'left-4' : 'left-0.5'}`} />
                     </span>
                   </button>
-                  <p className="text-[11px] text-blue-600/70 dark:text-blue-400/70 mt-1.5">Aparece em destaque no filtro "Lançamento".</p>
+                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1.5">Aparece em destaque no filtro "Lançamento".</p>
                 </div>
 
                 <div className="bg-secondary/40 border border-border rounded-lg p-3">
@@ -1164,7 +1166,7 @@ const ProductManager: React.FC = () => {
                     placeholder="0"
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1.5">Usado no filtro "Mais Vendidos".</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Usado no filtro "Mais Vendidos".</p>
                 </div>
 
                 <div className="bg-secondary/40 border border-border rounded-lg p-3">
@@ -1183,7 +1185,7 @@ const ProductManager: React.FC = () => {
                     placeholder="Ex: 4.8"
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1.5">Deixe vazio para não mostrar estrelas na loja.</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Deixe vazio para não mostrar estrelas na loja.</p>
                 </div>
               </div>
 
@@ -1222,11 +1224,11 @@ const ProductManager: React.FC = () => {
                     />
                     <span className="text-xs text-muted-foreground">unidades em estoque</span>
                     {editing.stock.quantity === 0 && (
-                      <span className="text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">ESGOTADO — aparecerá Sold Out</span>
+                      <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">ESGOTADO — aparecerá Sold Out</span>
                     )}
                   </div>
                 )}
-                <p className="text-[11px] text-muted-foreground mt-1.5">
+                <p className="text-xs text-muted-foreground mt-1.5">
                   A cada venda confirmada o estoque é descontado automaticamente. Ao chegar a zero aparece tarja "Sold Out".
                 </p>
               </div>
@@ -1242,7 +1244,7 @@ const ProductManager: React.FC = () => {
                   {editing.image && <img src={editing.image} alt={editing.name} className="w-8 h-8 rounded object-cover shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-purple-800 dark:text-purple-200 truncate">{editing.name || '(nome do produto)'}</p>
-                    <p className="text-[10px] text-purple-600">Este produto será o brinde</p>
+                    <p className="text-xs text-purple-600">Este produto será o brinde</p>
                   </div>
                 </div>
 
@@ -1280,7 +1282,7 @@ const ProductManager: React.FC = () => {
                           className="w-32 px-3 py-2 rounded-lg border border-border bg-background text-sm"
                         />
                         {(editing.promoGift.minOrderValueYen ?? 0) > 0 && (
-                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
                             ≈ <strong>{formatPrice(fxConvertYen(editing.promoGift.minOrderValueYen!, 'BRL'), 'BRL')}</strong>
                             {' · '}
                             <strong>{formatPrice(fxConvertYen(editing.promoGift.minOrderValueYen!, 'EUR'), 'EUR')}</strong>
@@ -1292,25 +1294,25 @@ const ProductManager: React.FC = () => {
                 </div>
 
                 {editing.promoGift && editing.promoGift.buyQuantity > 0 && (
-                  <p className="text-[11px] text-purple-700 dark:text-purple-300">
+                  <p className="text-xs text-purple-700 dark:text-purple-300">
                     🎁 Compre {editing.promoGift.buyQuantity}x
                     {editing.promoGift.minOrderValueYen ? ` (ou gaste ¥${editing.promoGift.minOrderValueYen.toLocaleString()} no total)` : ''}
                     {' '}→ ganhe +1 <strong>{editing.name || 'este produto'}</strong> grátis
                   </p>
                 )}
-                <p className="text-[11px] text-muted-foreground">0 = sem promoção ativa.</p>
+                <p className="text-xs text-muted-foreground">0 = sem promoção ativa.</p>
               </div>
 
               {/* Custo + margem de lucro — SÓ ADMIN */}
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                 <label className="text-sm font-semibold flex items-center gap-1.5 mb-2">
-                  🔒 Custo & Margem <span className="text-[10px] font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">interno</span>
+                  🔒 Custo & Margem <span className="text-xs font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">interno</span>
                 </label>
 
                 <div className="flex items-center gap-2">
                   {/* Custo de aquisição */}
                   <div className="flex-1 min-w-0">
-                    <span className="text-[11px] text-muted-foreground">Custo (¥)</span>
+                    <span className="text-xs text-muted-foreground">Custo (¥)</span>
                     <input
                       type="number"
                       value={editing.cost || ''}
@@ -1332,7 +1334,7 @@ const ProductManager: React.FC = () => {
 
                   {/* Preço de venda calculado */}
                   <div className="shrink-0">
-                    <span className="text-[11px] text-muted-foreground">Venda (¥)</span>
+                    <span className="text-xs text-muted-foreground">Venda (¥)</span>
                     <div className={`px-3 py-2 rounded-lg border text-sm font-semibold min-w-[80px] text-center ${
                       editing.cost && marginPct > 0
                         ? 'border-green-300 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'
@@ -1358,7 +1360,7 @@ const ProductManager: React.FC = () => {
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <span className="text-[11px] text-muted-foreground">Largura (mm)</span>
+                    <span className="text-xs text-muted-foreground">Largura (mm)</span>
                     <input
                       type="number"
                       min={0}
@@ -1370,7 +1372,7 @@ const ProductManager: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-muted-foreground">Comprimento (mm)</span>
+                    <span className="text-xs text-muted-foreground">Comprimento (mm)</span>
                     <input
                       type="number"
                       min={0}
@@ -1382,7 +1384,7 @@ const ProductManager: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-muted-foreground">Altura (mm)</span>
+                    <span className="text-xs text-muted-foreground">Altura (mm)</span>
                     <input
                       type="number"
                       min={0}
@@ -1394,11 +1396,11 @@ const ProductManager: React.FC = () => {
                     />
                   </div>
                 </div>
-                <p className="text-[11px] text-orange-700 dark:text-orange-300 mt-2 leading-relaxed">
+                <p className="text-xs text-orange-700 dark:text-orange-300 mt-2 leading-relaxed">
                   Digite em <strong>milímetros</strong> (ex: 54 × 84 × 192 mm). O frete soma +{PACKAGE_SAFETY_MARGIN_CM}cm de margem. Fonte: {editing.packageDimensionsCm?.source || 'manual/nao informado'}.
                 </p>
                 <div className="mt-3">
-                  <span className="text-[11px] text-muted-foreground">Peso da embalagem (g)</span>
+                  <span className="text-xs text-muted-foreground">Peso da embalagem (g)</span>
                   <input
                     type="number"
                     min={0}
@@ -1408,7 +1410,7 @@ const ProductManager: React.FC = () => {
                     placeholder="ex: 500"
                     className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-background text-sm mt-1"
                   />
-                  <p className="text-[11px] text-orange-700 dark:text-orange-300 mt-1">
+                  <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
                     Peso do produto (sem embalagem). O sistema soma 200 g de embalagem no cálculo do frete para produtos abaixo de 2 kg.
                   </p>
                 </div>
@@ -1447,13 +1449,13 @@ const ProductManager: React.FC = () => {
                       <img src={img} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover pointer-events-none" />
                       {idx === 0 ? (
                         <span className={cn(
-                          "absolute top-0 left-0 text-[9px] px-1 rounded-br font-bold",
+                          "absolute top-0 left-0 text-xs px-1 rounded-br font-bold",
                           editing.videoCover ? "bg-black/50 text-white" : "bg-primary text-primary-foreground"
                         )}>
                           {editing.videoCover ? 'Poster' : 'Capa'}
                         </span>
                       ) : (
-                        <span className="absolute top-0 left-0 bg-black/50 text-white text-[9px] px-1 rounded-br">{idx + 1}</span>
+                        <span className="absolute top-0 left-0 bg-black/50 text-white text-xs px-1 rounded-br">{idx + 1}</span>
                       )}
                       <span className="absolute bottom-0.5 left-0.5 bg-black/50 text-white rounded p-0.5 opacity-0 group-hover:opacity-100 transition">
                         <GripVertical className="w-3 h-3" />
@@ -1514,7 +1516,7 @@ const ProductManager: React.FC = () => {
                         />
                         <span>🎬 <strong>Usar vídeo como capa</strong></span>
                       </label>
-                      <p className="text-[11px] text-muted-foreground -mt-1 max-w-[220px]">
+                      <p className="text-xs text-muted-foreground -mt-1 max-w-[220px]">
                         {editing.videoCover
                           ? 'O vídeo toca direto no card e na galeria — a 1ª foto vira o poster (thumbnail).'
                           : 'Sem isso, o vídeo só toca ao passar o mouse sobre o produto.'}

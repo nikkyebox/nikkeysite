@@ -125,7 +125,7 @@ const OrderConfirmation: React.FC = () => {
 
             {/* Header Success Message */}
             <div className="text-center mb-8 print:hidden">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
               <h1 className="font-display text-4xl font-extrabold text-gray-900 mb-2">
@@ -277,10 +277,10 @@ const OrderConfirmation: React.FC = () => {
 
                 <div className="bg-gray-100 p-6 rounded-2xl max-w-md mx-auto border border-gray-300 font-mono text-xs flex flex-col items-center gap-3">
                   {/* Mock Barcode display */}
-                  <div className="w-full h-12 bg-black flex items-center justify-center text-white text-[8px] tracking-[3px] select-none font-sans">
+                  <div className="w-full h-12 bg-black flex items-center justify-center text-white text-xs tracking-[3px] select-none font-sans">
                     ||||| | ||||| | || ||||| | ||||| | || ||||| | ||||| | || ||||| | ||||| 
                   </div>
-                  <p className="font-bold text-gray-800 text-[10px]">
+                  <p className="font-bold text-gray-800 text-xs">
                     34191.79001 01043.513184 91020.150008 7 926500000{(order.total * 100).toFixed(0).padStart(6, '0')}
                   </p>
                 </div>
@@ -408,7 +408,7 @@ const OrderConfirmation: React.FC = () => {
                           )}
                           <div className="truncate">
                             <p className="font-bold text-gray-800 truncate">{item.name}</p>
-                            <p className="text-muted-foreground text-[10px]">{item.size} × {item.quantity}</p>
+                            <p className="text-muted-foreground text-xs">{item.size} × {item.quantity}</p>
                           </div>
                         </div>
                         <p className="font-bold text-gray-800 shrink-0">
@@ -458,7 +458,7 @@ const OrderConfirmation: React.FC = () => {
                         <span>{t('order.tax.estimate')}</span>
                         <span>{formatPrice(order.taxAmount, order.currency)}</span>
                       </div>
-                      <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
+                      <p className="text-xs text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                         {t('order.tax.note')}
                       </p>
                     </div>
@@ -552,7 +552,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.jp4.title'), desc: t('order.steps.jp4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-xs`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>
@@ -567,7 +567,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.br4.title'), desc: t('order.steps.br4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-xs`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>
@@ -582,7 +582,7 @@ const OrderConfirmation: React.FC = () => {
                       { title: t('order.steps.intl4.title'), desc: t('order.steps.intl4.desc'), done: false },
                     ] as const).map((step, i) => (
                       <div key={i} className="relative">
-                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-[8px]`}>{step.done ? '✓' : i + 1}</div>
+                        <div className={`absolute -left-[30px] top-0 w-4 h-4 ${step.done ? 'bg-primary' : 'bg-gray-300'} rounded-full border-2 border-white flex items-center justify-center text-white text-xs`}>{step.done ? '✓' : i + 1}</div>
                         <h4 className={`font-bold ${step.done ? 'text-gray-800' : 'text-gray-700'}`}>{step.title}</h4>
                         <p className="mt-0.5">{step.desc}</p>
                       </div>
@@ -599,7 +599,7 @@ const OrderConfirmation: React.FC = () => {
 
       {/* Guest account benefits popup */}
       {isGuest && showGuestModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
           <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-up">
             <div className="text-center mb-4">
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">

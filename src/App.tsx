@@ -1,5 +1,4 @@
 import React, { Suspense, lazy, useEffect } from "react";
-import { SmoothScroll } from '@/lib/smoothScroll';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -143,6 +142,30 @@ const isAdminLoggedIn = (): boolean => {
   } catch { return false; }
 };
 
+// Navegação fluida: com a página atual pronta, baixa em segundo plano os chunks
+// do caminho de compra. O primeiro clique em produto/carrinho deixa de mostrar
+// o loader de rota. Não roda em conexão econômica (Save-Data / 2G).
+const RoutePrefetch: React.FC = () => {
+  useEffect(() => {
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType ?? '')) return;
+    const run = () => {
+      void import("./pages/Products");
+      void import("./pages/ProductDetail");
+      void import("./pages/Cart");
+      void import("./pages/Checkout");
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(run, { timeout: 4000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(run, 2500);
+    return () => window.clearTimeout(t);
+  }, []);
+  return null;
+};
+
 // Captura referral da URL uma vez ao montar
 const ReferralCapture: React.FC = () => {
   useEffect(() => { referralService.captureReferral(); }, []);
@@ -167,7 +190,7 @@ const FullApp: React.FC = () => (
           <Toaster />
           <Sonner />
           <ScrollToTop />
-          <SmoothScroll>
+          <RoutePrefetch />
           <ErrorBoundary>
             <Suspense fallback={<RouteLoader />}>
               <Routes>
@@ -206,7 +229,6 @@ const FullApp: React.FC = () => (
               </Routes>
             </Suspense>
           </ErrorBoundary>
-          </SmoothScroll>
           <ExitIntentPopup />
           <CartAbandonmentTracker />
           <CartRecoveryBanner />
@@ -222,17 +244,22 @@ const FullApp: React.FC = () => (
 // Tela leve exibida na primeira visita ever (sem cache).
 // Zero Firebase, zero providers pesados — apenas logo + fundo enquanto o fetch REST (~1.5s) confirma o estado.
 const CheckingScreen: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-b from-primary/25 via-primary/10 to-white flex items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <AnimatedPlaneLogo size={80} className="shadow-lg" imageClassName="scale-[0.64] rounded-full" />
-      <div className="flex gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
-        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
-        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
-      </div>
-    </div>
+  <div className="flex min-h-screen items-center justify-center bg-background" role="status" aria-label="Carregando">
+    <AnimatedPlaneLogo size={64} imageClassName="scale-[0.64] rounded-full" />
   </div>
 );
+
+// Só em `npm run dev`: `?preview` revisa a loja com a manutenção ligada em
+// produção. `import.meta.env.DEV` vira `false` no build e o ramo some do bundle.
+function isDevPreview(search: string): boolean {
+  if (!import.meta.env.DEV) return false;
+  try {
+    if (new URLSearchParams(search).has('preview')) sessionStorage.setItem('nb_dev_preview', '1');
+    return sessionStorage.getItem('nb_dev_preview') === '1';
+  } catch {
+    return false;
+  }
+}
 
 const MaintenanceShell: React.FC = () => {
   const { isEnabled, loading } = useMaintenanceMode();
@@ -242,7 +269,7 @@ const MaintenanceShell: React.FC = () => {
   );
 
   // Admin e rotas de admin sempre veem o app completo (mesmo em manutenção)
-  if (isOpenPath || isAdminLoggedIn()) return <FullApp />;
+  if (isOpenPath || isAdminLoggedIn() || isDevPreview(location.search)) return <FullApp />;
 
   // Manutenção confirmada (cache instantâneo ou fetch concluído)
   if (isEnabled) return <MaintenancePage />;

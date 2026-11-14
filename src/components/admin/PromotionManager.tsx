@@ -99,7 +99,7 @@ const PromoForm: React.FC<PromoFormProps> = ({ label, products, value, onChange,
           <label className="text-xs font-medium text-muted-foreground">Preço original (¥)</label>
           <input type="number" min="0" value={value.originalPriceYen ?? ''} onChange={e => setOriginalYen(Number(e.target.value))}
             className="w-full border border-border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          {(value.originalPriceYen ?? 0) > 0 && <div className="text-[10px] text-muted-foreground">≈ R$ {originalBrl.toFixed(2)}</div>}
+          {(value.originalPriceYen ?? 0) > 0 && <div className="text-xs text-muted-foreground">≈ R$ {originalBrl.toFixed(2)}</div>}
         </div>
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">Desconto (%)</label>
@@ -110,7 +110,7 @@ const PromoForm: React.FC<PromoFormProps> = ({ label, products, value, onChange,
           <label className="text-xs font-medium text-muted-foreground">Preço promo (¥)</label>
           <input type="number" min="0" value={value.promoPriceYen ?? ''} onChange={e => setPromoYen(Number(e.target.value))}
             className="w-full border border-border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          {(value.promoPriceYen ?? 0) > 0 && <div className="text-[10px] text-green-600 font-semibold">≈ R$ {brl.toFixed(2)}</div>}
+          {(value.promoPriceYen ?? 0) > 0 && <div className="text-xs text-green-600 font-semibold">≈ R$ {brl.toFixed(2)}</div>}
         </div>
       </div>
 
@@ -132,7 +132,7 @@ const PromoForm: React.FC<PromoFormProps> = ({ label, products, value, onChange,
           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">📦 Máx. produtos</label>
           <input type="number" min="1" value={value.maxProducts ?? ''} onChange={e => onChange({ ...value, maxProducts: e.target.value ? Number(e.target.value) : null })}
             className="w-full border border-border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ilimitado" />
-          <div className="text-[10px] text-muted-foreground">Deixe vazio = ilimitado</div>
+          <div className="text-xs text-muted-foreground">Deixe vazio = ilimitado</div>
         </div>
       </div>
     </div>
@@ -331,7 +331,7 @@ const PromotionManager: React.FC = () => {
             </div>
             <div className="flex flex-col gap-1 shrink-0">
               <Button variant="destructive" size="sm" onClick={() => removePromo()} disabled={saving}><Trash2 className="w-4 h-4" /></Button>
-              <Button variant="outline" size="sm" onClick={simulateExpiry} disabled={saving} title="Simular encerramento agora (teste)" className="border-orange-300 text-orange-600 hover:bg-orange-50 text-[10px] px-2 py-1 h-auto gap-1">
+              <Button variant="outline" size="sm" onClick={simulateExpiry} disabled={saving} title="Simular encerramento agora (teste)" className="border-orange-300 text-orange-600 hover:bg-orange-50 text-xs px-2 py-1 h-auto gap-1">
                 <FlaskConical className="w-3 h-3" />Simular
               </Button>
             </div>

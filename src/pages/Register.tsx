@@ -71,10 +71,10 @@ const Register: React.FC = () => {
   // Telefone completo no formato internacional: "+351 912345678"
   const fullPhone = () => `${dialCode} ${formData.phone.trim()}`.trim();
 
-  const validateForm = (): boolean => {
+  const fieldValidators = (): Record<string, () => string | null> => {
     const phoneDigits = formData.phone.replace(/\D/g, '');
     const isPJ = formData.personType === 'PJ';
-    const fieldErrors = runValidations({
+    return {
       name: () => (isNonEmpty(formData.name, 2) ? null : t('register.validate.name')),
       email: () => (isValidEmail(formData.email) ? null : t('register.validate.email')),
       phone: () =>
@@ -86,7 +86,28 @@ const Register: React.FC = () => {
         formData.password === formData.confirmPassword ? null : t('register.validate.confirm'),
       razaoSocial: () => (!isPJ || isNonEmpty(formData.razaoSocial, 2) ? null : t('register.validate.razao')),
       cnpj: () => (!isPJ || isValidCNPJ(formData.cnpj) ? null : t('register.validate.cnpj')),
+    };
+  };
+
+  // Validação no blur de campo preenchido; o erro some ao editar.
+  const handleFieldBlur = (e: React.FocusEvent<HTMLFormElement>) => {
+    const target: EventTarget = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const name = target.name;
+    const validate = name ? fieldValidators()[name] : undefined;
+    if (!validate || !String(target.value ?? '').trim()) return;
+    const message = validate();
+    setErrors((prev) => {
+      if (message) return { ...prev, [name]: message };
+      if (!(name in prev)) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
     });
+  };
+
+  const validateForm = (): boolean => {
+    const fieldErrors = runValidations(fieldValidators());
     setErrors(fieldErrors);
     return Object.keys(fieldErrors).length === 0;
   };
@@ -204,7 +225,7 @@ const Register: React.FC = () => {
                 </h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} onBlur={handleFieldBlur} className="space-y-4">
                 {/* Tipo de cadastro: Pessoa Física ou Jurídica */}
                 <div className="space-y-2">
                   <Label>{t('auth.register.accountType')}</Label>
@@ -313,7 +334,7 @@ const Register: React.FC = () => {
                       required
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t('auth.register.phoneHint').replace('{code}', dialCode)}
                   </p>
                   {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}

@@ -139,10 +139,10 @@ export default function ReviewModeration() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm">{review.userName}</span>
                     {review.verified && (
-                      <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">✓ Verificado</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">✓ Verificado</span>
                     )}
                     {review.rating <= 2 && (
-                      <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                         <Flag className="w-2.5 h-2.5" /> Nota baixa
                       </span>
                     )}
@@ -154,7 +154,7 @@ export default function ReviewModeration() {
                       ))}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(review.date).toLocaleDateString('pt-BR')} · produto: <code className="text-[10px]">{review.productId}</code>
+                      {new Date(review.date).toLocaleDateString('pt-BR')} · produto: <code className="text-xs">{review.productId}</code>
                     </span>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ export default function ReviewModeration() {
                         className="w-20 h-20 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80"
                         onClick={() => window.open(img, '_blank')}
                       />
-                      <span className="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] px-1 rounded-bl-lg rounded-tr-lg">
+                      <span className="absolute bottom-0 right-0 bg-black/60 text-white text-xs px-1 rounded-bl-lg rounded-tr-lg">
                         {i + 1}/{review.images!.length}
                       </span>
                     </div>

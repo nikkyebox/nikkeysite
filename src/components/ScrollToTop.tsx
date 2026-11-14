@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigationType } from 'react-router-dom';
 import { safeStorage } from '@/utils/storage';
 
 // Extrai o productId de rotas como /produto/:id ou /produto/:id?ref=CODE
@@ -10,10 +10,13 @@ const extractProductId = (pathname: string): string | null => {
 
 const ScrollToTop = () => {
   const { pathname, search } = useLocation();
+  const navType = useNavigationType();
 
+  // Só rola ao topo em navegação para frente. No Voltar/Avançar (POP) o
+  // navegador restaura a posição — o cliente volta para onde estava na lista.
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (navType !== 'POP') window.scrollTo(0, 0);
+  }, [pathname, navType]);
 
   // Captura o código de indicação do link (?ref=CODE) e guarda para o checkout.
   // Se vier de uma página de produto específico, salva também o productId para

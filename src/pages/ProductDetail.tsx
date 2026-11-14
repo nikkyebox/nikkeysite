@@ -233,20 +233,20 @@ const ProductDetail: React.FC = () => {
   return (
     <Layout>
       <ProductJsonLd product={product} country={selectedCountry} rating={productRating} />
-      <div className="gradient-hero py-8">
-        <div className="container mx-auto px-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/produtos')}
-            className="mb-4 gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('productDetail.back')}
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 pt-4">
+        {/* Volta para onde o cliente estava (busca, filtro, rolagem). Sem
+            histórico interno (link direto), cai na lista de produtos. */}
+        <Button
+          variant="ghost"
+          onClick={() => ((window.history.state as { idx?: number } | null)?.idx ?? 0) > 0 ? navigate(-1) : navigate('/produtos')}
+          className="-ml-3 h-11 gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          {t('productDetail.back')}
+        </Button>
       </div>
 
-      <section className="py-12 bg-background">
+      <section className="bg-background pb-12 pt-4">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-fade-in motion-reduce:animate-none">
@@ -260,13 +260,11 @@ const ProductDetail: React.FC = () => {
               </div>
 
               <div>
-                <div className="mb-4">
-                  <span className="inline-block px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide bg-primary/20 text-primary">
-                    {t(`product.category.${['cosmeticos','acessorios','doces','papelaria','eletronicos','masculino','vestuario','higiene'].includes(product.category || '') ? product.category : 'importado'}`)}
-                  </span>
-                </div>
+                <p className="mb-2 text-sm font-medium text-primary">
+                  {t(`product.category.${['cosmeticos','acessorios','doces','papelaria','eletronicos','masculino','vestuario','higiene'].includes(product.category || '') ? product.category : 'importado'}`)}
+                </p>
 
-                <h1 className="font-display text-4xl font-bold mb-4">{translatedName}</h1>
+                <h1 className="mb-4 font-display text-3xl font-semibold leading-tight tracking-tight lg:text-4xl">{translatedName}</h1>
                 
                 {productRating.totalReviews > 0 && (
                   <div className="flex items-center gap-2 mb-4">
@@ -289,14 +287,6 @@ const ProductDetail: React.FC = () => {
                   </div>
                 )}
 
-                <div className="text-lg text-muted-foreground mb-6 space-y-2">
-                  {translatedDesc.split('\n').map((line, i) =>
-                    line.trim() === ''
-                      ? <br key={i} />
-                      : <p key={i}>{line}</p>
-                  )}
-                </div>
-
                 {/* Seletor de tamanho/variante */}
                 {productVariants.length > 1 && (
                   <div className="mb-6">
@@ -306,15 +296,17 @@ const ProductDetail: React.FC = () => {
                         const active = v.id === selectedSize;
                         return (
                           <button
+                            type="button"
                             key={v.id}
                             onClick={() => setSelectedSize(v.id)}
+                            aria-pressed={active}
                             className={cn(
-                              'px-4 py-2 rounded-xl border-2 text-sm font-semibold transition-all',
+                              'min-h-11 rounded-lg border px-4 py-2 text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                               active ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground hover:border-primary/50'
                             )}
                           >
                             {v.label}
-                            <span className="block text-[11px] font-normal text-muted-foreground">
+                            <span className="block text-xs font-normal text-muted-foreground">
                               {formatPrice(convertYen(effectiveYen(product, v.id)), currency)}
                             </span>
                           </button>
@@ -329,18 +321,18 @@ const ProductDetail: React.FC = () => {
                   {promoActive ? (
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-3xl font-black text-primary">{formatPrice(currentPrice, currency)}</span>
-                        <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 line-through decoration-2">
+                        <span className="text-3xl font-semibold tabular-nums text-destructive">{formatPrice(currentPrice, currency)}</span>
+                        <span className="text-base text-muted-foreground line-through tabular-nums">
                           {formatPrice(originalPrice, currency)}
                         </span>
-                        <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-extrabold shadow-sm">
+                        <span className="rounded-md bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
                           {t('productDetail.offBadge').replace('{pct}', String(product.discountPercent))}
                         </span>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <div className="text-3xl font-black text-primary">
+                      <div className="text-3xl font-semibold tabular-nums text-foreground">
                         {formatPrice(currentPrice, currency)}
                       </div>
                     </div>
@@ -348,25 +340,30 @@ const ProductDetail: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium mb-3">{t('productDetail.quantity')}</label>
+                  <span id="pd-qty-label" className="mb-2 block text-sm font-medium">{t('productDetail.quantity')}</span>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center border-2 border-border rounded-xl">
+                    <div className="flex items-center rounded-lg border border-border" role="group" aria-labelledby="pd-qty-label">
                       <button
+                        type="button"
                         onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                        className="px-4 py-3 hover:bg-secondary transition-colors"
+                        disabled={quantity <= 1}
+                        aria-label={t('productDetail.decrease')}
+                        className="flex h-11 w-11 items-center justify-center rounded-l-lg text-lg transition-colors duration-150 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                       >
-                        -
+                        −
                       </button>
-                      <span className="px-6 font-semibold">{quantity}</span>
+                      <output className="min-w-10 text-center font-semibold tabular-nums" aria-live="polite">{quantity}</output>
                       <button
+                        type="button"
                         onClick={() => setQuantity(q => stockLimit != null ? Math.min(stockLimit, q + 1) : q + 1)}
                         disabled={stockLimit != null && quantity >= stockLimit}
-                        className="px-4 py-3 hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        aria-label={t('productDetail.increase')}
+                        className="flex h-11 w-11 items-center justify-center rounded-r-lg text-lg transition-colors duration-150 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                       >
                         +
                       </button>
                     </div>
-                    <div className="text-2xl font-bold text-primary">
+                    <div className="text-xl font-semibold tabular-nums text-foreground">
                       {formatPrice(currentPrice * quantity, currency)}
                     </div>
                   </div>
@@ -414,19 +411,33 @@ const ProductDetail: React.FC = () => {
                     variant="outline"
                     size="lg"
                     onClick={handleToggleFavorite}
-                    className={cn(isFavorite && "bg-red-50 dark:bg-red-950 border-red-500")}
+                    aria-pressed={isFavorite}
+                    aria-label={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
+                    title={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
+                    className={cn('w-11 px-0', isFavorite && 'border-primary text-primary')}
                   >
-                    <Heart className={cn("w-5 h-5", isFavorite && "fill-red-500 text-red-500")} />
+                    <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} aria-hidden="true" />
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={handleShare}
+                    aria-label={t('productDetail.share')}
+                    title={t('productDetail.share')}
+                    className="w-11 px-0"
                   >
-                    <Share2 className="w-5 h-5" />
+                    <Share2 className="h-5 w-5" aria-hidden="true" />
                   </Button>
                 </div>
 
+                {translatedDesc.trim() && (
+                  <div className="border-t border-border pt-6">
+                    <h2 className="mb-3 text-base font-semibold">{t('productDetail.about')}</h2>
+                    <div className="max-w-prose space-y-3 text-base leading-relaxed text-muted-foreground">
+                      {translatedDesc.split('\n').filter((line) => line.trim() !== '').map((line, i) => <p key={i}>{line}</p>)}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -195,12 +195,8 @@ export function classifyMerchantProduct(p, region = 'br') {
 
 function merchantImageUrl(url) {
   if (typeof url !== 'string' || !/^https?:\/\//.test(url)) return '';
-  let image = url;
-  if (image.includes('res.cloudinary.com')) {
-    image = image.replace(/\/upload\/(?:[a-z]{1,3}_[^/]*\/)?/, '/upload/f_jpg,q_auto:best/');
-    image = image.replace(/\.webp(\?.*)?$/i, '.jpg$1');
-  }
-  return image;
+  // Firebase Storage não transforma formato: a URL vai como foi gravada.
+  return url;
 }
 
 export function merchantImagesForProduct(p) {

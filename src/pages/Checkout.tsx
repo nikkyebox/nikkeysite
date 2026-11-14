@@ -546,25 +546,45 @@ const Checkout: React.FC = () => {
     setNegSubmitting(false);
   };
 
+  const fieldValidators = (): Record<string, () => string | null> => ({
+    name: () => (isNonEmpty(formData.name, 2) ? null : t('checkout.vName')),
+    email: () => (isValidEmail(formData.email) ? null : t('checkout.vEmail')),
+    phone: () => (isValidPhone(formData.phone) ? null : t('checkout.vPhone')),
+    cpf: () =>
+      formData.country === 'Brasil'
+        ? isValidCPF(formData.cpf)
+          ? null
+          : t('checkout.vCpf')
+        : null,
+    postalCode: () => (isNonEmpty(formData.postalCode, 4) ? null : t('checkout.vPostal')),
+    prefecture: () => (isNonEmpty(formData.prefecture) ? null : t('checkout.vState')),
+    city: () => (isNonEmpty(formData.city) ? null : t('checkout.vCity')),
+    address: () => (isNonEmpty(formData.address, 3) ? null : t('checkout.vStreet')),
+  });
+
+  // Validação no blur (só de campo já preenchido — tabular por campos vazios
+  // não acusa erro). O erro some ao editar (ver handleInputChange).
+  const handleFieldBlur = (e: React.FocusEvent<HTMLFormElement>) => {
+    const target: EventTarget = e.target;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    const name = target.name;
+    const validate = name ? fieldValidators()[name] : undefined;
+    if (!validate || !String(target.value ?? '').trim()) return;
+    const message = validate();
+    setErrors((prev) => {
+      if (message) return { ...prev, [name]: message };
+      if (!(name in prev)) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Valida os campos do formulário
-    const fieldErrors = runValidations({
-      name: () => (isNonEmpty(formData.name, 2) ? null : t('checkout.vName')),
-      email: () => (isValidEmail(formData.email) ? null : t('checkout.vEmail')),
-      phone: () => (isValidPhone(formData.phone) ? null : t('checkout.vPhone')),
-      cpf: () =>
-        formData.country === 'Brasil'
-          ? isValidCPF(formData.cpf)
-            ? null
-            : t('checkout.vCpf')
-          : null,
-      postalCode: () => (isNonEmpty(formData.postalCode, 4) ? null : t('checkout.vPostal')),
-      prefecture: () => (isNonEmpty(formData.prefecture) ? null : t('checkout.vState')),
-      city: () => (isNonEmpty(formData.city) ? null : t('checkout.vCity')),
-      address: () => (isNonEmpty(formData.address, 3) ? null : t('checkout.vStreet')),
-    });
+    const fieldErrors = runValidations(fieldValidators());
     setErrors(fieldErrors);
 
     if (Object.keys(fieldErrors).length > 0) {
@@ -683,7 +703,7 @@ const Checkout: React.FC = () => {
     <Layout>
       {/* Modal de negociação */}
       {negModalType && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -793,7 +813,7 @@ const Checkout: React.FC = () => {
                   </h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} onBlur={handleFieldBlur} noValidate className="space-y-6">
                   {isGuest && (
                     <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                       <span className="text-base shrink-0">👤</span>
@@ -891,7 +911,7 @@ const Checkout: React.FC = () => {
                         {errors.cpf ? (
                           <p className="text-xs text-destructive">{errors.cpf}</p>
                         ) : (
-                          <p className="text-[10px] text-gray-400">
+                          <p className="text-xs text-gray-400">
                             {t('checkout.cpfNote')}
                           </p>
                         )}
@@ -952,7 +972,7 @@ const Checkout: React.FC = () => {
                           onChange={handlePostalCodeChange}
                           required
                         />
-                        <p className="text-[10px] text-gray-400">
+                        <p className="text-xs text-gray-400">
                           {formData.country === 'Japão'
                             ? t('checkout.hintJp')
                             : formData.country === 'Portugal'
@@ -1161,7 +1181,7 @@ const Checkout: React.FC = () => {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-xs text-gray-800 truncate">{productName}</p>
-                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                          <p className="text-xs text-gray-400 font-semibold mt-0.5">
                             {item.freeGift ? `🎁 ${t('cartItem.promoGift')}` : (item.variantLabel || (item.size === 'small' ? t('review.small') : t('review.large')))} • {item.quantity}x
                           </p>
                         </div>
@@ -1250,7 +1270,7 @@ const Checkout: React.FC = () => {
                           <span>{taxLabel}</span>
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
-                        <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
+                        <p className="text-xs text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                           ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('checkout.taxReminder')}
                         </p>
                       </div>
@@ -1265,14 +1285,14 @@ const Checkout: React.FC = () => {
                           {formatPrice(actualShippingCost, currency)}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground text-[10px]">
+                        <span className="text-muted-foreground text-xs">
                           {formData.country === 'Japão' ? t('checkout.awaitingProv') : t('checkout.awaitingState')}
                         </span>
                       )}
                     </div>
 
                     {selectedShipping && (
-                      <div className="text-[10px] text-gray-400 text-right">
+                      <div className="text-xs text-gray-400 text-right">
                         {selectedShipping.carrier} • {selectedShipping.estimatedDays} {t('checkout.days')}
                       </div>
                     )}
@@ -1285,7 +1305,7 @@ const Checkout: React.FC = () => {
                           <div className="text-right">
                             {effectivePsFeeDiscountYen > 0 ? (
                               <>
-                                <span className="text-[10px] text-muted-foreground line-through mr-1">
+                                <span className="text-xs text-muted-foreground line-through mr-1">
                                   {currency === 'JPY' ? `¥ ${psFeeYen.toLocaleString()}` : `${formatPrice(psFeeOriginalDisplay, currency, true)} (¥ ${psFeeYen.toLocaleString()})`}
                                 </span>
                                 <span className="font-semibold text-green-600">
@@ -1300,43 +1320,44 @@ const Checkout: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">{totalQty}x ¥{psFeeUnitYen.toLocaleString()} • {t('checkout.purchaseService')}</span>
+                          <span className="text-xs text-muted-foreground">{totalQty}x ¥{psFeeUnitYen.toLocaleString()} • {t('checkout.purchaseService')}</span>
                           {psFeeWaived && (
-                            <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5">
+                            <span className="text-xs text-green-600 font-bold flex items-center gap-0.5">
                               <CheckCircle2 className="w-3 h-3" /> {t('checkout.waivedOffer')}
                             </span>
                           )}
                           {negIsApproved && activeNeg?.type === 'ps_fee' && (
-                            <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5">
+                            <span className="text-xs text-green-600 font-bold flex items-center gap-0.5">
                               <CheckCircle2 className="w-3 h-3" /> {t('checkout.approved')}
                             </span>
                           )}
                           {negIsPending && activeNeg?.type === 'ps_fee' && (
-                            <span className="text-[10px] text-primary font-bold flex items-center gap-0.5">
+                            <span className="text-xs text-primary font-bold flex items-center gap-0.5">
                               <Hourglass className="w-3 h-3" /> {t('checkout.waiting')}
                             </span>
                           )}
                           {negIsRejected && activeNeg?.type === 'ps_fee' && (
-                            <span className="text-[10px] text-red-500 font-bold flex items-center gap-0.5">
+                            <span className="text-xs text-red-500 font-bold flex items-center gap-0.5">
                               <AlertCircle className="w-3 h-3" /> {t('checkout.rejected')}
                             </span>
                           )}
                           {negActuallyExpired && activeNeg?.type === 'ps_fee' && (
-                            <span className="text-[10px] text-gray-400 font-bold flex items-center gap-0.5">
+                            <span className="text-xs text-gray-400 font-bold flex items-center gap-0.5">
                               <AlertCircle className="w-3 h-3" /> {t('checkout.expired')}
                             </span>
                           )}
                         </div>
                         {/* A dona relatou que todo mundo passava batido pela taxa: o antigo link de
-                            10px parecia rótulo, não convite. Agora é um alvo de toque cheio que
-                            "respira" (pulse-zoom) até ser clicado. Texto "Pedir desconto" em vez de
-                            "Negociar" porque nomeia o benefício, não o processo. */}
+                            10px parecia rótulo, não convite. Agora é um alvo de toque cheio, com
+                            borda e fundo de destaque (o "respirar" infinito saiu: loop decorativo
+                            em controle distrai do resto do checkout e ignora reduced-motion no iOS
+                            antigo). Texto "Pedir desconto" nomeia o benefício, não o processo. */}
                         {!psFeeWaived && !activeNeg && !pointsCoverAllProducts && (
                           <div className="mt-2">
                             <button
                               type="button"
                               onClick={() => setNegModalType('ps_fee')}
-                              className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-primary bg-purple-50 dark:bg-purple-950/20 text-sm font-bold text-purple-700 dark:text-purple-300 transition-colors hover:bg-purple-700 hover:text-white dark:hover:bg-purple-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 animate-pulse-zoom hover:animate-none motion-reduce:animate-none"
+                              className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-primary bg-purple-50 dark:bg-purple-950/20 text-sm font-bold text-purple-700 dark:text-purple-300 transition-colors hover:bg-purple-700 hover:text-white dark:hover:bg-purple-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             >
                               <Handshake className="w-5 h-5 shrink-0" /> {t('checkout.askDiscount')}
                             </button>
@@ -1351,25 +1372,25 @@ const Checkout: React.FC = () => {
                           </p>
                         )}
                         {psFeeWaived && (
-                          <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1 leading-snug">
+                          <p className="text-xs text-amber-600 dark:text-amber-500 mt-1 leading-snug">
                             {t('checkout.waiverNote')}
                           </p>
                         )}
                         {/* Negociar frete (aparece só depois de selecionar frete e sem negociação ativa) */}
                         {selectedShipping && !activeNeg && (
                           <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/40">
-                            <span className="text-[10px] text-muted-foreground">{t('checkout.negotiateShip')}</span>
+                            <span className="text-xs text-muted-foreground">{t('checkout.negotiateShip')}</span>
                             <button
                               type="button"
                               onClick={() => setNegModalType('shipping')}
-                              className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline"
+                              className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                             >
                               <Handshake className="w-3 h-3" /> {t('checkout.negotiate')}
                             </button>
                           </div>
                         )}
                         {selectedShipping && shippingDiscountYen > 0 && (
-                          <div className="flex items-center justify-between mt-1 text-[10px] text-green-600 font-bold">
+                          <div className="flex items-center justify-between mt-1 text-xs text-green-600 font-bold">
                             <span>{t('checkout.shipDiscount')}</span>
                             <span>-{formatPrice(shippingDiscountDisplay, currency)}</span>
                           </div>
@@ -1384,7 +1405,7 @@ const Checkout: React.FC = () => {
                           <span className="text-muted-foreground">{t('review.importDuty')}</span>
                           <span className="font-semibold text-gray-800">{formatPrice(importDutyDisplay, currency)}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                        <p className="text-xs text-muted-foreground mt-1 leading-snug">
                           {t('review.importDutyNote')}
                         </p>
                       </div>
@@ -1402,7 +1423,7 @@ const Checkout: React.FC = () => {
                           {formatPrice(grandTotal, currency)}
                         </span>
                         {totalSavings > 0 && (
-                          <p className="text-[10px] text-green-600 font-bold mt-0.5">
+                          <p className="text-xs text-green-600 font-bold mt-0.5">
                             {t('cart.youSave')} {formatPrice(totalSavings, currency)}
                           </p>
                         )}

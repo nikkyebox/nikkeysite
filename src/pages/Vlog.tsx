@@ -143,13 +143,13 @@ const Vlog: React.FC = () => {
                 <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-white/95">
                   <div className="flex items-center gap-4 text-xs font-bold">
                     {featured.duration && (
-                      <span className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                      <span className="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-full">
                         <Clock className="w-3.5 h-3.5" />
                         {featured.duration}
                       </span>
                     )}
                     {featured.views && (
-                      <span className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                      <span className="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-full">
                         <Eye className="w-3.5 h-3.5" />
                         {featured.views} {t('vlog.views')}
                       </span>
@@ -189,7 +189,7 @@ const Vlog: React.FC = () => {
 
                   {video.duration && (
                     <div className="absolute bottom-3 right-3">
-                      <span className="px-2.5 py-1 rounded-lg bg-black/75 text-white text-[10px] font-bold">{video.duration}</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-black/75 text-white text-xs font-bold">{video.duration}</span>
                     </div>
                   )}
                 </div>
@@ -204,7 +204,7 @@ const Vlog: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 mt-4 text-[10px] text-muted-foreground border-t border-border/60 pt-3">
+                  <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground border-t border-border/60 pt-3">
                     {video.date && (
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
@@ -242,7 +242,7 @@ const Vlog: React.FC = () => {
 
       {/* Video Modal Player */}
       {playingVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-fade-in p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 animate-fade-in p-4">
           <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
             <button
               onClick={() => setPlayingVideo(null)}

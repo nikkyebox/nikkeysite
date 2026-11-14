@@ -20,6 +20,17 @@ import { couponService as globalCouponService } from '@/services/couponService';
 import { promoCampaignService } from '@/services/promoCampaignService';
 import { safeStorage } from '@/utils/storage';
 import WelcomeCouponBanner from '@/components/WelcomeCouponBanner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { taxDisclosure } from '../../shared/tax-disclosure.js';
 
 // Converte um afiliado num "cupom" aplicável (carrega o código para gerar comissão)
@@ -305,24 +316,26 @@ const Cart: React.FC = () => {
 
   return (
     <Layout>
-      <WelcomeCouponBanner context="cart" />
-      <div className="gradient-hero py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="font-display text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              {t('cart.title')} {selectedCountry === 'Japão' ? '🇯🇵' : selectedCountry === 'Brasil' ? '🇧🇷' : selectedCountry === 'Portugal' ? '🇵🇹' : selectedCountry === 'França' ? '🇫🇷' : selectedCountry === 'Itália' ? '🇮🇹' : selectedCountry === 'Espanha' ? '🇪🇸' : ''}
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              {items.length > 0
-                ? `${items.length} ${items.length === 1 ? t('cart.items') : t('cart.items_plural')}`
-                : t('cart.empty')
-              }
-            </p>
-          </div>
+      <div className="pt-4">
+        <WelcomeCouponBanner context="cart" />
+      </div>
+      {/* Cabeçalho compacto: o primeiro item do carrinho aparece na primeira
+          dobra do celular (antes, um bloco de ~300px vinha antes). */}
+      <div className="container mx-auto px-4 pt-6">
+        <div className="mx-auto max-w-6xl">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+            {t('cart.title')} {selectedCountry === 'Japão' ? '🇯🇵' : selectedCountry === 'Brasil' ? '🇧🇷' : selectedCountry === 'Portugal' ? '🇵🇹' : selectedCountry === 'França' ? '🇫🇷' : selectedCountry === 'Itália' ? '🇮🇹' : selectedCountry === 'Espanha' ? '🇪🇸' : ''}
+          </h1>
+          <p className="mt-1 text-base text-muted-foreground">
+            {items.length > 0
+              ? `${items.length} ${items.length === 1 ? t('cart.items') : t('cart.items_plural')}`
+              : t('cart.empty')
+            }
+          </p>
         </div>
       </div>
 
-      <section className="py-12 bg-background">
+      <section className="bg-background pb-12 pt-6">
         <div className="container mx-auto px-4">
           {items.length > 0 ? (
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
@@ -335,21 +348,35 @@ const Cart: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => navigate('/produtos')}
-                      className="font-semibold text-xs"
+                      className="h-11 text-sm font-semibold"
                     >
                       {t('cart.continueShopping')}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearCart}
-                      className="text-muted-foreground hover:text-destructive font-semibold"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {t('cart.clear')}
-                    </Button>
+                    {/* Esvaziar o carrinho inteiro pede confirmação nomeada;
+                        Cancelar recebe o foco por padrão (Radix AlertDialog). */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" className="h-11 font-semibold text-muted-foreground hover:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                          {t('cart.clear')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('cart.clearConfirm.title')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('cart.clearConfirm.desc').replace('{n}', String(items.reduce((s, i) => s + i.quantity, 0)))}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('cart.clearConfirm.cancel')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={clearCart} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {t('cart.clearConfirm.confirm')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
 
@@ -458,7 +485,7 @@ const Cart: React.FC = () => {
                       {/* Dropdown de cupons do perfil */}
                       {showCouponList && isAuthenticated && availableCoupons.length > 0 && (
                         <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground px-3 pt-2 pb-1">
+                          <p className="text-xs uppercase font-bold text-muted-foreground px-3 pt-2 pb-1">
                             {t('cart.yourCoupons')}
                           </p>
                           {availableCoupons.map((coupon) => {
@@ -480,7 +507,7 @@ const Cart: React.FC = () => {
                                     {`-${formatPrice(preview, currency)}`}
                                   </span>
                                 </div>
-                                <p className="text-[11px] text-muted-foreground">{coupon.description} · {label}</p>
+                                <p className="text-xs text-muted-foreground">{coupon.description} · {label}</p>
                               </button>
                             );
                           })}
@@ -531,17 +558,17 @@ const Cart: React.FC = () => {
                           </span>
                         </div>
                         {promoBreakdown && (
-                          <p className="text-[11px] text-purple-700 dark:text-purple-300 font-medium bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg px-2 py-1.5 leading-snug">
+                          <p className="text-xs text-purple-700 dark:text-purple-300 font-medium bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg px-2 py-1.5 leading-snug">
                             🎁 {promoBreakdown}
                           </p>
                         )}
                         {hasPromoItems && regularSubtotal === 0 && (
-                          <p className="text-[11px] text-purple-600 font-semibold bg-purple-50 border border-purple-200 rounded-lg px-2 py-1.5 leading-snug">
+                          <p className="text-xs text-purple-600 font-semibold bg-purple-50 border border-purple-200 rounded-lg px-2 py-1.5 leading-snug">
                             ⚠️ {t('cart.allPromoItems')}
                           </p>
                         )}
                         {hasPromoItems && regularSubtotal > 0 && (
-                          <p className="text-[11px] text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 leading-snug">
+                          <p className="text-xs text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 leading-snug">
                             ℹ️ {t('cart.partialCoupon').replace('{amount}', formatPrice(regularSubtotal, currency))}
                           </p>
                         )}
@@ -555,7 +582,7 @@ const Cart: React.FC = () => {
                           <span>{taxLabel}</span>
                           <span>{formatPrice(estimatedTax, currency)}</span>
                         </div>
-                        <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
+                        <p className="text-xs text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                           ⚠️ <strong>{t('cart.reminderLabel')}</strong> {t('cart.taxReminder')}
                         </p>
                       </div>
@@ -578,14 +605,14 @@ const Cart: React.FC = () => {
                           {formatPrice(grandTotal, currency)}
                         </span>
                         {discountAmount > 0 && (
-                          <p className="text-[11px] text-green-600 font-bold mt-0.5">
+                          <p className="text-xs text-green-600 font-bold mt-0.5">
                             {t('cart.youSave')} {formatPrice(discountAmount, currency)}
                           </p>
                         )}
                         {selectedCountry !== 'Japão' && !discountAmount ? (
-                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{t('cart.installments')}</p>
+                          <p className="text-xs text-gray-400 font-semibold mt-0.5">{t('cart.installments')}</p>
                         ) : selectedCountry === 'Japão' && !discountAmount ? (
-                          <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{t('cart.payJapan')}</p>
+                          <p className="text-xs text-gray-400 font-semibold mt-0.5">{t('cart.payJapan')}</p>
                         ) : null}
                       </div>
                     </div>
@@ -622,7 +649,7 @@ const Cart: React.FC = () => {
                       >
                         {t('cart.checkoutAccount')}
                       </Button>
-                      <p className="text-center text-[11px] text-muted-foreground">
+                      <p className="text-center text-xs text-muted-foreground">
                         {t('cart.accountPerk')}
                       </p>
                     </div>

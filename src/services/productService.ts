@@ -1,7 +1,7 @@
 // Serviço de produtos com persistência no Firestore + Firebase Storage para imagens.
 // Os produtos de `data/products.ts` são a base (defaults).
 // O admin pode criar/editar/remover; as mudanças ficam no Firestore (collection "products").
-// Imagens ficam no Cloudinary (CDN) — Firestore guarda só as URLs.
+// Imagens ficam no Firebase Storage — Firestore guarda só as URLs.
 // O catálogo é cacheado em IndexedDB e sincronizado por delta: depois da
 // primeira visita, só o que mudou é lido do Firestore.
 
@@ -21,7 +21,6 @@ import {
 import type { CatalogSnapshot } from '@/services/catalogCache';
 import { gravarCatalogo, lerCatalogo, limparCatalogo } from '@/services/catalogCache';
 import { Product } from '@/types';
-import { cdnImage } from '@/services/cloudinaryService';
 import { products as defaultProducts } from '@/data/products';
 import { ensureAdminAuth } from '@/utils/adminAuth';
 
@@ -98,17 +97,6 @@ interface Overrides {
   deleted: string[];
 }
 
-/** Aplica o perfil de entrega de alta qualidade nas URLs de imagem.
- *  Roda no ingresso do Firestore para que todos os pontos de render recebam a
- *  URL certa sem repetir a transformação — inclusive os produtos legados, cuja
- *  URL gravada ainda carrega o `f_webp,q_auto` (≈75%) do pipeline antigo. */
-const withCdnImages = (p: Product): Product => ({
-  ...p,
-  image: cdnImage(p.image),
-  ...(p.thumbnail ? { thumbnail: cdnImage(p.thumbnail) } : {}),
-  ...(p.gallery ? { gallery: p.gallery.map((g) => cdnImage(g)) } : {}),
-});
-
 export const productService = {
   /** Lê os documentos do Firestore. Com `desdeMs`, traz só o que mudou depois
    *  daquele instante — é a diferença entre ~265 leituras e ~1 por visita.
@@ -134,7 +122,7 @@ export const productService = {
           deleted.push(d.id);
           return;
         }
-        items.push(withCdnImages({ id: d.id, ...(data as object) } as Product));
+        items.push({ id: d.id, ...(data as object) } as Product);
       });
       return { items, deleted, maxMs };
     } catch (e) {

@@ -160,9 +160,9 @@ const AdminCalculator: React.FC = () => {
 
         {/* Cabeçalho das colunas */}
         <div className="grid grid-cols-[1fr_90px_1.6fr_20px] gap-2 mb-1 px-1">
-          <span className="text-[11px] font-bold text-muted-foreground uppercase">Custo (¥)</span>
-          <span className="text-[11px] font-bold text-muted-foreground uppercase">Desconto (máx 50%)</span>
-          <span className="text-[11px] font-bold text-muted-foreground uppercase">Preço de venda</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase">Custo (¥)</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase">Desconto (máx 50%)</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase">Preço de venda</span>
           <span />
         </div>
 
@@ -198,7 +198,7 @@ const AdminCalculator: React.FC = () => {
                   {sell > 0 ? (
                     <span>
                       <span className="font-black text-primary">{yenFmt(sell)}</span>
-                      <span className="text-[11px] text-muted-foreground ml-1.5">
+                      <span className="text-xs text-muted-foreground ml-1.5">
                         {formatPrice(convertYen(sell, 'BRL'), 'BRL', true)} · {formatPrice(convertYen(sell, 'EUR'), 'EUR', true)}
                       </span>
                     </span>
@@ -222,7 +222,7 @@ const AdminCalculator: React.FC = () => {
 
       {/* ── Taxa Personal Shopper ── */}
       <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-4">
-        <p className="text-[11px] font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-3">🛍️ Taxa Personal Shopper (¥1.000/item) — automática: 1 por item</p>
+        <p className="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-3">🛍️ Taxa Personal Shopper (¥1.000/item) — automática: 1 por item</p>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-orange-600 dark:text-orange-400 font-medium">
@@ -250,7 +250,7 @@ const AdminCalculator: React.FC = () => {
       {/* ── Detalhamento (transparência da soma) ── */}
       {totalYen > 0 && (
         <div className="bg-card rounded-2xl border border-border p-4">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2">🧮 Detalhamento da soma</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">🧮 Detalhamento da soma</p>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Produtos (preço de venda × qtd de linhas)</span>
@@ -269,15 +269,15 @@ const AdminCalculator: React.FC = () => {
             {/* Adendo: total de itens + subtotal em R$ e € */}
             <div className="grid grid-cols-3 gap-2 border-t border-border pt-2 mt-2">
               <div className="text-center">
-                <p className="text-[10px] uppercase text-muted-foreground font-bold">Total itens</p>
+                <p className="text-xs uppercase text-muted-foreground font-bold">Total itens</p>
                 <p className="font-black text-foreground">{rows.length}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] uppercase text-muted-foreground font-bold">Total Real</p>
+                <p className="text-xs uppercase text-muted-foreground font-bold">Total Real</p>
                 <p className="font-black text-green-600 dark:text-green-400">{formatPrice(subtotalBrl, 'BRL', true)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] uppercase text-muted-foreground font-bold">Total Euro</p>
+                <p className="text-xs uppercase text-muted-foreground font-bold">Total Euro</p>
                 <p className="font-black text-blue-600 dark:text-blue-400">{formatPrice(subtotalEur, 'EUR', true)}</p>
               </div>
             </div>
@@ -287,7 +287,7 @@ const AdminCalculator: React.FC = () => {
 
       {/* ── Imposto de importação (destino) ── */}
       <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-2xl p-5">
-        <p className="text-[11px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">🏛️ Imposto de importação (destino)</p>
+        <p className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">🏛️ Imposto de importação (destino)</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {([
@@ -340,7 +340,7 @@ const AdminCalculator: React.FC = () => {
                 placeholder="01000-000"
                 className="w-40 border border-purple-300 dark:border-purple-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
-              <span className="text-[11px] text-purple-600 dark:text-purple-400">
+              <span className="text-xs text-purple-600 dark:text-purple-400">
                 {uf ? `Estado: ${uf} · ICMS ${(icmsRate * 100).toFixed(1)}%` : `CEP incompleto — usando ICMS médio ${(icmsRate * 100).toFixed(1)}%`}
               </span>
             </div>
@@ -408,19 +408,19 @@ const AdminCalculator: React.FC = () => {
           <div className="mt-4 pt-3 border-t border-purple-200 dark:border-purple-800 flex flex-wrap gap-6">
             {taxDest === 'BR' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (R$)</p>
+                <p className="text-xs uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (R$)</p>
                 <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxBrl, 'BRL', true)}</p>
               </div>
             )}
             {taxDest === 'EU' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (€)</p>
+                <p className="text-xs uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto (€)</p>
                 <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxEur, 'EUR', true)}</p>
               </div>
             )}
             {taxDest === 'US' && (
               <div>
-                <p className="text-[11px] uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto ($)</p>
+                <p className="text-xs uppercase font-bold text-purple-600 dark:text-purple-400">Total c/ imposto ($)</p>
                 <p className="text-2xl font-black text-purple-800 dark:text-purple-200">{formatPrice(totalWithTaxUsd, 'USD', true)}</p>
               </div>
             )}
@@ -431,22 +431,22 @@ const AdminCalculator: React.FC = () => {
       {/* ── Totais (produtos + PS fee) ── */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 text-center">
-          <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mb-1 uppercase tracking-wide">Total em Ienes</p>
+          <p className="text-xs font-bold text-amber-700 dark:text-amber-400 mb-1 uppercase tracking-wide">Total em Ienes</p>
           <p className="text-2xl font-black text-amber-900 dark:text-amber-200">{yenFmt(grandTotalYen)}</p>
         </div>
         <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-2xl p-4 text-center">
-          <p className="text-[11px] font-bold text-green-700 dark:text-green-400 mb-1 uppercase tracking-wide">Total em Reais</p>
+          <p className="text-xs font-bold text-green-700 dark:text-green-400 mb-1 uppercase tracking-wide">Total em Reais</p>
           <p className="text-2xl font-black text-green-900 dark:text-green-200">{formatPrice(subtotalBrl, 'BRL', true)}</p>
         </div>
         <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 text-center">
-          <p className="text-[11px] font-bold text-blue-700 dark:text-blue-400 mb-1 uppercase tracking-wide">Total em Euro</p>
+          <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-1 uppercase tracking-wide">Total em Euro</p>
           <p className="text-2xl font-black text-blue-900 dark:text-blue-200">{formatPrice(subtotalEur, 'EUR', true)}</p>
         </div>
       </div>
 
       {/* ── Lucro ── */}
       <div className="bg-emerald-50 dark:bg-emerald-950/20 border-2 border-emerald-400 dark:border-emerald-700 rounded-2xl p-5">
-        <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide mb-3">💰 Lucro (venda − custo)</p>
+        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide mb-3">💰 Lucro (venda − custo)</p>
         <div className="flex flex-wrap gap-6">
           <div>
             <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-0.5">Em Ienes</p>
@@ -470,7 +470,7 @@ const AdminCalculator: React.FC = () => {
         <div className="flex flex-wrap gap-4 mb-5">
           {/* Peso */}
           <div>
-            <label className="text-[11px] font-bold text-muted-foreground block mb-1 uppercase">Peso total</label>
+            <label className="text-xs font-bold text-muted-foreground block mb-1 uppercase">Peso total</label>
             <div className="relative">
               <input
                 type="number"
@@ -487,7 +487,7 @@ const AdminCalculator: React.FC = () => {
 
           {/* Destino */}
           <div>
-            <label className="text-[11px] font-bold text-muted-foreground block mb-1 uppercase">Destino</label>
+            <label className="text-xs font-bold text-muted-foreground block mb-1 uppercase">Destino</label>
             <div className="flex flex-wrap gap-2">
               {([
                 { z: 1, label: '🇨🇳 Zona 1', desc: 'China/Coreia/Taiwan' },
@@ -520,7 +520,7 @@ const AdminCalculator: React.FC = () => {
 
         {isLight && eRaitoYen != null && (
           <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-            <span className="inline-block text-[10px] font-black text-emerald-700 bg-emerald-100 dark:bg-emerald-900 px-2 py-0.5 rounded-full mb-2">
+            <span className="inline-block text-xs font-black text-emerald-700 bg-emerald-100 dark:bg-emerald-900 px-2 py-0.5 rounded-full mb-2">
               📦 e-Raito Light — até 2 kg
             </span>
             <p className="text-2xl font-black text-emerald-800 dark:text-emerald-200">
@@ -536,7 +536,7 @@ const AdminCalculator: React.FC = () => {
           <div className="grid sm:grid-cols-2 gap-3">
             {kAirYen != null && (
               <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                <span className="inline-block text-[10px] font-black text-blue-700 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full mb-2">
+                <span className="inline-block text-xs font-black text-blue-700 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full mb-2">
                   ✈️ Kozutsumi Aéreo
                 </span>
                 <p className="text-2xl font-black text-blue-800 dark:text-blue-200">{yenFmt(kAirYen)}</p>
@@ -552,7 +552,7 @@ const AdminCalculator: React.FC = () => {
       {/* ── Total Geral (produtos + PS fee + frete) ── */}
       {shippingOptions.length > 0 && grandTotalYen > 0 && (
         <div className="bg-gray-900 dark:bg-gray-950 rounded-2xl p-5 border-2 border-gray-700">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-4">🧾 Total Geral (produtos + PS + frete)</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">🧾 Total Geral (produtos + PS + frete)</p>
           <div className="space-y-4">
             {shippingOptions.map(opt => {
               const total = grandTotalYen + opt.yen;
@@ -590,15 +590,15 @@ const AdminCalculator: React.FC = () => {
                   {taxLine && (
                     <div className="mt-2 sm:ml-40 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs">
                       <div>
-                        <p className="text-gray-500 uppercase font-bold text-[10px]">Sem imposto</p>
+                        <p className="text-gray-500 uppercase font-bold text-xs">Sem imposto</p>
                         <p className="font-bold text-gray-300">{formatPrice(taxLine.base, taxLine.cur, true)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500 uppercase font-bold text-[10px]">{taxLine.label}</p>
+                        <p className="text-gray-500 uppercase font-bold text-xs">{taxLine.label}</p>
                         <p className="font-bold text-purple-400">+ {formatPrice(taxLine.tax, taxLine.cur, true)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500 uppercase font-bold text-[10px]">Total c/ imposto</p>
+                        <p className="text-gray-500 uppercase font-bold text-xs">Total c/ imposto</p>
                         <p className="font-black text-purple-300 text-sm">{formatPrice(taxLine.withTax, taxLine.cur, true)}</p>
                       </div>
                     </div>
@@ -608,7 +608,7 @@ const AdminCalculator: React.FC = () => {
             })}
           </div>
           {taxDest === 'none' && (
-            <p className="mt-3 text-[11px] text-gray-500">💡 Selecione o destino e preencha o CEP na seção de imposto acima para ver o total com/sem imposto por frete.</p>
+            <p className="mt-3 text-xs text-gray-500">💡 Selecione o destino e preencha o CEP na seção de imposto acima para ver o total com/sem imposto por frete.</p>
           )}
         </div>
       )}

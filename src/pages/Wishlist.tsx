@@ -12,6 +12,17 @@ import { useLanguage } from '@/context/LanguageContext';
 import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { convertYen as fxConvert } from '@/services/fxService';
 import { productEnglishName } from '@/utils/productName';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Wishlist: React.FC = () => {
   const navigate = useNavigate();
@@ -69,10 +80,6 @@ const Wishlist: React.FC = () => {
   const handleClearAll = () => {
     if (!user?.email) return;
 
-    if (!confirm(t('wishlist.confirmClear'))) {
-      return;
-    }
-
     const success = wishlistService.clearWishlist(user.email);
     
     if (success) {
@@ -122,15 +129,26 @@ const Wishlist: React.FC = () => {
             {wishlistItems.length > 0 ? (
               <>
                 <div className="flex justify-end mb-6">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearAll}
-                    className="gap-2 text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    {t('wishlist.clear')}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="h-11 gap-2 text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        {t('wishlist.clear')}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('wishlist.clear')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('wishlist.confirmClear')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('cart.clearConfirm.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {t('wishlist.clear')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 <div className="space-y-4">

@@ -65,10 +65,10 @@ const CookieBanner: React.FC = () => {
                       <p className="text-xs font-bold text-gray-800 mb-1">
                         {item.emoji} {item.title}
                         {item.required && (
-                          <span className="ml-1 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">{t('cookieBanner.essential.required')}</span>
+                          <span className="ml-1 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">{t('cookieBanner.essential.required')}</span>
                         )}
                       </p>
-                      <p className="text-[11px] text-gray-500 leading-relaxed">{item.desc}</p>
+                      <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
                     </div>
                   ))}
                 </div>

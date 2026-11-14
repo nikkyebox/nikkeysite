@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -17,8 +17,8 @@ export interface CarouselSlide {
   secondaryCtaLink?: string;
   priceOriginal?: string;
   pricePromo?: string;
-  /** 'split' = produto ou promoção em destaque (preço abaixo do título, imagem à direita).
-   *  'center' = cartão de destaque do hero (produto marcado no admin). */
+  /** 'split' = produto ou promoção em destaque. 'center' = cartão do produto marcado no admin.
+   *  Mantido por compatibilidade: os dois usam a mesma composição texto | mídia. */
   layout?: 'split' | 'center';
 }
 
@@ -28,269 +28,166 @@ interface HeroCarouselProps {
   autoplayInterval?: number;
 }
 
-const HeroCarousel: React.FC<HeroCarouselProps> = ({
-  slides,
-  autoplay = true,
-  autoplayInterval = 5000,
-}) => {
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+/**
+ * Destaques da home. Os slides ficam empilhados na MESMA célula de grid —
+ * a altura acompanha o maior slide, sem altura fixa (era 660px no celular).
+ * Troca só por opacidade (200ms); autoplay pausa em hover/foco, para de vez
+ * depois de qualquer interação e nem começa sob reduced-motion.
+ */
+const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides, autoplay = true, autoplayInterval = 6000 }) => {
   const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
-  // Uma vez que o usuário navega manualmente, o autoplay desliga definitivamente
-  // (vira manual) — só volta a tocar se a página for recarregada.
+  const [paused, setPaused] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % slides.length);
-  }, [slides.length]);
+  const goToNext = useCallback(() => setCurrentIndex((prev) => (prev + 1) % slides.length), [slides.length]);
+
   useEffect(() => {
-    if (!autoplay || isHovering || userInteracted || slides.length <= 1) return;
+    if (!autoplay || paused || userInteracted || slides.length <= 1 || reducedMotion()) return;
     const timer = window.setInterval(goToNext, autoplayInterval);
     return () => window.clearInterval(timer);
-  }, [autoplay, autoplayInterval, goToNext, isHovering, userInteracted, slides.length]);
+  }, [autoplay, autoplayInterval, goToNext, paused, userInteracted, slides.length]);
 
-  // Evita índice fora do range quando o número de slides muda (ex: promo some)
   useEffect(() => {
     if (currentIndex >= slides.length) setCurrentIndex(0);
   }, [slides.length, currentIndex]);
 
   if (slides.length === 0) return null;
 
-  const goToSlide = (index: number) => {
-    setUserInteracted(true);
-    setCurrentIndex(index % slides.length);
-  };
-  const goToPrevious = () => {
-    setUserInteracted(true);
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-  const goToNextManual = () => {
-    setUserInteracted(true);
-    goToNext();
-  };
+  const goToSlide = (index: number) => { setUserInteracted(true); setCurrentIndex(index % slides.length); };
+  const goToPrevious = () => { setUserInteracted(true); setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length); };
+  const goToNextManual = () => { setUserInteracted(true); goToNext(); };
+
+  const controlClass =
+    'flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors duration-150 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
   return (
     <div
-      className="hero-future group/hero relative isolate w-full overflow-hidden rounded-[2rem] border border-purple-100/80 bg-white h-[660px] sm:h-[680px] lg:h-[520px] xl:h-[560px] shadow-elevated"
+      className="relative w-full overflow-hidden rounded-lg border border-border bg-card"
       role="region"
       aria-roledescription="carousel"
-      aria-label="NikkeyBox"
-      tabIndex={0}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      onTouchStart={(event) => {
-        touchStartX.current = event.touches[0]?.clientX ?? null;
-        setIsHovering(true);
+      aria-label={t('featured.badge')}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
       }}
+      onTouchStart={(event) => { touchStartX.current = event.touches[0]?.clientX ?? null; }}
       onTouchEnd={(event) => {
         const startX = touchStartX.current;
         const endX = event.changedTouches[0]?.clientX;
-        if (startX !== null && endX !== undefined) {
-          const distance = endX - startX;
-          if (Math.abs(distance) > 48) {
-            setUserInteracted(true);
-            if (distance > 0) goToPrevious();
-            else goToNextManual();
-          }
+        if (startX !== null && endX !== undefined && Math.abs(endX - startX) > 48) {
+          if (endX - startX > 0) goToPrevious();
+          else goToNextManual();
         }
         touchStartX.current = null;
-        setIsHovering(false);
-      }}
-      onFocusCapture={() => setIsHovering(true)}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsHovering(false);
       }}
       onKeyDown={(event) => {
         if (event.key === 'ArrowLeft') goToPrevious();
         if (event.key === 'ArrowRight') goToNextManual();
       }}
     >
-      <div className="hero-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
-      <div className="hero-glow absolute -left-24 -top-28 h-72 w-72 rounded-full bg-purple-300/35 blur-3xl pointer-events-none" aria-hidden="true" />
-      <div className="hero-glow hero-glow-delayed absolute -bottom-36 right-0 h-96 w-96 rounded-full bg-violet-300/30 blur-3xl pointer-events-none" aria-hidden="true" />
-
-      <div className="relative h-full w-full">
+      <div className="grid">
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
-          const layout = slide.layout ?? 'split';
           const TitleTag = index === 0 ? 'h1' : 'h2';
-
           return (
             <article
               key={slide.id}
               aria-hidden={!isActive}
+              aria-roledescription="slide"
+              aria-label={`${index + 1} / ${slides.length}`}
               className={cn(
-                'absolute inset-0 overflow-hidden rounded-[2rem] bg-white transition-all duration-700 ease-out',
-                isActive
-                  ? 'z-10 translate-x-0 scale-100 opacity-100'
-                  : 'z-0 translate-x-6 scale-[0.985] opacity-0 pointer-events-none'
+                '[grid-area:1/1] grid gap-6 p-6 transition-opacity duration-200 ease-out motion-reduce:transition-none sm:p-8 md:grid-cols-[1fr_minmax(0,0.9fr)] md:items-center md:gap-10 md:p-10 lg:p-12',
+                isActive ? 'z-10 opacity-100' : 'pointer-events-none z-0 opacity-0',
               )}
             >
-              {layout === 'center' ? (
-                <div className="relative z-[2] grid h-full grid-rows-[auto_1fr] gap-3 px-7 pb-16 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:grid-cols-[1.08fr_.92fr] lg:grid-rows-1 lg:gap-8 lg:px-14 lg:py-12 xl:px-20">
-                  <div className="relative z-10 flex min-w-0 flex-col justify-center">
-                    {slide.badge && (
-                      <span className="hero-glass mb-4 inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-purple-700 sm:text-xs">
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-60" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500" />
-                        </span>
-                        {slide.badge}
-                      </span>
-                    )}
-
-                    <TitleTag className="max-w-3xl text-3xl font-black leading-[0.98] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-5xl xl:text-6xl line-clamp-3">
-                      {slide.title}
-                    </TitleTag>
-
-                    {slide.subtitle && (
-                      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base lg:text-lg lg:leading-relaxed line-clamp-3">
-                        {slide.subtitle}
-                      </p>
-                    )}
-
-                    {(slide.priceOriginal || slide.pricePromo) && (
-                      <div className="mt-5 flex flex-wrap items-end gap-3">
-                        {slide.pricePromo && <span className="text-2xl font-black tracking-tight text-purple-600 sm:text-3xl">{slide.pricePromo}</span>}
-                        {slide.priceOriginal && <span className="pb-1 text-sm text-slate-400 line-through">{slide.priceOriginal}</span>}
-                      </div>
-                    )}
-
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <Link
-                        to={slide.ctaLink}
-                        tabIndex={isActive ? 0 : -1}
-                        className="hero-primary-cta inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-purple-600 hover:shadow-xl hover:shadow-purple-500/30 active:translate-y-0"
-                      >
-                        {slide.ctaLabel || t('hero.cta.story')}
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      {slide.secondaryCtaLabel && slide.secondaryCtaLink && (
-                        <Link
-                          to={slide.secondaryCtaLink}
-                          tabIndex={isActive ? 0 : -1}
-                          className="hero-glass inline-flex items-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-extrabold text-slate-800 transition-all duration-300 hover:-translate-y-1 hover:border-purple-300 hover:text-purple-700"
-                        >
-                          {slide.secondaryCtaLabel}
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="relative flex min-h-[245px] items-center justify-center sm:min-h-[285px] lg:min-h-0">
-                    <div className="hero-media-card relative z-[2] h-[82%] max-h-[390px] w-[84%] max-w-[500px] overflow-hidden rounded-[1.75rem] border border-white/90 bg-white/80 p-2 shadow-2xl shadow-purple-900/15 backdrop-blur-xl">
-                      <div className="relative h-full w-full overflow-hidden rounded-[1.35rem] bg-gradient-to-br from-purple-100 via-white to-violet-100">
-                        {slide.image ? (
-                          <img src={slide.image} alt={slide.title} className="h-full w-full object-contain p-4" />
-                        ) : null}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-white/25 pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative z-[2] grid h-full grid-rows-[auto_1fr] gap-2 px-7 pb-16 pt-8 sm:px-10 sm:pt-10 md:grid-cols-[.9fr_1.1fr] md:grid-rows-1 md:gap-7 md:px-14 md:py-12 xl:px-20">
-                  <div className="relative z-10 flex min-w-0 flex-col justify-center">
-                    {slide.badge && (
-                      <span className="hero-glass mb-4 inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-purple-700 sm:text-xs">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {slide.badge}
-                      </span>
-                    )}
-                    <TitleTag className="text-3xl font-black leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-5xl line-clamp-3">
-                      {slide.title}
-                    </TitleTag>
-                    {slide.subtitle && (
-                      <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600 md:text-base line-clamp-2">
-                        {slide.subtitle}
-                      </p>
-                    )}
-                    {(slide.priceOriginal || slide.pricePromo) && (
-                      <div className="mt-4 flex items-end gap-3">
-                        {slide.pricePromo && <span className="text-2xl font-black tracking-tight text-purple-600 sm:text-3xl">{slide.pricePromo}</span>}
-                        {slide.priceOriginal && <span className="pb-1 text-sm text-slate-400 line-through">{slide.priceOriginal}</span>}
-                      </div>
-                    )}
+              <div className="flex min-w-0 flex-col">
+                {slide.badge && (
+                  <p className="mb-3 text-sm font-medium text-primary">{slide.badge}</p>
+                )}
+                <TitleTag className="font-display text-3xl font-semibold leading-tight tracking-tight text-foreground line-clamp-3 sm:text-4xl lg:text-5xl">
+                  {slide.title}
+                </TitleTag>
+                {slide.subtitle && (
+                  <p className="mt-3 max-w-prose text-base leading-relaxed text-muted-foreground line-clamp-3">{slide.subtitle}</p>
+                )}
+                {(slide.priceOriginal || slide.pricePromo) && (
+                  <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    {slide.pricePromo && <span className="text-2xl font-semibold tabular-nums text-foreground sm:text-3xl">{slide.pricePromo}</span>}
+                    {slide.priceOriginal && <span className="text-sm text-muted-foreground line-through tabular-nums">{slide.priceOriginal}</span>}
+                  </p>
+                )}
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <Link
+                    to={slide.ctaLink}
+                    tabIndex={isActive ? 0 : -1}
+                    className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    {slide.ctaLabel || t('hero.cta.story')}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                  {slide.secondaryCtaLabel && slide.secondaryCtaLink && (
                     <Link
-                      to={slide.ctaLink}
+                      to={slide.secondaryCtaLink}
                       tabIndex={isActive ? 0 : -1}
-                      className="hero-primary-cta mt-5 inline-flex w-fit items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-purple-600 hover:shadow-xl active:translate-y-0"
+                      className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-5 text-sm font-semibold text-foreground transition-colors duration-150 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {slide.ctaLabel || t('hero.cta.story')}
-                      <ArrowRight className="h-4 w-4" />
+                      {slide.secondaryCtaLabel}
                     </Link>
-                  </div>
-
-                  <div className="relative flex min-h-[270px] items-center justify-center md:min-h-0">
-                    <div className="hero-product-card relative z-[2] flex h-[88%] w-[88%] max-w-[580px] items-center justify-center overflow-hidden rounded-[2rem] border border-white bg-white/80 p-5 shadow-2xl shadow-purple-900/15 backdrop-blur-xl sm:p-8">
-                      {isActive && slide.videoSrc ? (
-                        <video
-                          src={slide.videoSrc}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          preload="auto"
-                          poster={slide.image}
-                          className="hero-product-media h-full w-full object-contain"
-                        />
-                      ) : slide.image ? (
-                        <img src={slide.image} alt={slide.title} className="hero-product-media h-full w-full object-contain" />
-                      ) : null}
-                      <div className="absolute inset-x-8 bottom-3 h-8 rounded-[100%] bg-purple-500/10 blur-xl" aria-hidden="true" />
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/40 md:aspect-square md:max-h-[380px]">
+                {isActive && slide.videoSrc && !reducedMotion() ? (
+                  <video src={slide.videoSrc} autoPlay muted loop playsInline preload="metadata" poster={slide.image} className="h-full w-full object-contain" />
+                ) : slide.image ? (
+                  <img
+                    src={slide.image}
+                    alt={isActive ? slide.title : ''}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    className="h-full w-full object-contain p-4 sm:p-6"
+                  />
+                ) : null}
+              </div>
             </article>
           );
         })}
       </div>
 
       {slides.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={goToPrevious}
-            className="hero-glass absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl text-slate-800 transition-all hover:scale-105 hover:border-purple-300 hover:text-purple-600 sm:left-5 sm:flex"
-            aria-label={t('hero.carousel.prev')}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={goToNextManual}
-            className="hero-glass absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl text-slate-800 transition-all hover:scale-105 hover:border-purple-300 hover:text-purple-600 sm:right-5 sm:flex"
-            aria-label={t('hero.carousel.next')}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-
-          <div className="hero-glass absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full px-3 py-2">
-            <span className="min-w-7 text-[10px] font-black tabular-nums text-slate-500">
-              {String(currentIndex + 1).padStart(2, '0')}
-            </span>
-            <div className="flex items-center gap-1.5">
-              {slides.map((slide, index) => (
-                <button
-                  type="button"
-                  key={slide.id}
-                  onClick={() => goToSlide(index)}
-                  className={cn(
-                    'h-1.5 rounded-full transition-all duration-300',
-                    index === currentIndex ? 'w-10 bg-purple-500' : 'w-2 bg-slate-300 hover:bg-purple-300'
-                  )}
-                  aria-label={t('hero.carousel.goto').replace('{n}', String(index + 1))}
-                  aria-current={index === currentIndex ? 'true' : undefined}
-                />
-              ))}
-            </div>
-            <span className="min-w-7 text-right text-[10px] font-black tabular-nums text-slate-400">
-              {String(slides.length).padStart(2, '0')}
-            </span>
+        <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-1" role="group" aria-label={t('hero.carousel.goto').replace('{n}', '')}>
+            {slides.map((slide, index) => (
+              <button
+                type="button"
+                key={slide.id}
+                onClick={() => goToSlide(index)}
+                className="group flex h-11 w-8 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={t('hero.carousel.goto').replace('{n}', String(index + 1))}
+                aria-current={index === currentIndex ? 'true' : undefined}
+              >
+                <span className={cn('h-1.5 w-5 rounded-full transition-colors duration-150', index === currentIndex ? 'bg-primary' : 'bg-border group-hover:bg-muted-foreground/40')} />
+              </button>
+            ))}
+            <span className="ml-2 text-xs tabular-nums text-muted-foreground" aria-hidden="true">{currentIndex + 1}/{slides.length}</span>
           </div>
-        </>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={goToPrevious} className={controlClass} aria-label={t('hero.carousel.prev')} title={t('hero.carousel.prev')}>
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button type="button" onClick={goToNextManual} className={controlClass} aria-label={t('hero.carousel.next')} title={t('hero.carousel.next')}>
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

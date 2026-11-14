@@ -300,7 +300,7 @@ const Promotion: React.FC = () => {
                       </span>
                     </div>
                     {inCartPromoQty === 0 && (
-                      <button onClick={resetPromoLimit} className="self-start text-[11px] underline text-red-500 hover:text-red-700">{t('promo.resetLimit')}</button>
+                      <button onClick={resetPromoLimit} className="self-start text-xs underline text-red-500 hover:text-red-700">{t('promo.resetLimit')}</button>
                     )}
                   </div>
               }

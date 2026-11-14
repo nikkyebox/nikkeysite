@@ -127,7 +127,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ productId, productName, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
       <div className="bg-card rounded-2xl w-full max-w-lg my-8 shadow-elevated border border-border">
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="font-display text-lg font-bold flex items-center gap-2"><Star className="w-5 h-5 text-gold" /> {t('rv.title')}</h3>

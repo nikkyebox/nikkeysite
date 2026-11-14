@@ -140,7 +140,7 @@ const MarginAudit: React.FC = () => {
                   <span className="text-xs text-amber-600 font-medium">sem custo</span>
                 )}
                 {r.belowTarget && (
-                  <p className="text-[10px] text-red-500">
+                  <p className="text-xs text-red-500">
                     sugerido: {yen(r.costYen * 2)}
                   </p>
                 )}

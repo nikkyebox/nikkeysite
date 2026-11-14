@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, Sparkles, X } from 'lucide-react';
+import { Gift, X } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { safeStorage } from '@/utils/storage';
@@ -10,10 +10,8 @@ const DISMISS_KEY = 'welcome_banner_dismissed_at';
 const DISMISS_DAYS = 3;
 
 /**
- * Banner de destaque do cupom de boas-vindas BEMVINDO10 (10% OFF).
- * "Grita" na home e no carrinho para usuários NÃO logados — transformando o
- * cadastro em um motivo claro de conversão. Dismissível por alguns dias para
- * não cansar quem já viu.
+ * Faixa do cupom de boas-vindas (BEMVINDO10) para quem não está logado.
+ * Superfície neutra com o código em destaque; dispensável por alguns dias.
  */
 const WelcomeCouponBanner: React.FC<{ context?: 'home' | 'cart' }> = ({ context = 'home' }) => {
   const { isAuthenticated } = useUser();
@@ -22,9 +20,7 @@ const WelcomeCouponBanner: React.FC<{ context?: 'home' | 'cart' }> = ({ context 
 
   React.useEffect(() => {
     const raw = safeStorage.getItem(DISMISS_KEY);
-    if (raw && Date.now() - Number(raw) < DISMISS_DAYS * 86400000) {
-      setDismissed(true);
-    }
+    if (raw && Date.now() - Number(raw) < DISMISS_DAYS * 86400000) setDismissed(true);
   }, []);
 
   if (!SIGNUP_POPUPS_ENABLED || isAuthenticated || dismissed) return null;
@@ -35,29 +31,28 @@ const WelcomeCouponBanner: React.FC<{ context?: 'home' | 'cart' }> = ({ context 
   };
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-primary to-accent text-primary-foreground">
-      <div className="container mx-auto px-4 py-2 pr-10 sm:pr-4 flex items-center justify-center gap-2 sm:gap-3 text-center">
-        <Gift className="w-5 h-5 shrink-0 hidden sm:block" />
-        <p className="text-xs sm:text-base font-semibold leading-tight">
-          {context === 'cart' ? t('welcomeBanner.cart') : ''}
-          <Sparkles className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mb-0.5" /> {t('welcomeBanner.text')}{' '}
-          <strong className="font-black">{t('welcomeBanner.discount')}</strong>
+    <div className="container mx-auto px-4 py-2">
+      <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 py-2 pl-3 pr-1 text-sm text-foreground">
+        <Gift className="hidden h-5 w-5 shrink-0 text-primary sm:block" aria-hidden="true" />
+        <p className="min-w-0 flex-1 leading-snug">
+          {context === 'cart' ? `${t('welcomeBanner.cart')} ` : ''}
+          {t('welcomeBanner.text')} <strong className="font-semibold">{t('welcomeBanner.discount')}</strong>
           <span className="hidden sm:inline">
-            {' '}— {t('welcomeBanner.codeLabel')}{' '}
-            <span className="inline-block bg-white/25 backdrop-blur px-2 py-0.5 rounded-md font-black tracking-wider">
-              {t('welcomeBanner.code')}
-            </span>
+            {' '}· {t('welcomeBanner.codeLabel')}{' '}
+            <code className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs font-semibold">{t('welcomeBanner.code')}</code>
           </span>{' '}
-          <Link to="/cadastro" className="underline underline-offset-2 font-bold hover:text-primary-foreground/80 whitespace-nowrap">
-            {t('welcomeBanner.cta')} →
+          <Link to="/cadastro" className="whitespace-nowrap font-semibold text-primary underline underline-offset-2 hover:no-underline">
+            {t('welcomeBanner.cta')}
           </Link>
         </p>
         <button
+          type="button"
           onClick={dismiss}
           aria-label={t('welcomeBanner.close')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white transition-colors"
+          title={t('welcomeBanner.close')}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     </div>

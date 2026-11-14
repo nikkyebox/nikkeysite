@@ -210,7 +210,7 @@ const ShippingCalculator: React.FC<ShippingCalculatorProps> = ({
                 </div>
               )}
               {calculateBoxes.usedRealDimensions && (
-                <div className="rounded-lg bg-background/70 border border-border p-2 text-[11px] text-muted-foreground leading-relaxed mt-1">
+                <div className="rounded-lg bg-background/70 border border-border p-2 text-xs text-muted-foreground leading-relaxed mt-1">
                   {t('calc.realDims').replace('{margin}', String(calculateBoxes.safetyMarginCm))}
                   {calculateBoxes.missingDimensionsCount > 0 && (
                     <span className="block text-amber-700 dark:text-amber-300">

@@ -317,7 +317,7 @@ const CouponManager: React.FC = () => {
                   onChange={handleInputChange}
                 />
                 {formData.usageLimit > 0 && (
-                  <p className="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded">
+                  <p className="text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded">
                     🏆 <strong>Primeiros {formData.usageLimit} compradores</strong> — o cupom se desativa automaticamente após {formData.usageLimit} usos.
                   </p>
                 )}
@@ -334,7 +334,7 @@ const CouponManager: React.FC = () => {
                   onChange={handleInputChange}
                 />
                 {formData.minOrderValue > 0 && (
-                  <p className="text-[11px] text-blue-700 bg-blue-50 px-2 py-1 rounded">
+                  <p className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">
                     O cupom só será válido em pedidos acima de ¥{formData.minOrderValue.toLocaleString()}.
                   </p>
                 )}

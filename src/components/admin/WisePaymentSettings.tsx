@@ -109,7 +109,7 @@ const WisePaymentSettings: React.FC = () => {
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
           />
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           O nome e a cidade devem ser os mesmos cadastrados na sua conta do banco/PIX.
         </p>
         <label className="flex items-center gap-2 text-sm cursor-pointer select-none pt-1">
@@ -159,7 +159,7 @@ const WisePaymentSettings: React.FC = () => {
             placeholder="Ex: 00000-0000"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
           />
-          <p className="text-[11px] text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Formato doméstico japonês. Aparece no modal de PayPay e no link do WhatsApp para envio de comprovante.
           </p>
         </div>

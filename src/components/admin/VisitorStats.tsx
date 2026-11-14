@@ -135,7 +135,7 @@ export default function VisitorStats() {
                   const label = d.date.slice(5); // 'MM-DD'
                   return (
                     <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group">
-                      <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity font-mono">
+                      <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity font-mono">
                         {d.total}
                       </span>
                       <div
@@ -143,7 +143,7 @@ export default function VisitorStats() {
                         style={{ height: `${pct}%` }}
                         title={`${label}: ${d.total} visitas`}
                       />
-                      <span className="text-[8px] text-muted-foreground rotate-45 origin-left translate-y-1">
+                      <span className="text-xs text-muted-foreground rotate-45 origin-left translate-y-1">
                         {label}
                       </span>
                     </div>
@@ -243,7 +243,7 @@ export default function VisitorStats() {
                           <span className="flex items-center gap-2 min-w-0">
                             <span className="text-xs text-muted-foreground w-4 shrink-0">#{i + 1}</span>
                             <span className="truncate font-medium">{p.label}</span>
-                            <span className="text-[10px] text-muted-foreground font-mono shrink-0 hidden sm:inline">{p.slug}</span>
+                            <span className="text-xs text-muted-foreground font-mono shrink-0 hidden sm:inline">{p.slug}</span>
                           </span>
                           <span className="font-mono text-xs text-purple-600 font-semibold shrink-0 ml-2">{p.views.toLocaleString()}</span>
                         </div>

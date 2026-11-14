@@ -1,56 +1,34 @@
 import React from 'react';
-import { ShieldCheck, Sparkles, PlaneTakeoff, HeartHandshake } from 'lucide-react';
+import { HeartHandshake, PlaneTakeoff, ShieldCheck, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+const ITEMS = [
+  { icon: ShieldCheck, key: 'trust1' },
+  { icon: PlaneTakeoff, key: 'trust2' },
+  { icon: Sparkles, key: 'trust3' },
+  { icon: HeartHandshake, key: 'trust4' },
+] as const;
+
+/** Garantias da loja: lista neutra, ícone na cor de destaque, sem caixa-alta. */
 export const TrustHighlights: React.FC = () => {
   const { t } = useLanguage();
 
-  const highlights = [
-    {
-      icon: <ShieldCheck className="w-6 h-6 text-purple-600" />,
-      title: t('ui.home.trust1.title'),
-      desc: t('ui.home.trust1.desc'),
-    },
-    {
-      icon: <PlaneTakeoff className="w-6 h-6 text-purple-600" />,
-      title: t('ui.home.trust2.title'),
-      desc: t('ui.home.trust2.desc'),
-    },
-    {
-      icon: <Sparkles className="w-6 h-6 text-amber-600" />,
-      title: t('ui.home.trust3.title'),
-      desc: t('ui.home.trust3.desc'),
-    },
-    {
-      icon: <HeartHandshake className="w-6 h-6 text-emerald-600" />,
-      title: t('ui.home.trust4.title'),
-      desc: t('ui.home.trust4.desc'),
-    },
-  ];
-
   return (
-    <section className="py-8 bg-gradient-to-b from-purple-50/40 via-white to-white border-b border-purple-100/60">
+    <section className="border-t border-border py-10" aria-label={t('trust.aria')}>
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {highlights.map((item, idx) => (
-            <div
-              key={idx}
-              className="flex items-start gap-3.5 p-4 rounded-2xl border border-purple-100/80 bg-white/90 shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-300"
-            >
-              <div className="shrink-0 p-2.5 rounded-xl bg-purple-50 ring-1 ring-purple-100">
-                {item.icon}
-              </div>
+        <ul className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+          {ITEMS.map(({ icon: Icon, key }) => (
+            <li key={key} className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-tight text-slate-900 mb-1">
-                  {item.title}
-                </h4>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
-                  {item.desc}
-                </p>
+                <h3 className="text-sm font-semibold text-foreground">{t(`ui.home.${key}.title`)}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t(`ui.home.${key}.desc`)}</p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

@@ -103,8 +103,8 @@ const AdminAccessManager: React.FC = () => {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Adicionar
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2">{ROLE_LABEL[role]}</p>
-        <p className="text-[11px] text-amber-700 mt-1">
+        <p className="text-xs text-muted-foreground mt-2">{ROLE_LABEL[role]}</p>
+        <p className="text-xs text-amber-700 mt-1">
           ℹ️ A pessoa loga na tela de login digitando esse <strong>nome</strong> (no lugar do e-mail) + a senha. Depois pode trocar a senha com você.
         </p>
       </div>
@@ -123,7 +123,7 @@ const AdminAccessManager: React.FC = () => {
                     {isSuper && <Crown className="w-4 h-4 text-amber-500 shrink-0" />}
                     {a.name}
                   </p>
-                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${ROLE_BADGE[a.role]}`}>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${ROLE_BADGE[a.role]}`}>
                     {ROLE_LABEL[a.role]}
                   </span>
                 </div>

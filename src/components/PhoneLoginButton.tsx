@@ -139,7 +139,7 @@ const PhoneLoginButton: React.FC<{ disabled?: boolean }> = ({ disabled = false }
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleConfirm(); } }}
             disabled={loading}
-            className="tracking-[0.4em] text-center text-lg"
+            className="tracking-wide text-center text-lg"
           />
           <Button type="button" onClick={handleConfirm} disabled={loading} className="w-full btn-primary rounded-xl py-5 font-semibold">
             {loading ? t('phone.login.confirming') : t('phone.login.confirm')}

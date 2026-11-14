@@ -425,10 +425,10 @@ const PromoNotificationModal: React.FC<Props> = ({ onClose }) => {
                       <Users className="w-3.5 h-3.5" /> CLIENTES ({targets.length}/{filtered.length} selecionados)
                     </p>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => setSelectedEmails(new Set(filtered.map(c => c.email)))} className="text-[11px] font-semibold text-primary hover:underline">
+                      <button type="button" onClick={() => setSelectedEmails(new Set(filtered.map(c => c.email)))} className="text-xs font-semibold text-primary hover:underline">
                         Selecionar todos
                       </button>
-                      <button type="button" onClick={() => setSelectedEmails(new Set())} className="text-[11px] font-semibold text-muted-foreground hover:underline">
+                      <button type="button" onClick={() => setSelectedEmails(new Set())} className="text-xs font-semibold text-muted-foreground hover:underline">
                         Limpar seleção
                       </button>
                     </div>
@@ -452,7 +452,7 @@ const PromoNotificationModal: React.FC<Props> = ({ onClose }) => {
                           <span className="font-medium truncate max-w-[35%]">{c.name}</span>
                           <span className="text-muted-foreground truncate">{c.email}</span>
                           {pushSubscribedEmails.has(c.email) && (
-                            <span className="ml-auto flex items-center gap-0.5 text-[10px] font-semibold text-green-600 shrink-0">
+                            <span className="ml-auto flex items-center gap-0.5 text-xs font-semibold text-green-600 shrink-0">
                               <Smartphone className="w-3 h-3" /> push
                             </span>
                           )}

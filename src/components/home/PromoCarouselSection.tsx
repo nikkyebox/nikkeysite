@@ -10,7 +10,6 @@ import { effectiveYen, baseYen, getVariants } from '@/utils/pricing';
 import { PROMO_TYPES, ActivePromo } from '@/types/promotion';
 import { Product } from '@/types';
 import { productEnglishName } from '@/utils/productName';
-import { cdnImage } from '@/services/cloudinaryService';
 
 // Assets locais do projeto — evita depender de host externo (Unsplash) que pode
 // falhar por CSP/rede em alguns ambientes de preview.
@@ -89,7 +88,7 @@ const PromoCarouselSection: React.FC = () => {
     if (promo) {
       list.push({
         id: 'promo',
-        image: cdnImage(promo.productImage, 1400),
+        image: promo.productImage,
         layout: 'split',
         badge: ((promoType) => promoType?.labelKey ? t(promoType.labelKey) : (promoType?.label ?? promo.type))(PROMO_TYPES.find(pt => pt.value === promo.type)),
         title: promo.productName,
@@ -119,7 +118,7 @@ const PromoCarouselSection: React.FC = () => {
   }, [t, promo, featured, currency]);
 
   return (
-    <div className="container mx-auto px-3 pt-4 pb-5 sm:px-4 sm:pt-6 sm:pb-7">
+    <div className="container mx-auto px-4 pb-6 pt-6 sm:pb-8 sm:pt-8">
       <HeroCarousel slides={slides} autoplay autoplayInterval={9000} />
     </div>
   );

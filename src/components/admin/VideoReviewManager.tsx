@@ -59,11 +59,11 @@ const VideoReviewManager: React.FC = () => {
           <div className="min-w-0">
             <p className="font-semibold text-sm text-foreground truncate">{v.productName}</p>
             <p className="text-xs text-muted-foreground">{v.userName}{v.userEmail ? ` · ${v.userEmail}` : ''}</p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <Clock className="w-3 h-3" /> {new Date(v.submittedAt).toLocaleDateString('pt-BR')}
             </p>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${STATUS_TAG[v.status]}`}>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${STATUS_TAG[v.status]}`}>
             {STATUS_LABEL[v.status]}
           </span>
         </div>
@@ -80,7 +80,7 @@ const VideoReviewManager: React.FC = () => {
         {v.status === 'pending' ? (
           <div className="flex flex-wrap items-end gap-2 pt-2 border-t border-border">
             <div>
-              <label className="text-[11px] font-semibold block mb-1">Duração (min)</label>
+              <label className="text-xs font-semibold block mb-1">Duração (min)</label>
               <input
                 type="number" min={1} value={minutes[v.id] ?? '1'}
                 onChange={(e) => setMinutes((m) => ({ ...m, [v.id]: e.target.value }))}

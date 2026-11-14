@@ -1,80 +1,51 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, MessageCircle, PackageSearch, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Clock, MessageCircle, PackageSearch, ShieldCheck } from 'lucide-react';
 import { COMPANY_PROFILE } from '@/config/companyProfile';
 import { useLanguage } from '@/context/LanguageContext';
 
-const WHATSAPP_NUMBER = COMPANY_PROFILE.whatsapp.digits;
+const WHATSAPP_TEXT = encodeURIComponent(
+  'Olá NikkeyBox! Quero cotar um produto específico do Japão que não encontrei no site. Como funciona a encomenda personalizada?',
+);
+const WHATSAPP_HREF = `https://wa.me/${COMPANY_PROFILE.whatsapp.digits}?text=${WHATSAPP_TEXT}`;
 
+/** Personal Shopper: cartão L1 com um CTA primário (WhatsApp) e um secundário (formulário). */
 export const PersonalShopperBanner: React.FC = () => {
   const { t } = useLanguage();
-  const handleWhatsAppCustom = () => {
-    const text = encodeURIComponent(
-      'Olá NikkeyBox! Quero cotar um produto específico do Japão que não encontrei no site. Como funciona a encomenda personalizada?'
-    );
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank', 'noopener,noreferrer');
-  };
 
   return (
-    <section className="relative overflow-hidden py-12 sm:py-16 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white border-y border-purple-800/40">
-      {/* Decorative background glow */}
-      <div className="pointer-events-none absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-purple-500/20 blur-3xl" />
+    <section className="py-10 sm:py-14" aria-labelledby="ps-title">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col gap-8 rounded-lg border border-border bg-card p-6 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm font-medium text-primary">{t('ui.ps.badge')}</p>
+            <h2 id="ps-title" className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
+              {t('ui.ps.title1')} {t('ui.ps.title2')}
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-muted-foreground">{t('ui.ps.desc')}</p>
+            <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" /> {t('ui.ps.authentic')}</li>
+              <li className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" aria-hidden="true" /> {t('ui.ps.quote')}</li>
+              <li className="flex items-center gap-1.5"><PackageSearch className="h-4 w-4 text-primary" aria-hidden="true" /> {t('ui.ps.consolidate')}</li>
+            </ul>
+          </div>
 
-      <div className="container relative mx-auto px-4">
-        <div className="max-w-4xl mx-auto rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            <div className="space-y-4 max-w-xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3.5 py-1 text-xs font-bold text-purple-300 border border-primary/30">
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" /> {t('ui.ps.badge')}
-              </div>
-
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                {t('ui.ps.title1')} <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-amber-300 bg-clip-text text-transparent">
-                  {t('ui.ps.title2')}
-                </span>
-              </h2>
-
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                {t('ui.ps.desc')}
-              </p>
-
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 text-xs text-slate-300">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> {t('ui.ps.authentic')}
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Clock className="w-4 h-4 text-amber-400" /> {t('ui.ps.quote')}
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <PackageSearch className="w-4 h-4 text-purple-400" /> {t('ui.ps.consolidate')}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
-              <Button
-                onClick={handleWhatsAppCustom}
-                size="lg"
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-900/40 gap-2 h-13 py-3.5 px-6"
-              >
-                <MessageCircle className="w-5 h-5" />
-                {t('ui.ps.whatsapp')}
-              </Button>
-
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold rounded-2xl gap-2 h-13 py-3.5 px-6"
-              >
-                <Link to="/faca-seu-pedido">
-                  {t('ui.ps.form')} <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
+          <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
+            <a
+              href={WHATSAPP_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-base font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              {t('ui.ps.whatsapp')}
+            </a>
+            <Link
+              to="/faca-seu-pedido"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border bg-background px-6 text-base font-semibold text-foreground transition-colors duration-150 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t('ui.ps.form')} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </div>

@@ -476,8 +476,8 @@ const Profile: React.FC = () => {
                           strokeWidth={2.5}
                         />
                         <p className="text-xs font-bold mt-1.5 capitalize">{t(`profile.points.tiers.name.${nivel.id}`)}</p>
-                        <p className="text-[11px] text-white/80">{nivel.multiplier}x</p>
-                        <p className="text-[10px] text-white/70 mt-0.5">
+                        <p className="text-xs text-white/80">{nivel.multiplier}x</p>
+                        <p className="text-xs text-white/70 mt-0.5">
                           {nivel.minSpendYen === 0
                             ? t('profile.points.tiers.start')
                             : `${t('profile.points.tiers.goal')} ¥${nivel.minSpendYen.toLocaleString('pt-BR')}`}
@@ -517,7 +517,7 @@ const Profile: React.FC = () => {
                   </p>
                 </div>
 
-                <p className="text-[11px] italic text-white/70 mt-3">{t('profile.points.tiers.window')}</p>
+                <p className="text-xs italic text-white/70 mt-3">{t('profile.points.tiers.window')}</p>
               </div>
             </div>
             )}
@@ -1163,10 +1163,10 @@ const Profile: React.FC = () => {
                                 return (
                                   <React.Fragment key={i}>
                                     <div className={`flex flex-col items-center ${i === 0 ? 'flex-shrink-0' : 'flex-1'}`}>
-                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${highlighted ? 'bg-primary text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${highlighted ? 'bg-primary text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
                                         {state === 'done' ? '✓' : i + 1}
                                       </div>
-                                      <span className={`text-[9px] mt-0.5 text-center leading-tight ${highlighted ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>{label}</span>
+                                      <span className={`text-xs mt-0.5 text-center leading-tight ${highlighted ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>{label}</span>
                                     </div>
                                     {i < steps.length - 1 && (
                                       <div className={`flex-1 h-0.5 mb-3.5 ${nextStarted ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
@@ -1176,7 +1176,7 @@ const Profile: React.FC = () => {
                               })}
                             </div>
                             {!hasTracking && (
-                              <p className="text-[11px] text-muted-foreground">
+                              <p className="text-xs text-muted-foreground">
                                 {st === 'pending' ? t('profile.orders.awaitPayment')
                                   : st === 'confirmed' ? t('profile.orders.confirmedNote')
                                   : t('profile.orders.preparingNote')}
@@ -1300,13 +1300,13 @@ const Profile: React.FC = () => {
                               </span>
                               {pid && (
                                 reviewed ? (
-                                  <span className="text-[11px] text-green-600 font-semibold flex items-center gap-1 shrink-0">
+                                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1 shrink-0">
                                     <Star className="w-3.5 h-3.5 fill-green-600" /> {t('profile.orders.reviewed')}
                                   </span>
                                 ) : (
                                   <button
                                     onClick={() => setReviewTarget({ id: pid, name: item.productName })}
-                                    className="text-[11px] font-semibold text-primary border border-primary/30 rounded-full px-2.5 py-1 hover:bg-primary/5 flex items-center gap-1 shrink-0"
+                                    className="text-xs font-semibold text-primary border border-primary/30 rounded-full px-2.5 py-1 hover:bg-primary/5 flex items-center gap-1 shrink-0"
                                   >
                                     <Star className="w-3.5 h-3.5" /> {t('profile.orders.review')}
                                   </button>
@@ -1568,7 +1568,7 @@ const Profile: React.FC = () => {
                             {neg.adminNote && (
                               <p className="text-xs text-muted-foreground mt-1 italic">"{neg.adminNote}"</p>
                             )}
-                            <p className="text-[10px] text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {new Date(neg.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
                             </p>
                           </div>

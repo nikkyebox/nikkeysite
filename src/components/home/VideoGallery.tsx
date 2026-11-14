@@ -99,13 +99,13 @@ const VideoGallery: React.FC = () => {
                   <div className="absolute bottom-3 right-3 flex gap-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); togglePlay(index); }}
-                      className="w-10 h-10 rounded-full bg-foreground/60 backdrop-blur-sm flex items-center justify-center text-background hover:bg-foreground/80 transition-colors"
+                      className="w-10 h-10 rounded-full bg-foreground/60 flex items-center justify-center text-background hover:bg-foreground/80 transition-colors"
                     >
                       <Pause className="w-5 h-5" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleMute(index); }}
-                      className="w-10 h-10 rounded-full bg-foreground/60 backdrop-blur-sm flex items-center justify-center text-background hover:bg-foreground/80 transition-colors"
+                      className="w-10 h-10 rounded-full bg-foreground/60 flex items-center justify-center text-background hover:bg-foreground/80 transition-colors"
                     >
                       {mutedStates[index] !== false ? (
                         <VolumeX className="w-5 h-5" />

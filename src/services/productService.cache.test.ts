@@ -38,7 +38,6 @@ vi.mock('@/services/catalogCache', () => ({
 
 vi.mock('@/data/products', () => ({ products: [] }));
 vi.mock('@/utils/adminAuth', () => ({ ensureAdminAuth: vi.fn() }));
-vi.mock('@/services/cloudinaryService', () => ({ cdnImage: (url: string) => url }));
 
 import { invalidateProductCache, productService, resetProductCache } from '@/services/productService';
 

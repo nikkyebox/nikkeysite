@@ -831,7 +831,7 @@ _This is an automated test message_
               <div className="bg-card rounded-2xl border border-border p-3 space-y-4">
                 {tabGroups.map((group) => (
                   <div key={group.title}>
-                    <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">{group.title}</p>
+                    <p className="px-3 mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">{group.title}</p>
                     <div className="space-y-0.5">
                       {group.items.map((item) => {
                         const Icon = item.icon;
@@ -845,7 +845,7 @@ _This is an automated test message_
                             <Icon className="w-4 h-4 shrink-0" />
                             <span className="flex-1 text-left">{item.label}</span>
                             {item.badge ? (
-                              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
                                 {item.badge > 99 ? '99+' : item.badge}
                               </span>
                             ) : null}
@@ -875,7 +875,7 @@ _This is an automated test message_
                         <Icon className="w-3.5 h-3.5" />
                         {item.label}
                         {item.badge ? (
-                          <span className="ml-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                          <span className="ml-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         ) : null}

@@ -159,7 +159,7 @@ const InstallPrompt: React.FC = () => {
 
     // Guia passo a passo iOS
     return (
-      <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-end p-4 animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-[9999] bg-black/70 flex items-end p-4 animate-in fade-in duration-200">
         <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-purple-400 to-purple-400" />
           <div className="p-5">
@@ -210,7 +210,7 @@ const InstallPrompt: React.FC = () => {
 
         {/* Seta apontando para a barra inferior (onde fica o botão Compartilhar no Safari) */}
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-white text-center">
-          <div className="text-3xl animate-bounce">↓</div>
+          <div className="text-3xl">↓</div>
           <p className="text-xs bg-black/60 px-3 py-1 rounded-full mt-1">{t('install.ios.safariBar')}</p>
         </div>
       </div>

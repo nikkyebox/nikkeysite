@@ -188,7 +188,7 @@ const Business: React.FC = () => {
                         form.shipping === opt.value ? 'border-primary bg-primary/5' : 'border-border hover:border-gray-300'
                       }`}>
                       <div className="flex items-center gap-2 text-primary mb-1">{opt.icon}<span className="font-semibold text-sm text-foreground">{t(opt.labelKey)}</span></div>
-                      <p className="text-[11px] text-muted-foreground leading-snug">{t(opt.descKey)}</p>
+                      <p className="text-xs text-muted-foreground leading-snug">{t(opt.descKey)}</p>
                     </button>
                   ))}
                 </div>

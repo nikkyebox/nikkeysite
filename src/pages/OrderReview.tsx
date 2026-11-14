@@ -529,7 +529,7 @@ const OrderReview: React.FC = () => {
                     <div className="flex justify-between text-green-600 font-bold bg-green-50/50 p-2 rounded border border-dashed border-green-200">
                       <span className="flex items-center gap-2">
                         {t('review.couponDiscount')} {appliedCoupon ? `(${appliedCoupon.code})` : ''}
-                        <button type="button" onClick={() => { setCouponDiscount(0); setAppliedCoupon(null); }} className="text-[10px] text-red-400 hover:text-red-600 underline font-normal print:hidden">{t('review.remove')}</button>
+                        <button type="button" onClick={() => { setCouponDiscount(0); setAppliedCoupon(null); }} className="text-xs text-red-400 hover:text-red-600 underline font-normal print:hidden">{t('review.remove')}</button>
                       </span>
                       <span>-{formatPrice(couponDiscount, currency)}</span>
                     </div>
@@ -542,7 +542,7 @@ const OrderReview: React.FC = () => {
                         <span className="text-sm font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1.5">
                           <Sparkles className="w-4 h-4" /> {t('review.usePoints')} ({availablePoints} {t('review.available')})
                         </span>
-                        <span className="text-[11px] text-purple-700">{t('review.pointRate')}</span>
+                        <span className="text-xs text-purple-700">{t('review.pointRate')}</span>
                       </div>
                       <>
                         {pointsCoverAllProducts && psFeeDiscountYen > 0 && (
@@ -566,7 +566,7 @@ const OrderReview: React.FC = () => {
                               className="text-xs text-muted-foreground hover:underline ml-auto">{t('review.clear')}</button>
                           )}
                         </div>
-                        <p className="text-[11px] text-purple-700 mt-1.5">
+                        <p className="text-xs text-purple-700 mt-1.5">
                           {t('review.pointsOnlyProducts')}
                         </p>
                       </>
@@ -583,7 +583,7 @@ const OrderReview: React.FC = () => {
                   {user && earnedPoints > 0 && (
                     <div className="flex justify-between text-green-700 text-xs bg-green-50/60 p-2 rounded">
                       <span className="flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" /> {t('review.willEarn')}</span>
-                      <span className="font-bold">+{earnedPoints} {t('review.ptsAbbr')}{pointsMultiplier > 1 && <span className="ml-1 inline-block bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">x{pointsMultiplier}</span>}</span>
+                      <span className="font-bold">+{earnedPoints} {t('review.ptsAbbr')}{pointsMultiplier > 1 && <span className="ml-1 inline-block bg-green-600 text-white px-2 py-0.5 rounded text-xs font-bold">x{pointsMultiplier}</span>}</span>
                     </div>
                   )}
 
@@ -594,7 +594,7 @@ const OrderReview: React.FC = () => {
                         <span>{taxLabel}</span>
                         <span>{formatPrice(estimatedTax, currency)}</span>
                       </div>
-                      <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
+                      <p className="text-xs text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                         ⚠️ <strong>{t('review.noteLabel')}</strong> {t('review.taxNote')}
                       </p>
                     </div>
@@ -605,7 +605,7 @@ const OrderReview: React.FC = () => {
                     <span>{formatPrice(finalShippingCost, currency)}</span>
                   </div>
 
-                  <div className="text-[10px] text-gray-400 text-right">
+                  <div className="text-xs text-gray-400 text-right">
                     {isJapan ? t('review.domesticShipNote') : t('review.intlShipNote').replace('{country}', formData.country)} {t('review.estDelivery')} {shipping.estimatedDays} {t('review.bizDays')}
                   </div>
 
@@ -633,14 +633,14 @@ const OrderReview: React.FC = () => {
                         <span>{t('review.importDuty')}</span>
                         <span>{formatPrice(importDutyDisplay, currency)}</span>
                       </div>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{t('review.importDutyNote')}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{t('review.importDutyNote')}</p>
                     </div>
                   )}
 
                   {/* PIX direto: IOF + tarifa do banco, somados ao total cobrado. */}
                   {isPix && pixIofFee + pixBankFee > 0 && (
                     <div className="space-y-1 text-muted-foreground">
-                      <p className="text-[11px] font-semibold">{t('review.pixFeesTitle')}</p>
+                      <p className="text-xs font-semibold">{t('review.pixFeesTitle')}</p>
                       <div className="flex justify-between">
                         <span>{t('review.iof')}</span>
                         <span>{formatPrice(pixIofFee, currency)}</span>
@@ -810,7 +810,7 @@ const OrderReview: React.FC = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <CreditCard className="w-5 h-5 text-gray-400" />
                               <span className="font-bold text-base text-gray-600">{t('review.creditCard')}</span>
-                              <span className="text-[10px] bg-gray-400 text-white font-extrabold px-2 py-0.5 rounded-full uppercase">{t('review.maintenance')}</span>
+                              <span className="text-xs bg-gray-400 text-white font-extrabold px-2 py-0.5 rounded-full uppercase">{t('review.maintenance')}</span>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
                               {t('review.cardMaint')}
@@ -903,7 +903,7 @@ const OrderReview: React.FC = () => {
                       )}
 
                       {estimatedTax > 0 && (
-                        <p className="text-[10px] text-purple-600 bg-purple-50 rounded px-2 py-1 leading-snug">
+                        <p className="text-xs text-purple-600 bg-purple-50 rounded px-2 py-1 leading-snug">
                           ⚠️ {taxLabel} ~{formatPrice(estimatedTax, currency)} ({t('review.taxNotIncluded')})
                         </p>
                       )}
@@ -928,14 +928,14 @@ const OrderReview: React.FC = () => {
                       {user && earnedPoints > 0 && (
                         <div className="flex justify-center gap-1 text-green-700 text-xs mt-3 bg-green-50 rounded-lg py-2">
                           <Sparkles className="w-3.5 h-3.5 mt-0.5" />
-                          <span>+{earnedPoints} {t('review.pointsAfter')}{pointsMultiplier > 1 && <span className="ml-1 inline-block bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">x{pointsMultiplier}</span>}</span>
+                          <span>+{earnedPoints} {t('review.pointsAfter')}{pointsMultiplier > 1 && <span className="ml-1 inline-block bg-green-600 text-white px-2 py-0.5 rounded text-xs font-bold">x{pointsMultiplier}</span>}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Selos de segurança compactos */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-green-700 print:hidden">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-green-700 print:hidden">
                     <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                       <span>🔒</span><span className="font-semibold">{t('review.secHttps')}</span>
                     </div>
@@ -977,7 +977,7 @@ const OrderReview: React.FC = () => {
         const whatsappLink = waPhone ? `https://wa.me/${waPhone}?text=${waMessage}` : '';
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="bg-white dark:bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-5 border-b">
                 <h2 className="font-bold text-lg text-foreground">{t('review.payModalTitle')}</h2>

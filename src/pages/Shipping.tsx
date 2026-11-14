@@ -410,7 +410,7 @@ const Shipping: React.FC = () => {
                     </label>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground font-semibold">{t('shippingPage.height')}</span>
+                        <span className="text-xs text-muted-foreground font-semibold">{t('shippingPage.height')}</span>
                         <input
                           type="text"
                           inputMode="decimal"
@@ -420,7 +420,7 @@ const Shipping: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground font-semibold">{t('shippingPage.width')}</span>
+                        <span className="text-xs text-muted-foreground font-semibold">{t('shippingPage.width')}</span>
                         <input
                           type="text"
                           inputMode="decimal"
@@ -430,7 +430,7 @@ const Shipping: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground font-semibold">{t('shippingPage.depth')}</span>
+                        <span className="text-xs text-muted-foreground font-semibold">{t('shippingPage.depth')}</span>
                         <input
                           type="text"
                           inputMode="decimal"
@@ -447,21 +447,21 @@ const Shipping: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setBoxPreset(20, 20, 20)}
-                          className="text-[9px] bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
+                          className="text-xs bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
                         >
                           {t('shippingPage.box60only')} (20x20x20)
                         </button>
                         <button
                           type="button"
                           onClick={() => setBoxPreset(30, 25, 25)}
-                          className="text-[9px] bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
+                          className="text-xs bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
                         >
                           {t('shippingPage.box80only')} (30x25x25)
                         </button>
                         <button
                           type="button"
                           onClick={() => setBoxPreset(40, 30, 30)}
-                          className="text-[9px] bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
+                          className="text-xs bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-muted-foreground hover:text-foreground font-semibold"
                         >
                           {t('shippingPage.box100')} (40x30x30)
                         </button>
@@ -523,7 +523,7 @@ const Shipping: React.FC = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {simRates.map((rate) => (
                         <div key={rate.name} className="p-3 bg-secondary/20 rounded-xl border border-border text-center flex flex-col justify-between">
-                          <span className="text-[10px] text-muted-foreground block truncate font-bold">{rate.name}</span>
+                          <span className="text-xs text-muted-foreground block truncate font-bold">{rate.name}</span>
                           {rate.combinar ? (
                             <span className="text-sm font-black text-amber-600 dark:text-amber-400 block mt-1">{t('calc.toBeAgreed')}</span>
                           ) : rate.consultar || rate.cost === null ? (
@@ -531,7 +531,7 @@ const Shipping: React.FC = () => {
                           ) : (
                             <span className="text-base font-black text-primary block mt-1">{formatPrice(rate.cost as number, currency)}</span>
                           )}
-                          <span className="text-[9px] text-muted-foreground block mt-0.5">{t('shippingPage.deadline')} {rate.time}</span>
+                          <span className="text-xs text-muted-foreground block mt-0.5">{t('shippingPage.deadline')} {rate.time}</span>
                         </div>
                       ))}
                     </div>
@@ -548,7 +548,7 @@ const Shipping: React.FC = () => {
                       </span>
                       <span>{formatPrice(simTax.total, currency)}</span>
                     </div>
-                    <p className="text-[10px] text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
+                    <p className="text-xs text-purple-700 dark:text-purple-400 leading-relaxed font-semibold">
                       ⚠️ {t('shippingPage.notaFiscal')}
                     </p>
                   </div>
@@ -605,7 +605,7 @@ const Shipping: React.FC = () => {
                         <span>{t('shippingPage.taxAtCheckout')}</span>
                         <span className="text-green-600">€ 0.00</span>
                       </div>
-                      <p className="text-[10px] pl-2 border-l-2 border-border">
+                      <p className="text-xs pl-2 border-l-2 border-border">
                         {t('shippingPage.youPayOnly')}
                       </p>
 
@@ -613,7 +613,7 @@ const Shipping: React.FC = () => {
                         <span>{t('shippingPage.localCustoms')}</span>
                         <span className="text-blue-600">{t('shippingPage.vatPlusFees')}</span>
                       </div>
-                      <p className="text-[10px] pl-2 border-l-2 border-border">
+                      <p className="text-xs pl-2 border-l-2 border-border">
                         {t('shippingPage.euArrivalText')}
                       </p>
                     </div>
@@ -639,7 +639,7 @@ const Shipping: React.FC = () => {
                         <span>{t('shippingPage.consumptionTax')}</span>
                         <span className="text-emerald-600">{t('shippingPage.included10')}</span>
                       </div>
-                      <p className="text-[10px] pl-2 border-l-2 border-border">
+                      <p className="text-xs pl-2 border-l-2 border-border">
                         {t('shippingPage.jpTaxIncluded')}
                       </p>
                     </div>
@@ -652,7 +652,7 @@ const Shipping: React.FC = () => {
                 <h3 className="font-display text-lg font-bold text-foreground">
                   {t('shippingPage.sampleRates')} ({country})
                 </h3>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {t('shippingPage.sampleNote')}
                 </p>
                 <div className="space-y-3">
@@ -670,20 +670,20 @@ const Shipping: React.FC = () => {
                       
                       <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-border/80 text-xs">
                         <div className="bg-secondary/40 p-2 rounded-lg text-center">
-                          <span className="text-muted-foreground block text-[10px]">{carrier.consultar ? t('shippingPage.box60only') : t('shippingPage.avgBox60')}</span>
+                          <span className="text-muted-foreground block text-xs">{carrier.consultar ? t('shippingPage.box60only') : t('shippingPage.avgBox60')}</span>
                           <span className={cn("font-sans font-black text-sm", carrier.combinar ? "text-amber-600 dark:text-amber-400" : "text-primary")}>
                             {carrier.combinar ? t('calc.toBeAgreed') : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate60, currency)}
                           </span>
                         </div>
                         <div className="bg-secondary/40 p-2 rounded-lg text-center">
-                          <span className="text-muted-foreground block text-[10px]">{carrier.consultar ? t('shippingPage.box80only') : t('shippingPage.avgBox80')}</span>
+                          <span className="text-muted-foreground block text-xs">{carrier.consultar ? t('shippingPage.box80only') : t('shippingPage.avgBox80')}</span>
                           <span className={cn("font-sans font-black text-sm", carrier.combinar ? "text-amber-600 dark:text-amber-400" : "text-primary")}>
                             {carrier.combinar ? t('calc.toBeAgreed') : carrier.consultar ? t('shippingPage.consultar') : formatPrice(carrier.rate80, currency)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                         {t('shippingPage.estDeadline')} <span className="font-semibold text-foreground">{carrier.time}</span>
                       </div>

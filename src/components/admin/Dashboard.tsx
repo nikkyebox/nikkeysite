@@ -291,7 +291,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Total de Pedidos</p>
               <p className="text-2xl font-bold">{stats.totalOrders}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Este mês: {stats.ordersThisMonth}</p>
+              <p className="text-xs text-muted-foreground mt-1">Este mês: {stats.ordersThisMonth}</p>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5">
@@ -300,7 +300,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Pendentes</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.pendingOrders}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Aguardando ação</p>
+              <p className="text-xs text-muted-foreground mt-1">Aguardando ação</p>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5">
@@ -309,7 +309,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Taxa de Entrega</p>
               <p className="text-2xl font-bold">{deliveryRate}%</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{stats.deliveredOrders} de {stats.totalOrders} entregues</p>
+              <p className="text-xs text-muted-foreground mt-1">{stats.deliveredOrders} de {stats.totalOrders} entregues</p>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5">
@@ -318,7 +318,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Enviados</p>
               <p className="text-2xl font-bold text-purple-600">{stats.shippedOrders}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Em trânsito</p>
+              <p className="text-xs text-muted-foreground mt-1">Em trânsito</p>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5">
@@ -327,7 +327,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Cancelados</p>
               <p className="text-2xl font-bold">{stats.cancelledOrders}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Total cancelado</p>
+              <p className="text-xs text-muted-foreground mt-1">Total cancelado</p>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5">
@@ -336,7 +336,7 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mb-0.5">Ticket Médio</p>
               <p className="text-2xl font-bold">¥{avgTicket.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Receita / pedidos</p>
+              <p className="text-xs text-muted-foreground mt-1">Receita / pedidos</p>
             </div>
           </div>
 
@@ -374,7 +374,7 @@ const Dashboard: React.FC = () => {
             </div>
             <p className="text-xs text-muted-foreground mb-0.5">Receita Total (c/ frete)</p>
             <p className="text-2xl font-bold">¥{finance.receitaComFrete.toLocaleString()}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">Este mês: ¥{stats.revenueThisMonth.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">Este mês: ¥{stats.revenueThisMonth.toLocaleString()}</p>
           </div>
 
           {/* Breakdown: Produto vs PS vs Frete */}
@@ -382,17 +382,17 @@ const Dashboard: React.FC = () => {
             <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl border border-purple-200 dark:border-purple-800 p-4">
               <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-1">🛒 Receita Produto</p>
               <p className="text-xl font-bold text-purple-700 dark:text-purple-300">¥{finance.receitaProduto.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">S/ frete e s/ PS</p>
+              <p className="text-xs text-muted-foreground mt-1">S/ frete e s/ PS</p>
             </div>
             <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-800 p-4">
               <p className="text-xs font-semibold text-orange-700 dark:text-orange-400 mb-1">🛍️ Taxa Personal Shopper</p>
               <p className="text-xl font-bold text-orange-700 dark:text-orange-300">¥{finance.receitaPS.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">¥1.000/item</p>
+              <p className="text-xs text-muted-foreground mt-1">¥1.000/item</p>
             </div>
             <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
               <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">🚚 Frete</p>
               <p className="text-xl font-bold text-blue-700 dark:text-blue-300">¥{Math.max(finance.receitaComFrete - finance.receitaSemFrete, 0).toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Não é lucro</p>
+              <p className="text-xs text-muted-foreground mt-1">Não é lucro</p>
             </div>
           </div>
 
@@ -401,12 +401,12 @@ const Dashboard: React.FC = () => {
             <div className="bg-card rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground mb-1">Custo dos Produtos</p>
               <p className="text-xl font-bold text-gray-500">¥{finance.custo.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Quanto você pagou</p>
+              <p className="text-xs text-muted-foreground mt-1">Quanto você pagou</p>
             </div>
             <div className="bg-card rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground mb-1">Lucro Bruto</p>
               <p className={`text-xl font-bold ${finance.lucro >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>¥{finance.lucro.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Produto + PS − Custo</p>
+              <p className="text-xs text-muted-foreground mt-1">Produto + PS − Custo</p>
             </div>
           </div>
 
@@ -415,7 +415,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-card rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground mb-1">Comissões Afiliados</p>
               <p className="text-xl font-bold text-orange-500">−¥{(finance.comissoesYen + finance.comissoesConfirmYen).toLocaleString()}</p>
-              <div className="text-[11px] text-muted-foreground mt-1 space-y-0.5">
+              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                 {finance.comissoesConfirmYen > 0 && <p>Liberadas: ¥{finance.comissoesConfirmYen.toLocaleString()}</p>}
                 {finance.comissoesYen > 0 && <p>A liberar: ¥{finance.comissoesYen.toLocaleString()}</p>}
               </div>
@@ -431,7 +431,7 @@ const Dashboard: React.FC = () => {
               {finance.marketingBRL === 0 && finance.marketingJPY === 0 && (
                 <p className="text-xl font-bold text-blue-500">−R$ 0,00</p>
               )}
-              <p className="text-[11px] text-muted-foreground mt-1">Ads + influencers</p>
+              <p className="text-xs text-muted-foreground mt-1">Ads + influencers</p>
             </div>
             <div className="bg-card rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground mb-1">Salários</p>
@@ -441,7 +441,7 @@ const Dashboard: React.FC = () => {
                 {finance.salariosJPY > 0 && `−¥${finance.salariosJPY.toLocaleString()}`}
                 {finance.salariosBRL === 0 && finance.salariosJPY === 0 && '¥0'}
               </p>
-              <p className="text-[11px] text-muted-foreground mt-1">Funcionários</p>
+              <p className="text-xs text-muted-foreground mt-1">Funcionários</p>
             </div>
           </div>
 
@@ -450,7 +450,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-800 p-4">
               <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">🏷️ Descontos Concedidos (cupons) — informativo</p>
               <p className="text-xl font-bold text-amber-700 dark:text-amber-300">≈¥{finance.descontosCupomYen.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Receita que deixou de entrar por cupons. Não afeta o lucro líquido.</p>
+              <p className="text-xs text-muted-foreground mt-1">Receita que deixou de entrar por cupons. Não afeta o lucro líquido.</p>
             </div>
           )}
 
@@ -468,7 +468,7 @@ const Dashboard: React.FC = () => {
                     <p className={`text-3xl font-bold ${finance.lucroLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       ¥{finance.lucroLiquido.toLocaleString()}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       (Produto + PS) − Custo − Afiliados − Marketing − Salários
                     </p>
                   </div>

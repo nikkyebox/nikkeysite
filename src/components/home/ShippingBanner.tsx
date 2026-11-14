@@ -1,67 +1,48 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, MapPin, Package, Clock } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, Package, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/LanguageContext';
 
+const FEATURES = [
+  { icon: Truck, titleKey: 'shippingBanner.carrier1.title', descKey: 'shippingBanner.carrier1.desc' },
+  { icon: MapPin, titleKey: 'shippingBanner.carrier2.title', descKey: 'shippingBanner.carrier2.desc' },
+  { icon: Package, titleKey: 'shippingBanner.carrier3.title', descKey: 'shippingBanner.carrier3.desc' },
+  { icon: Clock, titleKey: 'shippingBanner.carrier4.title', descKey: 'shippingBanner.carrier4.desc' },
+] as const;
+
+/** Frete internacional: superfície neutra (L1) com o roxo só no ícone e no CTA. */
 const ShippingBanner: React.FC = () => {
   const { t } = useLanguage();
 
-  const features = [
-    { icon: Truck, titleKey: 'shippingBanner.carrier1.title', descKey: 'shippingBanner.carrier1.desc' },
-    { icon: MapPin, titleKey: 'shippingBanner.carrier2.title', descKey: 'shippingBanner.carrier2.desc' },
-    { icon: Package, titleKey: 'shippingBanner.carrier3.title', descKey: 'shippingBanner.carrier3.desc' },
-    { icon: Clock, titleKey: 'shippingBanner.carrier4.title', descKey: 'shippingBanner.carrier4.desc' },
-  ];
-
   return (
-    <section className="py-20 gradient-caramel text-primary-foreground relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full" 
-          style={{ 
-            backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }} 
-        />
-      </div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-12">
-          <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-            {t('shipping.title')}
-          </h2>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto text-lg">
-            {t('shipping.subtitle')}
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {features.map((feature, index) => (
-            <div 
-              key={feature.titleKey}
-              className="bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-6 text-center hover:bg-primary-foreground/15 transition-colors"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="w-14 h-14 rounded-full bg-primary-foreground/20 flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="w-7 h-7" />
-              </div>
-              <h3 className="font-display text-lg font-semibold mb-1">
-                {t(feature.titleKey)}
-              </h3>
-              <p className="text-sm text-primary-foreground/70">
-                {t(feature.descKey)}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Button asChild size="lg" variant="secondary" className="rounded-full px-8 text-base font-semibold">
+    <section className="border-y border-border bg-muted/40 py-16" aria-labelledby="shipping-banner-title">
+      <div className="container mx-auto px-4">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <h2 id="shipping-banner-title" className="font-display text-3xl font-semibold tracking-tight lg:text-4xl">
+              {t('shipping.title')}
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-muted-foreground">{t('shipping.subtitle')}</p>
+          </div>
+          <Button asChild size="lg" className="shrink-0 gap-2 self-start md:self-auto">
             <Link to="/frete">
-              {t('shippingBanner.cta')}
+              {t('shippingBanner.cta')} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
         </div>
+
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ icon: Icon, titleKey, descKey }) => (
+            <li key={titleKey} className="rounded-lg border border-border bg-background p-5">
+              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h3 className="text-base font-semibold">{t(titleKey)}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t(descKey)}</p>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

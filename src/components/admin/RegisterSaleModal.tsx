@@ -212,7 +212,7 @@ const RegisterSaleModal: React.FC<Props> = ({ request, adminName, onClose, onReg
               </select>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground -mt-2">
+          <p className="text-xs text-muted-foreground -mt-2">
             Os valores são digitados em ienes (¥). A moeda escolhida é só para exibir a conversão ao cliente.
           </p>
 

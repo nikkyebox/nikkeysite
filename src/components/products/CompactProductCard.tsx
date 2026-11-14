@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Heart, Plus, Star } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -12,27 +12,36 @@ import { formatPrice, getCurrencyByCountry } from '@/utils/currency';
 import { effectiveYen, baseYen, hasDiscount, getVariants } from '@/utils/pricing';
 import { convertYen as fxConvert } from '@/services/fxService';
 import { productEnglishName } from '@/utils/productName';
-import { cdnVideo } from '@/services/cloudinaryService';
 
 interface CompactProductCardProps {
   product: Product;
 }
 
 /** Formata contagem grande de forma compacta (ex: 1234 -> "1.2K"). */
-const formatCount = (n: number): string => {
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K`;
-  return String(n);
+const formatCount = (n: number): string => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K` : String(n));
+
+/** `formatPrice` devolve "R$ 154 (¥ 4,250)". Só separa para exibir em duas
+ *  linhas — nenhum cálculo muda aqui. */
+const splitPrice = (s: string): [string, string | null] => {
+  const at = s.indexOf(' (');
+  return at < 0 ? [s, null] : [s.slice(0, at), s.slice(at + 2, -1)];
 };
 
-/** Card denso estilo Temu: só imagem, nome, preço e ações mínimas — para grades com muitos itens por linha. */
+const iconBtn =
+  'flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+/**
+ * Card de produto da grade. A área de imagem + nome é um <Link> de verdade
+ * (abre em nova aba, leitor de tela anuncia link); favoritar e adicionar ao
+ * carrinho são botões irmãos — nada interativo aninhado em outro interativo.
+ */
 const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
-  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { user } = useUser();
   const { toast } = useToast();
   const { t, selectedCountry } = useLanguage();
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState(false);
 
   useEffect(() => {
     if (user?.email) setIsFavorite(wishlistService.isInWishlist(user.email, product.id));
@@ -44,17 +53,18 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
   const convertYen = (yen: number) => fxConvert(yen, currency);
 
   const promoActive = hasDiscount(product);
-  const priceYen = effectiveYen(product, firstVariant?.id || 'small');
-  const originalPriceYen = baseYen(product, firstVariant?.id || 'small');
-  const price = convertYen(priceYen);
-  const originalPrice = convertYen(originalPriceYen);
-  const isSoldOut = product.stock && !product.stock.unlimited && product.stock.quantity === 0;
+  const price = convertYen(effectiveYen(product, firstVariant?.id || 'small'));
+  const originalPrice = convertYen(baseYen(product, firstVariant?.id || 'small'));
+  const isSoldOut = Boolean(product.stock && !product.stock.unlimited && product.stock.quantity === 0);
   const name = productEnglishName(product);
+  const [priceMain, priceRef] = splitPrice(formatPrice(price, currency));
+  const href = `/produto/${product.id}`;
+  const poster = product.thumbnail || product.image;
+  const showVideo = Boolean(product.video && (product.videoCover || previewVideo));
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleFavorite = () => {
     if (!user?.email) {
-      toast({ title: t('card.loginFav'), variant: 'destructive' });
+      toast({ title: t('card.loginFav') });
       return;
     }
     if (isFavorite) {
@@ -71,141 +81,113 @@ const CompactProductCard: React.FC<CompactProductCardProps> = ({ product }) => {
     }
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleAddToCart = () => {
     if (isSoldOut) return;
     addToCart(product, firstVariant?.id || 'small', 1, firstVariant?.label);
     toast({ title: t('promo.addedTitle'), description: name });
   };
 
   return (
-    <article
-      onClick={() => navigate(`/produto/${product.id}`)}
-      onKeyDown={(event) => {
-        if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
-          event.preventDefault();
-          navigate(`/produto/${product.id}`);
-        }
-      }}
-      role="link"
-      tabIndex={0}
-      aria-label={`${name} — ${formatPrice(price, currency)}`}
-      className="product-depth-card group cursor-pointer overflow-hidden rounded-2xl border border-purple-100/80 bg-white shadow-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-2xl hover:shadow-purple-200/40 flex flex-col"
-    >
-      <div
-        className="aspect-square bg-gradient-to-br from-white via-purple-50/35 to-purple-50/50 relative overflow-hidden"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors duration-150 focus-within:border-primary/40 hover:border-primary/40">
+      <Link
+        to={href}
+        className="flex flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        onMouseEnter={() => product.video && setPreviewVideo(true)}
+        onMouseLeave={() => setPreviewVideo(false)}
       >
-        {product.video && product.videoCover ? (
-          /* Vídeo é a capa — toca direto, sem precisar de hover. Poster cobre
-             até o vídeo carregar. Passa por `cdnVideo`: o card tem ~300px, mas
-             o arquivo original tem 2,4 MB e era baixado inteiro na home. */
-          <video
-            key={product.video}
-            src={cdnVideo(product.video, 480)}
-            poster={product.thumbnail || product.image}
-            preload="none"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-            onError={(e) => { (e.target as HTMLVideoElement).style.display = 'none'; }}
-          />
-        ) : product.video ? (
-          <>
-            {/* Poster sempre visível — vídeo só carrega/toca no hover para não travar a página */}
+        <div className="relative aspect-square overflow-hidden bg-muted/40">
+          {poster && (
             <img
-              src={product.thumbnail || product.image}
-              alt={name}
+              src={poster}
+              alt=""
               loading="lazy"
-              className={`absolute inset-0 w-full h-full object-contain p-3 group-hover:scale-[1.04] transition-all duration-500 ${isHovered ? 'opacity-0' : 'opacity-100'}`}
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-contain p-3 transition-transform duration-200 ease-out motion-safe:group-hover:scale-[1.03]"
             />
-            {isHovered && (
-              <video
-                key={product.video}
-                src={cdnVideo(product.video, 480)}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(e) => { (e.target as HTMLVideoElement).style.display = 'none'; }}
-              />
-            )}
-          </>
-        ) : (
-          <img
-            src={product.thumbnail || product.image}
-            alt={name}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-contain p-3 group-hover:scale-[1.06] group-hover:-rotate-1 transition-transform duration-500"
-          />
-        )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true" />
-        {promoActive && (
-          <span className="absolute left-2 top-2 rounded-lg bg-gradient-to-r from-red-500 to-primary px-2 py-1 text-[10px] font-black text-white shadow-md">
-            -{product.discountPercent}%
-          </span>
-        )}
-        <button
-          onClick={handleToggleFavorite}
-          className={cn(
-            'absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-xl backdrop-blur-md transition-all duration-300',
-            isFavorite
-              ? 'bg-primary text-white shadow-lg shadow-primary/25'
-              : 'bg-white/85 text-slate-500 shadow-sm ring-1 ring-white/80 hover:scale-105 hover:text-primary'
           )}
-          aria-label={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
-        >
-          <Heart className={cn('w-4 h-4', isFavorite && 'fill-current')} />
-        </button>
-        {isSoldOut && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-[11px] font-black text-red-600">{t('product.outOfStock')}</span>
-          </div>
+          {showVideo && (
+            <video
+              key={product.video}
+              src={product.video}
+              poster={poster}
+              preload="none"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+              onError={(e) => { (e.target as HTMLVideoElement).style.display = 'none'; }}
+            />
+          )}
+          {promoActive && (
+            <span className="absolute left-2 top-2 rounded-md bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground tabular-nums">
+              -{product.discountPercent}%
+            </span>
+          )}
+          {isSoldOut && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+              <span className="rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground">{t('product.outOfStock')}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-1 flex-col px-3 pt-3">
+          <h3 className="min-h-[2.75em] text-sm font-medium leading-snug text-foreground line-clamp-2">{name}</h3>
+          {product.rating || product.salesCount ? (
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              {product.rating ? (
+                <>
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
+                  <span className="tabular-nums">{product.rating.toFixed(1)}</span>
+                </>
+              ) : null}
+              {product.rating && product.salesCount ? <span aria-hidden="true">·</span> : null}
+              {product.salesCount ? <span>{formatCount(product.salesCount)} {t('promo.sold')}</span> : null}
+            </p>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="flex items-end justify-between gap-1 px-3 pb-3 pt-2">
+        <div className="min-w-0">
+          <p className={cn('whitespace-nowrap text-base font-semibold leading-tight tabular-nums', promoActive ? 'text-destructive' : 'text-foreground')}>
+            {priceMain}
+          </p>
+          {priceRef && <p className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">{priceRef}</p>}
+          {promoActive && (
+            <p className="whitespace-nowrap text-xs text-muted-foreground line-through tabular-nums">
+              {splitPrice(formatPrice(originalPrice, currency))[0]}
+            </p>
+          )}
+        </div>
+        {!isSoldOut && (
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className={cn(iconBtn, '-mr-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90')}
+            aria-label={`${t('product.addToCart')}: ${name}`}
+            title={t('product.addToCart')}
+          >
+            <Plus className="h-5 w-5" aria-hidden="true" />
+          </button>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-3 sm:p-3.5">
-        <p className="mb-1.5 min-h-[2.5em] text-[13px] font-bold leading-snug text-slate-700 line-clamp-2">{name}</p>
-        {(product.rating || product.salesCount) ? (
-          <div className="mb-2 flex items-center gap-1 text-[10px] text-slate-500">
-            {product.rating ? (
-              <span className="flex items-center gap-0.5 text-amber-500 font-bold">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                {product.rating.toFixed(1)}
-              </span>
-            ) : null}
-            {product.rating && product.salesCount ? <span className="text-gray-300">·</span> : null}
-            {product.salesCount ? <span>{formatCount(product.salesCount)} {t('promo.sold')}</span> : null}
-          </div>
-        ) : (
-          <div className="mb-1.5" />
+      <button
+        type="button"
+        onClick={handleToggleFavorite}
+        aria-pressed={isFavorite}
+        className={cn(
+          iconBtn,
+          'absolute right-1 top-1 bg-background/90 hover:text-primary',
+          isFavorite ? 'text-primary' : 'text-muted-foreground',
         )}
-        <div className="mt-auto flex items-end justify-between gap-1">
-          <div>
-            <p className={cn('text-base font-black leading-none tracking-tight', promoActive ? 'text-red-600' : 'text-purple-600')}>
-              {formatPrice(price, currency)}
-            </p>
-            {promoActive && (
-              <p className="text-[10px] text-gray-400 line-through leading-none mt-1">
-                {formatPrice(originalPrice, currency)}
-              </p>
-            )}
-          </div>
-          {!isSoldOut && (
-            <button
-              onClick={handleAddToCart}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary text-white shadow-md shadow-primary/20 transition-all duration-300 hover:scale-105 hover:rotate-3 hover:shadow-lg"
-              aria-label={t('product.addToCart')}
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+        aria-label={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
+        title={isFavorite ? t('card.aria.removeFav') : t('card.aria.addFav')}
+      >
+        <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} aria-hidden="true" />
+      </button>
     </article>
   );
 };

@@ -113,28 +113,19 @@ describe('classifyMerchantProduct', () => {
 });
 
 describe('merchantImagesForProduct', () => {
-  it('gera JPG público, remove duplicatas e mantém imagens adicionais', () => {
-    const front = 'https://res.cloudinary.com/demo/image/upload/f_auto,q_95,c_limit/v1/front.webp';
+  const bucket = (nome) => `https://firebasestorage.googleapis.com/v0/b/nikkeybox.firebasestorage.app/o/products%2Fp1%2F${nome}?alt=media&token=t`;
+
+  it('mantém URL pública do Storage, remove duplicatas e descarta base64', () => {
+    const front = bucket('front.jpg');
     expect(merchantImagesForProduct({
       image: front,
-      gallery: [
-        front,
-        'https://res.cloudinary.com/demo/image/upload/f_auto,q_95,c_limit/v1/back.webp',
-        'data:image/png;base64,abc',
-      ],
-      thumbnail: 'https://res.cloudinary.com/demo/image/upload/f_jpg,w_300/v1/front-thumb.jpg',
-    })).toEqual([
-      'https://res.cloudinary.com/demo/image/upload/f_jpg,q_auto:best/v1/front.jpg',
-      'https://res.cloudinary.com/demo/image/upload/f_jpg,q_auto:best/v1/back.jpg',
-    ]);
+      gallery: [front, bucket('back.jpg'), 'data:image/png;base64,abc'],
+      thumbnail: bucket('front-thumb.jpg'),
+    })).toEqual([front, bucket('back.jpg')]);
   });
 
   it('usa o thumbnail apenas quando não existe imagem completa', () => {
-    expect(merchantImagesForProduct({
-      thumbnail: 'https://res.cloudinary.com/demo/image/upload/f_auto,w_300/v1/thumb.webp',
-    })).toEqual([
-      'https://res.cloudinary.com/demo/image/upload/f_jpg,q_auto:best/v1/thumb.jpg',
-    ]);
+    expect(merchantImagesForProduct({ thumbnail: bucket('thumb.jpg') })).toEqual([bucket('thumb.jpg')]);
   });
 });
 
